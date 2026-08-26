@@ -1,0 +1,6 @@
+{
+  "name": "CalliQ AI - ATS Platform",
+  "description": "AI-powered Multi-Recruiter ATS Platform for Job Management and Candidate CV Evaluation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

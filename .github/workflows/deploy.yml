@@ -1,0 +1,85 @@
+name: Build and Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build & Verify Codebase
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Type Check & Verification
+        run: npm run lint
+
+      - name: Build Application Bundle
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+  deploy:
+    name: Deploy to Production Server
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        run: |
+          docker build -t recruitment-app:latest .
+
+      # SSH Deployment to Server (Configured via GitHub Repository Secrets)
+      - name: Deploy via SSH to Server
+        uses: appleboy/ssh-action@v1.0.3
+        if: ${{ secrets.SERVER_HOST != '' && secrets.SERVER_USER != '' && secrets.SSH_PRIVATE_KEY != '' }}
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            # Navigate to application directory
+            cd /app/ai-recruitment-platform || cd ~/ai-recruitment-platform || mkdir -p ~/ai-recruitment-platform && cd ~/ai-recruitment-platform
+            
+            # Pull latest changes from git
+            git pull origin main
+            
+            # Create/update .env file with secrets
+            cat << 'EOF' > .env
+            PORT=3000
+            NODE_ENV=production
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+            EOF
+            
+            # Rebuild and restart container
+            docker build -t recruitment-app:latest .
+            docker stop recruitment-service || true
+            docker rm recruitment-service || true
+            docker run -d \
+              --name recruitment-service \
+              --restart always \
+              -p 3000:3000 \
+              --env-file .env \
+              recruitment-app:latest

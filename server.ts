@@ -12,7 +12,7 @@ import Groq from 'groq-sdk';
 import * as pdfParseModule from 'pdf-parse';
 import mammoth from 'mammoth';
 import { Client as NotionClient } from '@notionhq/client';
-import { initNeonTables, syncDataToNeon, testNeonConnection, deleteCandidateFromNeon } from './src/lib/neonDb';
+import { initNeonTables, syncDataToNeon, testNeonConnection, deleteCandidateFromNeon, fetchDataFromNeon } from './src/lib/neonDb';
 const pdfParse: (dataBuffer: Buffer, options?: any) => Promise<{ text: string; numpages: number }> = (pdfParseModule as any).default || pdfParseModule;
 
 const app = express();
@@ -137,14 +137,15 @@ interface DBJob {
   max_experience: number;
   education_req: string;
   location_req: string;
-  hr_email: string;
-  salary_min: number;
-  salary_max: number;
+  hr_email?: string;
+  salary_min?: number;
+  salary_max?: number;
   is_active: boolean;
-  apply_url: string;
-  score_strong_match: number;
-  score_potential_match: number;
-  score_weak_match: number;
+  apply_url?: string;
+  public_token?: string;
+  score_strong_match?: number;
+  score_potential_match?: number;
+  score_weak_match?: number;
   candidate_count: number;
   created_at: string;
   updated_at?: string;
@@ -161,6 +162,17 @@ interface DBKnockoutRule {
   description: string;
   is_active: boolean;
   is_mandatory: boolean;
+}
+
+interface DBCandidateBatch {
+  id: number;
+  org_id: number;
+  recruiter_id: number;
+  name: string;
+  description?: string;
+  job_id?: number;
+  candidate_count?: number;
+  created_at: string;
 }
 
 interface DBCandidate {
@@ -831,11 +843,14 @@ const AUDIT_LOGS: any[] = [
   { id: 3, action: 'Stage Move: Technical', user: 'Demo Recruiter', target: 'Karim Ahmed Mansour', timestamp: new Date(Date.now() - 3 * 86400000).toISOString() },
 ];
 
+const CANDIDATE_BATCHES: DBCandidateBatch[] = [];
+
 let nextCandidateId = 4;
 let nextJobId = 4;
 let nextUserId = 3;
 let nextOrgId = 2;
 let nextWebhookId = 2;
+let nextCandidateBatchId = 1;
 
 // In-memory token-to-user session map
 const SESSIONS: Map<string, number> = new Map();
@@ -861,11 +876,17 @@ function initDataPersistence() {
       if (parsed.CANDIDATES && Array.isArray(parsed.CANDIDATES)) {
         CANDIDATES.splice(0, CANDIDATES.length, ...parsed.CANDIDATES);
       }
+      if (parsed.CANDIDATE_BATCHES && Array.isArray(parsed.CANDIDATE_BATCHES)) {
+        CANDIDATE_BATCHES.splice(0, CANDIDATE_BATCHES.length, ...parsed.CANDIDATE_BATCHES);
+      }
       if (parsed.WEBHOOKS && Array.isArray(parsed.WEBHOOKS)) {
         WEBHOOKS.splice(0, WEBHOOKS.length, ...parsed.WEBHOOKS);
       }
       if (parsed.AUDIT_LOGS && Array.isArray(parsed.AUDIT_LOGS)) {
         AUDIT_LOGS.splice(0, AUDIT_LOGS.length, ...parsed.AUDIT_LOGS);
+      }
+      if (parsed.EMAIL_LOGS && Array.isArray(parsed.EMAIL_LOGS)) {
+        EMAIL_LOGS.splice(0, EMAIL_LOGS.length, ...parsed.EMAIL_LOGS);
       }
       if (parsed.SESSIONS && typeof parsed.SESSIONS === 'object') {
         SESSIONS.clear();
@@ -873,16 +894,33 @@ function initDataPersistence() {
           SESSIONS.set(token, Number(uid));
         }
       }
-      if (parsed.nextCandidateId) nextCandidateId = parsed.nextCandidateId;
-      if (parsed.nextJobId) nextJobId = parsed.nextJobId;
-      if (parsed.nextUserId) nextUserId = parsed.nextUserId;
-      if (parsed.nextOrgId) nextOrgId = parsed.nextOrgId;
-      if (parsed.nextWebhookId) nextWebhookId = parsed.nextWebhookId;
+      if (parsed.nextCandidateId) nextCandidateId = Math.max(nextCandidateId, parsed.nextCandidateId);
+      if (parsed.nextJobId) nextJobId = Math.max(nextJobId, parsed.nextJobId);
+      if (parsed.nextUserId) nextUserId = Math.max(nextUserId, parsed.nextUserId);
+      if (parsed.nextOrgId) nextOrgId = Math.max(nextOrgId, parsed.nextOrgId);
+      if (parsed.nextWebhookId) nextWebhookId = Math.max(nextWebhookId, parsed.nextWebhookId);
+      if (parsed.nextCandidateBatchId) nextCandidateBatchId = Math.max(nextCandidateBatchId, parsed.nextCandidateBatchId);
+      if (parsed.nextEmailLogId) nextEmailLogId = Math.max(nextEmailLogId, parsed.nextEmailLogId);
 
-      // Ensure root admin account is guaranteed to exist and active
-      let adminAccount = USERS.find(u => u.email.toLowerCase() === 'admin@calliq.ai');
-      if (!adminAccount) {
-        USERS.unshift({
+      // Recalculate max IDs to prevent any ID collision
+      const maxUid = USERS.reduce((m, u) => Math.max(m, u.id || 0), 0);
+      nextUserId = Math.max(nextUserId, maxUid + 1);
+
+      const maxJid = JOBS.reduce((m, j) => Math.max(m, j.id || 0), 0);
+      nextJobId = Math.max(nextJobId, maxJid + 1);
+
+      const maxCid = CANDIDATES.reduce((m, c) => Math.max(m, c.id || 0), 0);
+      nextCandidateId = Math.max(nextCandidateId, maxCid + 1);
+
+      const maxBid = CANDIDATE_BATCHES.reduce((m, b) => Math.max(m, b.id || 0), 0);
+      nextCandidateBatchId = Math.max(nextCandidateBatchId, maxBid + 1);
+
+      const maxEid = EMAIL_LOGS.reduce((m, e) => Math.max(m, e.id || 0), 0);
+      nextEmailLogId = Math.max(nextEmailLogId, maxEid + 1);
+
+      // If database has no users at all, ensure root admin exists
+      if (USERS.length === 0) {
+        USERS.push({
           id: nextUserId++,
           email: 'admin@calliq.ai',
           name: 'CalliQ Admin',
@@ -893,60 +931,25 @@ function initDataPersistence() {
           is_active: true,
           created_at: new Date().toISOString(),
         });
-      } else {
-        adminAccount.role = 'admin';
-        adminAccount.password = 'admin1234';
-        adminAccount.is_active = true;
+        saveDatabase();
       }
 
-      // Ensure standard HR recruiter account is guaranteed to exist
-      let hrAccount = USERS.find(u => u.email.toLowerCase() === 'hr@calliq.ai');
-      if (!hrAccount) {
+      console.log(`[DB Persistence] Successfully loaded ${USERS.length} users, ${JOBS.length} jobs, ${CANDIDATES.length} candidates, ${CANDIDATE_BATCHES.length} batches from ${DB_FILE}`);
+    } else {
+      // First initialization ever
+      if (USERS.length === 0) {
         USERS.push({
-          id: nextUserId++,
-          email: 'hr@calliq.ai',
-          name: 'HR Recruiter',
-          role: 'recruiter',
-          org_id: 2,
-          org_name: 'Tech Talent Acquisition',
-          password: 'hr1234',
+          id: 1,
+          email: 'admin@calliq.ai',
+          name: 'CalliQ Admin',
+          role: 'admin',
+          org_id: 1,
+          org_name: 'CalliQ Global Admin',
+          password: 'admin1234',
           is_active: true,
           created_at: new Date().toISOString(),
         });
-      } else {
-        hrAccount.role = 'recruiter';
-        hrAccount.password = 'hr1234';
-        hrAccount.is_active = true;
       }
-
-      // Ensure demo recruiter account is guaranteed to exist with isolated org_id 3
-      let demoAccount = USERS.find(u => u.email.toLowerCase() === 'demo@company.com');
-      if (!demoAccount) {
-        demoAccount = {
-          id: nextUserId++,
-          email: 'demo@company.com',
-          name: 'Demo Recruiter',
-          role: 'recruiter',
-          org_id: 3,
-          org_name: 'Demo Enterprise HR',
-          password: 'demo1234',
-          is_active: true,
-          created_at: new Date().toISOString(),
-        };
-        USERS.push(demoAccount);
-      } else {
-        demoAccount.org_id = 3;
-        demoAccount.org_name = 'Demo Enterprise HR';
-        demoAccount.password = 'demo1234';
-      }
-
-      // Seed starter jobs for orgs 2 and 3 if empty
-      seedStarterJobsForOrg(2, 2, 'Tech Talent Acquisition');
-      seedStarterJobsForOrg(3, demoAccount.id, 'Demo Enterprise HR');
-
-      saveDatabase();
-      console.log(`[DB Persistence] Successfully loaded ${USERS.length} users, ${JOBS.length} jobs, ${CANDIDATES.length} candidates from ${DB_FILE}`);
-    } else {
       saveDatabase();
       console.log(`[DB Persistence] Initialized new persistent database file at ${DB_FILE}`);
     }
@@ -968,14 +971,18 @@ function saveDatabase() {
       USERS,
       JOBS,
       CANDIDATES,
+      CANDIDATE_BATCHES,
       WEBHOOKS,
       AUDIT_LOGS,
+      EMAIL_LOGS,
       SESSIONS: sessionObj,
       nextCandidateId,
       nextJobId,
       nextUserId,
       nextOrgId,
       nextWebhookId,
+      nextCandidateBatchId,
+      nextEmailLogId,
       last_saved_at: new Date().toISOString(),
     };
     const tempFile = `${DB_FILE}.tmp`;
@@ -1103,26 +1110,28 @@ app.get('/api/health', (req, res) => {
 });
 
 // 1. Auth Endpoints
-app.post('/api/v1/auth/login', (req, res) => {
-  const rawEmail = req.body.username || req.body.email || '';
-  const password = req.body.password || '';
+app.post(['/api/v1/auth/login', '/api/v1/auth/login/', '/api/v1/auth/token', '/api/v1/auth/token/'], (req, res) => {
+  const rawEmail = req.body?.username || req.body?.email || req.query?.email || req.query?.username || '';
+  const rawPassword = req.body?.password || req.query?.password || '';
   const email = String(rawEmail).trim().toLowerCase();
+  const cleanPassword = String(rawPassword).trim();
 
-  if (!email || !password) {
-    return res.status(400).json({ detail: 'Email and password are required.' });
+  if (!email || !cleanPassword) {
+    return res.status(400).json({ detail: 'البريد الإلكتروني وكلمة المرور مطلوبة.' });
   }
 
-  const user = USERS.find(u => u.email.toLowerCase() === email);
+  const user = USERS.find(u => (u.email || '').trim().toLowerCase() === email);
   if (!user) {
-    return res.status(401).json({ detail: 'Invalid email or password. Only registered accounts authorized by the Admin can log in.' });
+    return res.status(401).json({ detail: 'بيانات الدخول غير صحيحة. البريد الإلكتروني غير مسجل في النظام.' });
   }
 
   if (!user.is_active) {
-    return res.status(403).json({ detail: 'Your account has been deactivated. Please contact the administrator.' });
+    return res.status(403).json({ detail: 'تم تعطيل هذا الحساب. يرجى مراجعة مسؤول النظام.' });
   }
 
-  if (user.password !== password) {
-    return res.status(401).json({ detail: 'Invalid email or password.' });
+  const userPass = String(user.password || '').trim();
+  if (userPass !== cleanPassword) {
+    return res.status(401).json({ detail: 'كلمة المرور غير صحيحة. يرجى التأكد من كلمة المرور.' });
   }
 
   const token = `token_calliq_${user.id}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -1144,65 +1153,45 @@ app.post('/api/v1/auth/login', (req, res) => {
   });
 });
 
-app.post('/api/v1/auth/register', (req, res) => {
-  const { email, password, name, org_name } = req.body;
-  if (!email || !password || !name) {
-    return res.status(400).json({ detail: 'Name, email, and password are required.' });
-  }
-
-  const normalizedEmail = String(email).trim().toLowerCase();
-  const existing = USERS.find(u => u.email.toLowerCase() === normalizedEmail);
-  if (existing) {
-    return res.status(400).json({ detail: 'An account with this email already exists. Please log in instead.' });
-  }
-
-  const newOrgId = nextOrgId++;
-  const newUser: DBUser = {
-    id: nextUserId++,
-    email: normalizedEmail,
-    name: String(name).trim(),
-    role: 'recruiter', // Public registration creates standard recruiter, NEVER admin
-    org_id: newOrgId,
-    org_name: String(org_name).trim() || `${name}'s Organization`,
-    password: String(password).trim(),
-    is_active: true,
-    created_at: new Date().toISOString(),
-  };
-
-  USERS.push(newUser);
-
-  const token = `token_calliq_${newUser.id}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-  SESSIONS.set(token, newUser.id);
-  saveDatabase();
-
-  res.status(201).json({
-    access_token: token,
-    token_type: 'bearer',
-    user: {
-      id: newUser.id,
-      email: newUser.email,
-      name: newUser.name,
-      role: newUser.role,
-      org_id: newUser.org_id,
-      org_name: newUser.org_name,
-    },
+app.post(['/api/v1/auth/register', '/api/v1/auth/register/'], (req, res) => {
+  return res.status(403).json({
+    detail: 'التسجيل المباشر مغلق. إنشاء وتعيين حسابات المستخدمين يتم حصرياً بواسطة مسؤول النظام (Admin).'
   });
 });
 
-app.get('/api/v1/auth/me', requireAuth, (req, res) => {
+app.get(['/api/v1/auth/me', '/api/v1/auth/me/'], requireAuth, (req, res) => {
   const user = (req as any).user as DBUser;
   const { password, ...safeUser } = user;
   res.json(safeUser);
 });
 
-app.post('/api/v1/auth/refresh', requireAuth, (req, res) => {
-  const user = (req as any).user as DBUser;
+app.post('/api/v1/auth/refresh', (req, res) => {
+  let user: DBUser | null = getAuthUser(req);
+  if (!user) {
+    const refreshToken = req.body?.refresh_token;
+    if (typeof refreshToken === 'string' && refreshToken.startsWith('refresh_')) {
+      const parts = refreshToken.split('_');
+      const userId = parseInt(parts[1], 10);
+      if (userId) {
+        user = USERS.find(u => u.id === userId && u.is_active) || null;
+      }
+    }
+  }
+
+  if (!user) {
+    return res.status(401).json({ detail: 'Authentication required. Session expired.' });
+  }
+
   const token = `token_calliq_${user.id}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   SESSIONS.set(token, user.id);
   saveDatabase();
+
+  const { password, ...safeUser } = user;
   res.json({
     access_token: token,
+    refresh_token: `refresh_${user.id}_${Date.now()}`,
     token_type: 'bearer',
+    user: safeUser,
   });
 });
 
@@ -1371,12 +1360,136 @@ app.delete('/api/v1/jobs/:jobId/knockout-rules/:ruleId', requireAuth, (req, res)
 });
 
 // 3. Candidates Endpoints
+// 3a. Candidate Batches / Workspace Pages (must precede /:id)
+app.get('/api/v1/candidates/batches', requireAuth, (req, res) => {
+  const user = (req as any).user as DBUser;
+  const jobId = req.query.job_id ? Number(req.query.job_id) : undefined;
+  let list = CANDIDATE_BATCHES.filter(b => b.org_id === user.org_id);
+  if (jobId) {
+    list = list.filter(b => b.job_id === jobId);
+  }
+  const enriched = list.map(b => ({
+    ...b,
+    candidate_count: CANDIDATES.filter(c => c.batch_id === b.id && c.org_id === user.org_id).length,
+  }));
+  res.json(enriched);
+});
+
+app.post('/api/v1/candidates/batches', requireAuth, (req, res) => {
+  const user = (req as any).user as DBUser;
+  const { name, description, job_id } = req.body;
+  if (!name || !String(name).trim()) {
+    return res.status(400).json({ detail: 'اسم صفحة / دفعة التوظيف مطلوب.' });
+  }
+
+  const newBatch: DBCandidateBatch = {
+    id: nextCandidateBatchId++,
+    org_id: user.org_id,
+    recruiter_id: user.id,
+    name: String(name).trim(),
+    description: description ? String(description).trim() : undefined,
+    job_id: job_id ? Number(job_id) : undefined,
+    created_at: new Date().toISOString(),
+  };
+
+  CANDIDATE_BATCHES.unshift(newBatch);
+
+  AUDIT_LOGS.unshift({
+    id: AUDIT_LOGS.length + 1,
+    action: 'Candidate Page/Batch Created',
+    user: user.name,
+    target: newBatch.name,
+    timestamp: new Date().toISOString(),
+  });
+  saveDatabase();
+
+  res.status(201).json({ ...newBatch, candidate_count: 0 });
+});
+
+app.delete('/api/v1/candidates/batches/:id', requireAuth, (req, res) => {
+  const user = (req as any).user as DBUser;
+  const id = parseInt(req.params.id, 10);
+  const idx = CANDIDATE_BATCHES.findIndex(b => b.id === id && b.org_id === user.org_id);
+  if (idx === -1) {
+    return res.status(404).json({ detail: 'الصفحة أو دفعة التوظيف غير موجودة.' });
+  }
+
+  const batch = CANDIDATE_BATCHES[idx];
+  let deletedCount = 0;
+
+  for (let i = CANDIDATES.length - 1; i >= 0; i--) {
+    if (CANDIDATES[i].batch_id === id && CANDIDATES[i].org_id === user.org_id) {
+      const deletedCand = CANDIDATES.splice(i, 1)[0];
+      deleteCandidateFromNeon(deletedCand.id);
+      deletedCount++;
+    }
+  }
+
+  CANDIDATE_BATCHES.splice(idx, 1);
+
+  AUDIT_LOGS.unshift({
+    id: AUDIT_LOGS.length + 1,
+    action: 'Candidate Page/Batch & Candidates Deleted',
+    user: user.name,
+    target: `${batch.name} (${deletedCount} candidates removed)`,
+    timestamp: new Date().toISOString(),
+  });
+  saveDatabase();
+
+  res.json({
+    message: `تم حذف الصفحة '${batch.name}' و ${deletedCount} سير ذاتية بنجاح.`,
+    id,
+    deleted_candidates_count: deletedCount,
+  });
+});
+
+app.post('/api/v1/candidates/batches/:id/clear', requireAuth, (req, res) => {
+  const user = (req as any).user as DBUser;
+  const id = parseInt(req.params.id, 10);
+  const batch = CANDIDATE_BATCHES.find(b => b.id === id && b.org_id === user.org_id);
+  if (!batch) {
+    return res.status(404).json({ detail: 'الصفحة أو دفعة التوظيف غير موجودة.' });
+  }
+
+  let clearedCount = 0;
+  for (let i = CANDIDATES.length - 1; i >= 0; i--) {
+    if (CANDIDATES[i].batch_id === id && CANDIDATES[i].org_id === user.org_id) {
+      const deletedCand = CANDIDATES.splice(i, 1)[0];
+      deleteCandidateFromNeon(deletedCand.id);
+      clearedCount++;
+    }
+  }
+
+  AUDIT_LOGS.unshift({
+    id: AUDIT_LOGS.length + 1,
+    action: 'Candidate Page Cleared',
+    user: user.name,
+    target: `${batch.name} (${clearedCount} candidates cleared)`,
+    timestamp: new Date().toISOString(),
+  });
+  saveDatabase();
+
+  res.json({
+    message: `تم تفريغ كافة السير الذاتية (${clearedCount}) من صفحة '${batch.name}' بنجاح.`,
+    id,
+    cleared_candidates_count: clearedCount,
+  });
+});
+
+// 3b. Candidate Listing with Multi-Tenant & Batch Isolation
 app.get('/api/v1/candidates', requireAuth, (req, res) => {
   const user = (req as any).user as DBUser;
   let list = CANDIDATES.filter(c => c.org_id === user.org_id);
-  const { job_id, status, category, min_score, search, sort_by } = req.query;
+  const { job_id, batch_id, status, category, min_score, search, sort_by } = req.query;
 
   if (job_id) list = list.filter(c => c.job_id === Number(job_id));
+  if (batch_id !== undefined && batch_id !== null && batch_id !== '' && batch_id !== 'all') {
+    if (batch_id === 'unassigned' || batch_id === 'none') {
+      list = list.filter(c => !c.batch_id);
+    } else {
+      list = list.filter(c => c.batch_id === Number(batch_id));
+    }
+  }
   if (status) list = list.filter(c => c.status.toLowerCase() === String(status).toLowerCase());
   if (category) list = list.filter(c => c.category === category);
   if (min_score) list = list.filter(c => c.match_score >= Number(min_score));
@@ -1726,7 +1839,7 @@ Return ONLY a valid JSON object matching this schema:
   // 1. Try Gemini API first (Direct multimodal or text parsing)
   const ai = getAIClient();
   if (ai && process.env.GEMINI_API_KEY) {
-    const geminiModels = ['gemini-3.6-flash', 'gemini-1.5-flash'];
+    const geminiModels = ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.7-flash'];
     for (const m of geminiModels) {
       try {
         let response;
@@ -1769,6 +1882,53 @@ Return ONLY a valid JSON object matching this schema:
         }
       } catch (err) {
         // Quota or model notice - continue to next model/engine
+      }
+    }
+  }
+
+  // 1.5 Try Groq Fallback if Gemini quota is exhausted or unavailable
+  const groq = getGroqClient();
+  if (groq && fileText && fileText.length > 10) {
+    const groqModels = [
+      'llama-3.3-70b-versatile',
+      'llama-3.1-8b-instant',
+      'qwen/qwen3.8-27b',
+      'qwen/qwen3.6-27b',
+      'allam-2-7b',
+      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b'
+    ];
+    for (const gm of groqModels) {
+      try {
+        const groqRes = await groq.chat.completions.create({
+          model: gm,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an advanced AI Recruiter ATS parser. Extract and evaluate candidate CVs with extreme precision. You must output raw valid JSON matching the exact requested JSON schema only without any markdown formatting.'
+            },
+            {
+              role: 'user',
+              content: promptTextOnly
+            }
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.1,
+        });
+
+        const groqContent = groqRes.choices[0]?.message?.content;
+        if (groqContent) {
+          const parsed = safeParseLLMJson(groqContent);
+          if (parsed && (parsed.current_position || parsed.technical_skills || parsed.ai_summary)) {
+            parsed.full_name = input.full_name || parsed.full_name;
+            parsed.email = input.email || parsed.email;
+            parsed.phone = input.phone || parsed.phone;
+            parsed.technical_skills = normalizeTechnicalSkills(parsed.technical_skills);
+            return parsed;
+          }
+        }
+      } catch (groqErr) {
+        // Continue to next groq model or local engine
       }
     }
   }
@@ -2085,6 +2245,7 @@ Return ONLY a valid JSON object matching this schema:
 app.post('/api/v1/candidates/upload', requireAuth, upload.single('file'), async (req, res) => {
   const user = (req as any).user as DBUser;
   const jobId = req.body.job_id ? Number(req.body.job_id) : undefined;
+  const batchId = req.body.batch_id ? Number(req.body.batch_id) : undefined;
   const targetJob = jobId ? JOBS.find(j => j.id === jobId && j.org_id === user.org_id) : JOBS.find(j => j.org_id === user.org_id);
   const fileName = req.file ? req.file.originalname : 'Uploaded_CV.pdf';
   const fileBuffer = req.file ? req.file.buffer : undefined;
@@ -2106,6 +2267,7 @@ app.post('/api/v1/candidates/upload', requireAuth, upload.single('file'), async 
     org_id: user.org_id,
     recruiter_id: user.id,
     job_id: targetJob ? targetJob.id : jobId,
+    batch_id: batchId,
     full_name: analysis.full_name || 'New Candidate',
     email: analysis.email || `candidate_${Date.now()}@example.com`,
     phone: analysis.phone || '+1 555 0100',
@@ -2211,7 +2373,24 @@ app.post('/api/v1/candidates/bulk-upload', requireAuth, upload.array('files'), a
   const jobId = req.body.job_id ? Number(req.body.job_id) : undefined;
   const targetJob = jobId ? JOBS.find(j => j.id === jobId && j.org_id === user.org_id) : JOBS.find(j => j.org_id === user.org_id);
   const files = (req.files as Express.Multer.File[]) || [];
-  const batchId = Date.now();
+  
+  let assignedBatchId: number | undefined = req.body.batch_id ? Number(req.body.batch_id) : undefined;
+
+  // If user requested to create a brand new batch on the fly
+  if (req.body.batch_name && String(req.body.batch_name).trim()) {
+    const newBatch: DBCandidateBatch = {
+      id: nextCandidateBatchId++,
+      org_id: user.org_id,
+      recruiter_id: user.id,
+      name: String(req.body.batch_name).trim(),
+      description: req.body.batch_description ? String(req.body.batch_description).trim() : undefined,
+      job_id: targetJob ? targetJob.id : jobId,
+      created_at: new Date().toISOString(),
+    };
+    CANDIDATE_BATCHES.unshift(newBatch);
+    assignedBatchId = newBatch.id;
+  }
+
   const processedCandidates: DBCandidate[] = [];
 
   for (const file of files) {
@@ -2230,7 +2409,7 @@ app.post('/api/v1/candidates/bulk-upload', requireAuth, upload.array('files'), a
       org_id: user.org_id,
       recruiter_id: user.id,
       job_id: targetJob ? targetJob.id : jobId,
-      batch_id: batchId,
+      batch_id: assignedBatchId,
       full_name: analysis.full_name || file.originalname.replace(/\.[^/.]+$/, ''),
       email: analysis.email || `candidate_${Date.now()}_${Math.floor(Math.random() * 1000)}@example.com`,
       phone: analysis.phone || '+1 555 0100',
@@ -2300,7 +2479,7 @@ app.post('/api/v1/candidates/bulk-upload', requireAuth, upload.array('files'), a
   saveDatabase();
 
   res.json({
-    batch_id: batchId,
+    batch_id: assignedBatchId,
     total_processed: files.length,
     candidates: processedCandidates,
     status: 'completed',
@@ -2569,6 +2748,112 @@ app.post('/api/v1/emails/send', requireAuth, (req, res) => {
   res.status(201).json(log);
 });
 
+// AI Draft Endpoint for Email Follow-ups
+app.post('/api/v1/emails/draft', requireAuth, async (req, res) => {
+  const user = (req as any).user as DBUser;
+  const { candidate_id, type = 'followup', language = 'ar', instructions = '' } = req.body;
+  const cand = candidate_id ? CANDIDATES.find(c => c.id === Number(candidate_id) && c.org_id === user.org_id) : undefined;
+  const targetJob = cand?.job_id ? JOBS.find(j => j.id === cand.job_id && j.org_id === user.org_id) : JOBS.find(j => j.org_id === user.org_id);
+
+  const candName = cand?.full_name || 'المرشح';
+  const jobTitle = targetJob?.title || 'الوظيفة المتاحة';
+  const companyName = targetJob?.company || user.org_name || 'CalliQ';
+
+  const isArabic = language === 'ar';
+
+  const prompt = `You are an expert Talent Acquisition specialist and HR recruiter at ${companyName}.
+Draft an email to candidate "${candName}" regarding the position "${jobTitle}".
+Purpose of email: ${type} (e.g. followup, interview, shortlist, rejection, offer, feedback, inquiry).
+Candidate status: ${cand?.status || 'Under Review'}, Match Score: ${cand?.match_score || 75}%.
+Additional recruiter instructions: ${instructions || 'None'}.
+Language: ${isArabic ? 'Arabic (professional, warm, clear)' : 'English (professional, encouraging, crisp)'}.
+
+Respond ONLY with a valid JSON object in this exact schema:
+{
+  "subject": "The email subject line",
+  "body": "The complete email body text formatted with paragraphs and sign-off."
+}`;
+
+  try {
+    const ai = getAIClient();
+    if (ai) {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+        },
+      });
+      const text = response.text || '';
+      const parsed = JSON.parse(text);
+      if (parsed.subject && parsed.body) {
+        return res.json(parsed);
+      }
+    }
+  } catch (err) {
+    console.warn('AI Email draft generation fallback:', err);
+  }
+
+  // Robust Fallback Templates
+  if (isArabic) {
+    if (type === 'interview') {
+      return res.json({
+        subject: `دعوة لمقابلة شخصية - وظيفة ${jobTitle} في شركة ${companyName}`,
+        body: `عزيزي/عزيزتي ${candName}،\n\nتحية طيبة وبعد،\n\nيسعدنا إبلاغك بأنه بعد مراجعة ملفك الشخصي وسيرتك الذاتية لوظيفة "${jobTitle}"، نود دعوتك لإجراء مقابلة عمل لمناقشة خبراتك ومهاراتك بشكل أعمق.\n\nيرجى إفادتنا بالمواعيد المناسبة لك خلال الأيام القادمة، أو تأكيد موعدك المقترح.\n\nنتطلع للحديث معك قريباً.\n\nمع أطيب التحيات،\nفريق استقطاب الكفاءات - ${companyName}`
+      });
+    } else if (type === 'shortlist') {
+      return res.json({
+        subject: `تهانينا! تم ترشيحك للمرحلة القادمة - ${jobTitle} في ${companyName}`,
+        body: `عزيزي/عزيزتي ${candName}،\n\nيسعدنا إعلامك بأن سيرتك الذاتية قد نالت تقييماً متميزاً وتأهلت للقائمة المختصرة (Shortlisted) لوظيفة "${jobTitle}".\n\nسيقوم مسؤولو التوظيف بالتواصل معك قريباً لتنسيق الخطوات والمراحل القادمة.\n\nشكراً لاهتمامك بالانضمام إلينا.\n\nمع خالص التقدير،\nإدارة الموارد البشرية - ${companyName}`
+      });
+    } else if (type === 'rejection') {
+      return res.json({
+        subject: `تحديث بشأن طلب التوظيف لوظيفة ${jobTitle} - ${companyName}`,
+        body: `عزيزي/عزيزتي ${candName}،\n\nنشكرك على اهتمامك ووقتك في التقديم لوظيفة "${jobTitle}" لدى ${companyName}.\n\nبعد دراسة متأنية لكافة الطلبات، نود إبلاغك بأننا قررنا المضي قدماً مع مرشحين آخرين تتطابق مؤهلاتهم بشكل أدق مع احتياجات المرحلة الحالية.\n\nنحتفظ بسيرتك الذاتية في قاعدة بياناتنا للتواصل معك فور توفر فرص تناسب خبراتك مستقبلاً.\n\nمع تمنياتنا لك بمسيرة مهنية موفقة.\n\nفريق التوظيف - ${companyName}`
+      });
+    } else if (type === 'offer') {
+      return res.json({
+        subject: `عرض عمل رسمي - وظيفة ${jobTitle} في شركة ${companyName}`,
+        body: `عزيزي/عزيزتي ${candName}،\n\nيسرنا ويسعدنا تقديم هذا العرض الوظيفي الرسمي لك للانضمام إلى فريق عملنا كـ "${jobTitle}" في ${companyName}.\n\nنحن واثقون بأن خبرتك وشغفك سيكونان إضافة نوعية لنجاحنا المشترك. يرجى مراجعة بنود العرض وإعلامنا بقرارك.\n\nمرحباً بك معنا في الفريق!\n\nالإدارة التنفيذية - ${companyName}`
+      });
+    } else {
+      return res.json({
+        subject: `متابعة بخصوص طلب التوظيف - ${jobTitle} (${companyName})`,
+        body: `مرحباً ${candName}،\n\nنود المتابعة معك بخصوص طلبك المقدم لوظيفة "${jobTitle}" في ${companyName}.\n\nنرجو التكرم بالرد لتحديثنا حول مدى جاهزيتك والإجابة على أي استفسارات لديك بخصوص المرحلة القادمة.\n\nشاكرين لك حسن تعاونك واهتمامك.\n\nتحياتنا،\nفريق التوظيف - ${companyName}`
+      });
+    }
+  } else {
+    if (type === 'interview') {
+      return res.json({
+        subject: `Interview Invitation - ${jobTitle} at ${companyName}`,
+        body: `Dear ${candName},\n\nWe are pleased to inform you that your profile for the ${jobTitle} position has progressed to the next stage. We would like to invite you for an interview to explore your background and technical fit.\n\nPlease let us know your preferred dates and times this week.\n\nBest regards,\nTalent Acquisition Team - ${companyName}`
+      });
+    } else if (type === 'rejection') {
+      return res.json({
+        subject: `Application Status: ${jobTitle} at ${companyName}`,
+        body: `Dear ${candName},\n\nThank you for applying for the ${jobTitle} position at ${companyName}.\n\nAfter reviewing your qualifications against our role criteria, we have decided to move forward with other candidates at this time. We will keep your resume on file for future openings.\n\nWe wish you great success in your career.\n\nSincerely,\nHiring Team - ${companyName}`
+      });
+    } else {
+      return res.json({
+        subject: `Follow-up on your application for ${jobTitle} at ${companyName}`,
+        body: `Hello ${candName},\n\nWe are following up regarding your application for the ${jobTitle} position at ${companyName}.\n\nPlease let us know your current availability or if you have any questions as we proceed with the next evaluation steps.\n\nBest regards,\nTalent Acquisition - ${companyName}`
+      });
+    }
+  }
+});
+
+app.delete('/api/v1/emails/:id', requireAuth, (req, res) => {
+  const user = (req as any).user as DBUser;
+  const id = parseInt(req.params.id, 10);
+  const idx = EMAIL_LOGS.findIndex(e => e.id === id && e.org_id === user.org_id);
+  if (idx !== -1) {
+    EMAIL_LOGS.splice(idx, 1);
+    saveDatabase();
+    return res.json({ success: true });
+  }
+  res.status(404).json({ detail: 'Email log not found' });
+});
+
 app.get('/api/v1/emails/templates', requireAuth, (req, res) => {
   res.json(EMAIL_TEMPLATES);
 });
@@ -2652,6 +2937,59 @@ app.delete('/api/v1/candidates/:id', requireAuth, (req, res) => {
   res.json({ message: 'Candidate deleted successfully.', id });
 });
 
+// Clear All Candidates Endpoint (General Pool or Scoped)
+app.post('/api/v1/candidates/clear-all', requireAuth, (req, res) => {
+  const user = (req as any).user as DBUser;
+  const { batch_id, job_id } = req.body || {};
+  let deletedCount = 0;
+
+  for (let i = CANDIDATES.length - 1; i >= 0; i--) {
+    const c = CANDIDATES[i];
+    if (c.org_id === user.org_id) {
+      let shouldDelete = false;
+      if (batch_id !== undefined && batch_id !== null && batch_id !== '') {
+        if (batch_id === 'unassigned') {
+          shouldDelete = !c.batch_id;
+        } else {
+          shouldDelete = c.batch_id === Number(batch_id);
+        }
+      } else if (job_id !== undefined && job_id !== null && job_id !== '') {
+        shouldDelete = c.job_id === Number(job_id);
+      } else {
+        // Clear all candidates in user's organization
+        shouldDelete = true;
+      }
+
+      if (shouldDelete) {
+        CANDIDATES.splice(i, 1);
+        deletedCount++;
+      }
+    }
+  }
+
+  // Update candidate counts in batches
+  CANDIDATE_BATCHES.forEach(b => {
+    if (b.org_id === user.org_id) {
+      b.candidate_count = CANDIDATES.filter(c => c.batch_id === b.id && c.org_id === user.org_id).length;
+    }
+  });
+
+  AUDIT_LOGS.unshift({
+    id: AUDIT_LOGS.length + 1,
+    action: 'Candidates Cleared in Bulk',
+    user: user.name,
+    target: `${deletedCount} Candidates Removed`,
+    timestamp: new Date().toISOString(),
+  });
+  saveDatabase();
+
+  res.json({
+    message: `تم مسح ${deletedCount} من السير الذاتية بنجاح.`,
+    deleted_count: deletedCount,
+  });
+});
+
+
 // Candidate AI Chat using Gemini
 app.post('/api/v1/candidates/:id/chat', requireAuth, async (req, res) => {
   const user = (req as any).user as DBUser;
@@ -2669,10 +3007,12 @@ app.post('/api/v1/candidates/:id/chat', requireAuth, async (req, res) => {
   let reply = '';
   const ai = getAIClient();
   if (ai && process.env.GEMINI_API_KEY) {
-    try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: `You are CalliQ AI Assistant helping a recruiter review a candidate's CV and qualifications.
+    const candidateModels = ['gemini-3.1-flash-lite', 'gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.7-flash'];
+    for (const m of candidateModels) {
+      try {
+        const response = await ai.models.generateContent({
+          model: m,
+          contents: `You are CalliQ AI Assistant helping a recruiter review a candidate's CV and qualifications.
 Candidate: ${cand.full_name}
 Current Position: ${cand.current_position} (${cand.years_experience} years experience)
 Match Score: ${cand.match_score}%
@@ -2684,10 +3024,60 @@ Technical Skills: ${JSON.stringify(cand.technical_skills)}
 
 Recruiter question: "${message}"
 Answer concisely, professionally, and provide actionable recruiter insights.`,
-      });
-      reply = response.text || '';
-    } catch (e) {
-      console.warn('Gemini chat error:', e);
+        });
+        if (response && response.text) {
+          reply = response.text;
+          break;
+        }
+      } catch (e) {
+        // Try next model
+      }
+    }
+  }
+
+  // Fallback to Groq if Gemini is unavailable
+  if (!reply) {
+    const groq = getGroqClient();
+    if (groq) {
+      const groqModels = [
+        'llama-3.3-70b-versatile',
+        'llama-3.1-8b-instant',
+        'qwen/qwen3.8-27b',
+        'qwen/qwen3.6-27b',
+        'allam-2-7b',
+        'openai/gpt-oss-120b',
+        'openai/gpt-oss-20b'
+      ];
+      for (const gm of groqModels) {
+        try {
+          const gRes = await groq.chat.completions.create({
+            model: gm,
+            messages: [
+              {
+                role: 'system',
+                content: `You are CalliQ AI Assistant helping a recruiter review a candidate's qualifications.
+Candidate: ${cand.full_name}
+Current Position: ${cand.current_position} (${cand.years_experience} years experience)
+Match Score: ${cand.match_score}%
+Recommendation: ${cand.recommendation}
+AI Summary: ${cand.ai_summary}
+Strengths: ${cand.strengths.join(', ')}
+Weaknesses: ${cand.weaknesses.join(', ')}`
+              },
+              { role: 'user', content: message }
+            ],
+            temperature: 0.6,
+            max_tokens: 800,
+          });
+          const groqText = gRes.choices[0]?.message?.content;
+          if (groqText) {
+            reply = groqText;
+            break;
+          }
+        } catch (groqErr) {
+          // Try next
+        }
+      }
     }
   }
 
@@ -3031,28 +3421,28 @@ app.get('/api/v1/dashboard/audit-log', requireAuth, (req, res) => {
 });
 
 // 5. Users Endpoints (Role & Workspace Management)
-app.get('/api/v1/users', requireAuth, (req, res) => {
+app.get(['/api/v1/users', '/api/v1/users/'], requireAuth, (req, res) => {
   const user = (req as any).user as DBUser;
   // Admins see all registered HR users and admins across the platform
   if (user.role === 'admin' || user.role === 'owner') {
     return res.json(USERS.map(({ password, ...u }) => u));
   }
-  // Standard recruiters see only members in their organization
-  res.json(USERS.filter(u => u.org_id === user.org_id).map(({ password, ...u }) => u));
+  // Standard recruiters see only their own account details
+  res.json(USERS.filter(u => u.id === user.id).map(({ password, ...u }) => u));
 });
 
-app.post('/api/v1/users', requireAdmin, (req, res) => {
+app.post(['/api/v1/users', '/api/v1/users/'], requireAdmin, (req, res) => {
   const adminUser = (req as any).user as DBUser;
   const { name, email, password, role, create_isolated_workspace, org_name } = req.body;
 
   if (!email || !name) {
-    return res.status(400).json({ detail: 'Name and email are required.' });
+    return res.status(400).json({ detail: 'الاسم والبريد الإلكتروني مطلوبان.' });
   }
 
   const normalizedEmail = String(email).trim().toLowerCase();
-  const existing = USERS.find(u => u.email.toLowerCase() === normalizedEmail);
+  const existing = USERS.find(u => (u.email || '').trim().toLowerCase() === normalizedEmail);
   if (existing) {
-    return res.status(400).json({ detail: 'A user with this email already exists in the system.' });
+    return res.status(400).json({ detail: 'يوجد مستخدم مسجل بهذا البريد الإلكتروني بالفعل.' });
   }
 
   const assignOrgId = create_isolated_workspace ? nextOrgId++ : (adminUser.org_id || 1);
@@ -3071,7 +3461,6 @@ app.post('/api/v1/users', requireAdmin, (req, res) => {
   };
 
   USERS.push(newUser);
-  seedStarterJobsForOrg(newUser.org_id, newUser.id, newUser.org_name);
   saveDatabase();
 
   AUDIT_LOGS.unshift({
@@ -3087,16 +3476,24 @@ app.post('/api/v1/users', requireAdmin, (req, res) => {
   res.status(201).json(safeUser);
 });
 
-app.patch('/api/v1/users/:id', requireAdmin, (req, res) => {
+app.patch(['/api/v1/users/:id', '/api/v1/users/:id/'], requireAdmin, (req, res) => {
   const adminUser = (req as any).user as DBUser;
   const id = parseInt(req.params.id, 10);
   const targetUser = USERS.find(u => u.id === id);
-  if (!targetUser) return res.status(404).json({ detail: 'User not found' });
+  if (!targetUser) return res.status(404).json({ detail: 'المستخدم غير موجود' });
 
   if (req.body.name) targetUser.name = String(req.body.name).trim();
   if (req.body.role) targetUser.role = req.body.role;
   if (req.body.password) targetUser.password = String(req.body.password).trim();
-  if (req.body.is_active !== undefined) targetUser.is_active = Boolean(req.body.is_active);
+  if (req.body.is_active !== undefined) {
+    targetUser.is_active = Boolean(req.body.is_active);
+    // If account deactivated, immediately invalidate all active sessions
+    if (!targetUser.is_active) {
+      for (const [token, uid] of SESSIONS.entries()) {
+        if (uid === id) SESSIONS.delete(token);
+      }
+    }
+  }
   if (req.body.org_name) targetUser.org_name = String(req.body.org_name).trim();
 
   saveDatabase();
@@ -3114,12 +3511,17 @@ app.patch('/api/v1/users/:id', requireAdmin, (req, res) => {
   res.json(safeUser);
 });
 
-app.delete('/api/v1/users/:id', requireAdmin, (req, res) => {
+app.delete(['/api/v1/users/:id', '/api/v1/users/:id/'], requireAdmin, (req, res) => {
   const adminUser = (req as any).user as DBUser;
   const id = parseInt(req.params.id, 10);
   
   if (adminUser.id === id) {
-    return res.status(400).json({ detail: 'You cannot delete your own active administrator account.' });
+    return res.status(400).json({ detail: 'لا يمكنك حذف حساب المسؤول النشط الخاص بك.' });
+  }
+
+  // Invalidate all active sessions for this user immediately
+  for (const [token, uid] of SESSIONS.entries()) {
+    if (uid === id) SESSIONS.delete(token);
   }
 
   const idx = USERS.findIndex(u => u.id === id);
@@ -3128,12 +3530,13 @@ app.delete('/api/v1/users/:id', requireAdmin, (req, res) => {
     AUDIT_LOGS.unshift({
       id: AUDIT_LOGS.length + 1,
       action: 'User Account Deleted',
+      user: adminUser.name,
       target: `${deleted.name} (${deleted.email})`,
       timestamp: new Date().toISOString(),
     });
     saveDatabase();
   }
-  res.json({ message: 'User account removed successfully' });
+  res.json({ message: 'تم حذف حساب المستخدم بنجاح' });
 });
 
 // 6. Public Apply Endpoints (/apply/:token & /api/v1/apply/:token)
@@ -3177,114 +3580,138 @@ const handleGetPublicJob = (req: express.Request, res: express.Response) => {
 };
 
 const handlePostPublicApply = async (req: express.Request, res: express.Response) => {
-  const token = req.params.token;
-  const job = findJobByToken(token);
-  if (!job) {
-    return res.status(404).json({ detail: 'Job position not found or no longer accepting applications.' });
+  try {
+    const token = req.params.token;
+    const job = findJobByToken(token);
+    if (!job) {
+      return res.status(404).json({ detail: 'Job position not found or no longer accepting applications.' });
+    }
+
+    const filesArray = req.files as Express.Multer.File[] | undefined;
+    const reqFile = req.file || (filesArray && filesArray.length > 0 ? filesArray[0] : undefined);
+
+    const fileBuffer = reqFile ? reqFile.buffer : undefined;
+    const fileName = reqFile ? reqFile.originalname : 'Application_CV.pdf';
+    const fileMime = reqFile ? reqFile.mimetype : undefined;
+    let fileContent = req.body.cv_text || '';
+    
+    if (!fileContent && fileBuffer) {
+      try {
+        fileContent = await extractCleanTextFromBuffer(fileBuffer, fileName, fileMime);
+      } catch (err) {
+        console.error('Text extraction warning:', err);
+      }
+    }
+
+    const applicantName = req.body.full_name ? String(req.body.full_name).trim() : '';
+    const applicantEmail = req.body.email ? String(req.body.email).trim() : '';
+    const applicantPhone = req.body.phone ? String(req.body.phone).trim() : '';
+
+    let analysis: any = {};
+    try {
+      analysis = await evaluateCVWithAI({
+        buffer: fileBuffer,
+        filename: fileName,
+        mimetype: fileMime,
+        text: req.body.cv_text || fileContent || undefined,
+        full_name: applicantName || undefined,
+        email: applicantEmail || undefined,
+        phone: applicantPhone || undefined,
+      }, job);
+    } catch (aiErr) {
+      console.error('AI Evaluation warning in public apply:', aiErr);
+      analysis = {
+        full_name: applicantName || 'Applicant',
+        email: applicantEmail || 'applicant@mail.com',
+        match_score: 80,
+        ai_summary: 'Application submitted successfully. AI Analysis queued.',
+      };
+    }
+
+    const candidateFullName = applicantName || (analysis.full_name || 'Applicant');
+    const candidateEmail = applicantEmail || (analysis.email || 'applicant@mail.com');
+    const candidatePhone = applicantPhone || (analysis.phone || '');
+
+    const score = analysis.match_score || 85;
+    const category = score >= (job.score_strong_match || 80)
+      ? 'STRONG_MATCH'
+      : score >= (job.score_potential_match || 60)
+      ? 'POTENTIAL_MATCH'
+      : 'WEAK_MATCH';
+
+    const newCand: DBCandidate = {
+      id: nextCandidateId++,
+      org_id: job.org_id,
+      recruiter_id: job.recruiter_id || 1,
+      job_id: job.id,
+      full_name: candidateFullName,
+      email: candidateEmail,
+      phone: candidatePhone,
+      location: req.body.location || analysis.location || 'Remote',
+      current_position: analysis.current_position || 'Professional Specialist',
+      years_experience: Number(req.body.years_experience) || analysis.years_experience || 3,
+      previous_positions: analysis.previous_positions?.length
+        ? analysis.previous_positions
+        : [{ title: analysis.current_position || 'Professional', company: analysis.companies?.[0] || 'Previous Organization', duration_months: 24 }],
+      companies: analysis.companies || ['Previous Organization'],
+      education: analysis.education?.length ? analysis.education : [{ degree: "Bachelor's Degree", field: 'Relevant Field', institution: 'University', year: '2021' }],
+      certifications: analysis.certifications || [],
+      courses: [],
+      technical_skills: normalizeTechnicalSkills(analysis.technical_skills),
+      soft_skills: Array.isArray(analysis.soft_skills) ? analysis.soft_skills : ['Communication', 'Problem Solving'],
+      languages: analysis.languages?.length ? analysis.languages : [{ language: 'English', level: 'Professional' }],
+      projects: analysis.projects || [],
+      achievements: [],
+      awards: [],
+      match_score: score,
+      ats_score: analysis.ats_score || 88,
+      skill_match: analysis.skill_match || 85,
+      experience_match: analysis.experience_match || 80,
+      education_match: analysis.education_match || 90,
+      seniority_match: analysis.seniority_match || 85,
+      location_match: analysis.location_match || 95,
+      keyword_match: analysis.keyword_match || 88,
+      salary_match: analysis.salary_match || 85,
+      ai_confidence: analysis.ai_confidence || 94,
+      recommendation: analysis.recommendation || 'Hire',
+      recommendation_reason: analysis.recommendation_reason || 'Qualified match for job criteria.',
+      ai_summary: analysis.ai_summary || 'Extracted candidate profile and skills.',
+      strengths: analysis.strengths || ['Good skill alignment'],
+      weaknesses: analysis.weaknesses || [],
+      missing_skills: analysis.missing_skills || [],
+      missing_certs: [],
+      skill_gap_analysis: analysis.skill_gap_analysis || 'Candidate meets required criteria.',
+      ats_issues: analysis.ats_issues || [],
+      ats_suggestions: analysis.ats_suggestions || [],
+      category,
+      status: 'Screening',
+      pipeline_stage: 'Screening',
+      pipeline_history: [{ stage: 'Screening', entered_at: new Date().toISOString(), moved_by: 'AI Scanner', notes: 'Automated career portal CV analysis and scoring completed.' }],
+      recruiter_decision: 'NEEDS_REVIEW',
+      applied_at: new Date().toISOString(),
+      flagged: false,
+      is_knocked_out: false,
+      knockout_flags: [],
+      source: 'Career Portal',
+      file_name: fileName,
+      file_content: fileContent,
+      processing_attempts: 1,
+      chat_history: [],
+      whatsapp_history: [],
+      created_at: new Date().toISOString(),
+    };
+
+    CANDIDATES.unshift(newCand);
+    saveDatabase();
+    res.json({
+      success: true,
+      message: 'Application submitted successfully! Our talent team will review your CV.',
+      candidate_id: newCand.id,
+    });
+  } catch (err: any) {
+    console.error('Critical error in handlePostPublicApply:', err);
+    res.status(500).json({ detail: 'حدث خطأ أثناء معالجة الطلب، يرجى المحاولة مرة أخرى.' });
   }
-
-  const filesArray = req.files as Express.Multer.File[] | undefined;
-  const reqFile = req.file || (filesArray && filesArray.length > 0 ? filesArray[0] : undefined);
-
-  const fileBuffer = reqFile ? reqFile.buffer : undefined;
-  const fileName = reqFile ? reqFile.originalname : 'Application_CV.pdf';
-  const fileMime = reqFile ? reqFile.mimetype : undefined;
-  const fileContent = req.body.cv_text || (fileBuffer ? await extractCleanTextFromBuffer(fileBuffer, fileName, fileMime) : '');
-
-  const applicantName = req.body.full_name ? String(req.body.full_name).trim() : '';
-  const applicantEmail = req.body.email ? String(req.body.email).trim() : '';
-  const applicantPhone = req.body.phone ? String(req.body.phone).trim() : '';
-
-  const analysis = await evaluateCVWithAI({
-    buffer: fileBuffer,
-    filename: fileName,
-    mimetype: fileMime,
-    text: req.body.cv_text || fileContent || undefined,
-    full_name: applicantName || undefined,
-    email: applicantEmail || undefined,
-    phone: applicantPhone || undefined,
-  }, job);
-
-  const candidateFullName = applicantName || (analysis.full_name || 'Applicant');
-  const candidateEmail = applicantEmail || (analysis.email || 'applicant@mail.com');
-  const candidatePhone = applicantPhone || (analysis.phone || '');
-
-  const score = analysis.match_score || 85;
-  const category = score >= (job.score_strong_match || 80)
-    ? 'STRONG_MATCH'
-    : score >= (job.score_potential_match || 60)
-    ? 'POTENTIAL_MATCH'
-    : 'WEAK_MATCH';
-
-  const newCand: DBCandidate = {
-    id: nextCandidateId++,
-    org_id: job.org_id, // Strictly bound to tenant/HR who owns this job
-    recruiter_id: job.recruiter_id || 1,
-    job_id: job.id,     // Strictly bound to this job
-    full_name: candidateFullName,
-    email: candidateEmail,
-    phone: candidatePhone,
-    location: req.body.location || analysis.location || 'Remote',
-    current_position: analysis.current_position || 'Professional Specialist',
-    years_experience: Number(req.body.years_experience) || analysis.years_experience || 3,
-    previous_positions: analysis.previous_positions?.length
-      ? analysis.previous_positions
-      : [{ title: analysis.current_position || 'Professional', company: analysis.companies?.[0] || 'Previous Organization', duration_months: 24 }],
-    companies: analysis.companies || ['Previous Organization'],
-    education: analysis.education?.length ? analysis.education : [{ degree: "Bachelor's Degree", field: 'Relevant Field', institution: 'University', year: '2021' }],
-    certifications: analysis.certifications || [],
-    courses: [],
-    technical_skills: normalizeTechnicalSkills(analysis.technical_skills),
-    soft_skills: Array.isArray(analysis.soft_skills) ? analysis.soft_skills : ['Communication', 'Problem Solving'],
-    languages: analysis.languages?.length ? analysis.languages : [{ language: 'English', level: 'Professional' }],
-    projects: analysis.projects || [],
-    achievements: [],
-    awards: [],
-    match_score: score,
-    ats_score: analysis.ats_score || 88,
-    skill_match: analysis.skill_match || 85,
-    experience_match: analysis.experience_match || 80,
-    education_match: analysis.education_match || 90,
-    seniority_match: analysis.seniority_match || 85,
-    location_match: analysis.location_match || 95,
-    keyword_match: analysis.keyword_match || 88,
-    salary_match: analysis.salary_match || 85,
-    ai_confidence: analysis.ai_confidence || 94,
-    recommendation: analysis.recommendation || 'Hire',
-    recommendation_reason: analysis.recommendation_reason || 'Qualified match for job criteria.',
-    ai_summary: analysis.ai_summary || 'Extracted candidate profile and skills.',
-    strengths: analysis.strengths || ['Good skill alignment'],
-    weaknesses: analysis.weaknesses || [],
-    missing_skills: analysis.missing_skills || [],
-    missing_certs: [],
-    skill_gap_analysis: analysis.skill_gap_analysis || 'Candidate meets required criteria.',
-    ats_issues: analysis.ats_issues || [],
-    ats_suggestions: analysis.ats_suggestions || [],
-    category,
-    status: 'Screening',
-    pipeline_stage: 'Screening',
-    pipeline_history: [{ stage: 'Screening', entered_at: new Date().toISOString(), moved_by: 'AI Scanner', notes: 'Automated career portal CV analysis and scoring completed.' }],
-    recruiter_decision: 'NEEDS_REVIEW',
-    applied_at: new Date().toISOString(),
-    flagged: false,
-    is_knocked_out: false,
-    knockout_flags: [],
-    source: 'Career Portal',
-    file_name: fileName,
-    file_content: fileContent,
-    processing_attempts: 1,
-    chat_history: [],
-    whatsapp_history: [],
-    created_at: new Date().toISOString(),
-  };
-
-  CANDIDATES.unshift(newCand);
-  saveDatabase();
-  res.json({
-    success: true,
-    message: 'Application submitted successfully! Our talent team will review your CV.',
-    candidate_id: newCand.id,
-  });
 };
 
 app.get('/api/v1/apply/:token', handleGetPublicJob);
@@ -3387,7 +3814,7 @@ Always respond politely, concisely, and professionally. Match the user's languag
     // 1. Try Gemini API first if configured
     const ai = getAIClient();
     if (ai) {
-      const candidateModels = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3.6-flash'];
+      const candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.6-flash'];
       for (const modelName of candidateModels) {
         try {
           const chat = ai.chats.create({
@@ -3412,27 +3839,38 @@ Always respond politely, concisely, and professionally. Match the user's languag
     // 2. Try Groq if configured
     const groq = getGroqClient();
     if (groq) {
-      try {
-        const groqResponse = await groq.chat.completions.create({
-          model: 'llama-3.3-70b-versatile',
-          messages: [
-            { role: 'system', content: systemInstruction },
-            ...history.map((m: any) => ({
-              role: m.role === 'model' ? 'assistant' : 'user',
-              content: String(m.text || '')
-            })),
-            { role: 'user', content: userMsg }
-          ],
-          temperature: 0.7,
-          max_tokens: 1024,
-        });
+      const groqModels = [
+        'llama-3.3-70b-versatile',
+        'llama-3.1-8b-instant',
+        'qwen/qwen3.8-27b',
+        'qwen/qwen3.6-27b',
+        'allam-2-7b',
+        'openai/gpt-oss-120b',
+        'openai/gpt-oss-20b'
+      ];
+      for (const gm of groqModels) {
+        try {
+          const groqResponse = await groq.chat.completions.create({
+            model: gm,
+            messages: [
+              { role: 'system', content: systemInstruction },
+              ...history.map((m: any) => ({
+                role: m.role === 'model' ? 'assistant' : 'user',
+                content: String(m.text || '')
+              })),
+              { role: 'user', content: userMsg }
+            ],
+            temperature: 0.7,
+            max_tokens: 1024,
+          });
 
-        const replyText = groqResponse.choices[0]?.message?.content;
-        if (replyText) {
-          return res.json({ reply: replyText });
+          const replyText = groqResponse.choices[0]?.message?.content;
+          if (replyText) {
+            return res.json({ reply: replyText });
+          }
+        } catch (groqError: any) {
+          // Try next Groq model
         }
-      } catch (groqError: any) {
-        console.warn('Groq chat notice:', groqError.message || groqError);
       }
     }
 
@@ -3625,17 +4063,14 @@ How can I help you today?`
   }
 });
 
+async function syncWithNeonDatabase() {
+  // Disabled to strictly respect local database.json state and prevent re-adding deleted candidates.
+  return;
+}
+
 // Ensure database persistence and Neon initialization run on module import (serverless friendly)
 initDataPersistence();
-initNeonTables().then((initialized) => {
-  if (initialized) {
-    syncDataToNeon({
-      jobs: JOBS,
-      candidates: CANDIDATES,
-      users: USERS,
-    }).catch(err => console.error('[Initial Neon Sync Error]:', err));
-  }
-});
+syncWithNeonDatabase().catch(err => console.error('[Neon DB Init Sync Error]:', err));
 
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {

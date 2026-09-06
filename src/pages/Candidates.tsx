@@ -4,19 +4,19 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import {
   Upload, Search, Filter, ChevronRight, Users, AlertTriangle,
-  CheckCircle, XCircle, Clock, MoreHorizontal, RefreshCw, Sparkles,
-  Trash2, ExternalLink,
+  CheckCircle, XCircle, Clock, RefreshCw, Sparkles,
+  Trash2, ExternalLink, Briefcase, Eraser, Mail,
 } from 'lucide-react';
 import { candidatesApi, jobsApi } from '../api';
-import { Button, Badge, Card, Modal, Skeleton, EmptyState, useToast, Select, Spinner, Textarea } from '../components/ui';
+import { Button, Badge, Card, Modal, Skeleton, EmptyState, useToast, Spinner, Textarea } from '../components/ui';
 import { Layout, PageHeader } from '../components/layout/Layout';
 import { ScoreRing } from '../components/ui';
+import { SendEmailModal } from '../components/SendEmailModal';
 import {
-  getScoreBg, getCategoryBadge, getCategoryLabel, getStatusBadge,
-  initials, avatarColor, daysSince, formatDate, CANDIDATE_STATUSES,
+  getCategoryBadge, getCategoryLabel, getStatusBadge,
+  initials, avatarColor, daysSince, CANDIDATE_STATUSES,
 } from '../utils';
 import type { Candidate } from '../types';
-import { useAuthStore } from '../store/auth';
 
 const PIPELINE_STAGES = [
   'Under Review', 'Screening', 'Phone Interview', 'Technical',
@@ -26,6 +26,7 @@ const PIPELINE_STAGES = [
 
 function CandidateRow({ candidate }: { candidate: Candidate; [key: string]: any }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const days = daysSince(candidate.applied_at);
   const isProcessing = ['Queued', 'Processing'].includes(candidate.status);
   const qc = useQueryClient();
@@ -45,6 +46,7 @@ function CandidateRow({ candidate }: { candidate: Candidate; [key: string]: any 
     mutationFn: () => candidatesApi.delete(candidate.id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['candidates'] });
+      qc.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast(`Deleted candidate ${candidate.full_name}`, 'success');
       setShowDeleteModal(false);
     },
@@ -66,7 +68,7 @@ function CandidateRow({ candidate }: { candidate: Candidate; [key: string]: any 
             {candidate.is_knocked_out && <AlertTriangle size={13} className="text-red-500 flex-shrink-0" />}
             {candidate.flagged && <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Flagged</span>}
           </div>
-          <div className="flex items-center gap-3 text-xs text-slate-500">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
             {candidate.current_position && <span className="truncate max-w-32">{candidate.current_position}</span>}
             {candidate.years_experience > 0 && <span>{candidate.years_experience}y exp</span>}
             {candidate.location && <span>{candidate.location}</span>}
@@ -113,6 +115,18 @@ function CandidateRow({ candidate }: { candidate: Candidate; [key: string]: any 
 
       {/* Quick Actions */}
       <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowEmailModal(true);
+          }}
+          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+          title="مراسلة ومتابعة المرشح عبر البريد الإلكتروني"
+        >
+          <Mail size={15} />
+        </button>
         <a
           href={`/candidates/${candidate.id}`}
           target="_blank"
@@ -129,7 +143,7 @@ function CandidateRow({ candidate }: { candidate: Candidate; [key: string]: any 
             setShowDeleteModal(true);
           }}
           disabled={deleteMutation.isPending}
-          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
           title="Delete candidate"
         >
           <Trash2 size={15} />
@@ -139,10 +153,16 @@ function CandidateRow({ candidate }: { candidate: Candidate; [key: string]: any 
         </Link>
       </div>
 
+      <SendEmailModal
+        candidate={candidate}
+        open={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+      />
+
       <Modal open={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Delete Candidate" width="max-w-md">
         <div className="p-4">
           <p className="text-slate-600 text-sm mb-6">
-            Are you sure you want to delete the candidate <strong>{candidate.full_name}</strong>? This action cannot be undone.
+            Are you sure you want to delete candidate <strong>{candidate.full_name}</strong>? This action cannot be undone.
           </p>
           <div className="flex justify-end gap-3">
             <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
@@ -156,19 +176,117 @@ function CandidateRow({ candidate }: { candidate: Candidate; [key: string]: any 
   );
 }
 
-function BulkUploadModal({ open, onClose, jobId }: { open: boolean; onClose: () => void; jobId?: number }) {
+// ── Clear All Candidates Modal ───────────────────────────────────────
+function ClearAllCandidatesModal({
+  open,
+  onClose,
+  totalCount,
+  jobId,
+  jobTitle,
+}: {
+  open: boolean;
+  onClose: () => void;
+  totalCount: number;
+  jobId?: number;
+  jobTitle?: string;
+}) {
+  const toast = useToast();
+  const qc = useQueryClient();
+
+  const clearMutation = useMutation({
+    mutationFn: () => candidatesApi.clearAll({ job_id: jobId }),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['candidates'] });
+      qc.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      toast(res.message || `تم مسح ${res.deleted_count || totalCount} من السير الذاتية بنجاح`, 'success');
+      onClose();
+    },
+    onError: () => {
+      toast('فشل في مسح السير الذاتية', 'error');
+    },
+  });
+
+  const scopeDescription = jobId && jobTitle
+    ? `وظيفة "${jobTitle}"`
+    : 'الحساب بالكامل (جميع المرشحين)';
+
+  return (
+    <Modal open={open} onClose={onClose} title="مسح وتفريغ السير الذاتية (Clear Candidates)" width="max-w-md">
+      <div className="p-2 space-y-4">
+        <div className="p-3.5 bg-red-50 border border-red-200/80 rounded-xl flex items-start gap-3 text-red-950 text-xs leading-relaxed">
+          <AlertTriangle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <div className="font-bold text-red-950 text-sm">تأكيد مسح كافة المرشحين:</div>
+            <div>
+              أنت على وشك مسح كافة السير الذاتية (<strong>{totalCount} سير ذاتية</strong>) الخاصة بـ <strong>{scopeDescription}</strong>.
+            </div>
+            <div className="text-red-700 text-[11px] pt-1">
+              • سيتم حذف بيانات المرشحين وملفات الـ CV وتقييمات الـ AI نهائياً لتفريغ المساحة للعمليات الجديدة.
+            </div>
+          </div>
+        </div>
+
+        <p className="text-xs text-slate-600 leading-relaxed">
+          هل أنت متأكد من رغبتك في إتمام المسح الشامل؟ لن يمكن استرجاع هذه الملفات بعد التأكيد.
+        </p>
+
+        <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
+          <Button variant="secondary" onClick={onClose}>
+            إلغاء
+          </Button>
+          <Button
+            variant="danger"
+            className="bg-red-600 hover:bg-red-700 text-white font-medium"
+            loading={clearMutation.isPending}
+            onClick={() => clearMutation.mutate()}
+            icon={<Trash2 size={14} />}
+          >
+            تأكيد مسح السير الذاتية ({totalCount})
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Bulk Upload Modal ────────────────────────────────────────────────
+function BulkUploadModal({
+  open,
+  onClose,
+  jobs,
+  defaultJobId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  jobs?: any[];
+  defaultJobId?: number;
+}) {
   const toast = useToast();
   const qc = useQueryClient();
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<string>(
+    defaultJobId ? String(defaultJobId) : ''
+  );
   const [result, setResult] = useState<{ total_processed?: number; queued?: number; rejected_files?: number } | null>(null);
+
+  React.useEffect(() => {
+    if (open) {
+      setSelectedJobId(defaultJobId ? String(defaultJobId) : '');
+    }
+  }, [open, defaultJobId]);
 
   const onDrop = useCallback((accepted: File[]) => {
     setFiles(f => [...f, ...accepted].slice(0, 100));
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop, accept: { 'application/pdf': ['.pdf'], 'application/msword': ['.doc'], 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'] },
+    onDrop,
+    accept: {
+      'application/pdf': ['.pdf'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+    },
   } as any);
 
   const handleUpload = async () => {
@@ -177,7 +295,8 @@ function BulkUploadModal({ open, onClose, jobId }: { open: boolean; onClose: () 
     try {
       const fd = new FormData();
       files.forEach(f => fd.append('files', f));
-      if (jobId) fd.append('job_id', String(jobId));
+      if (selectedJobId) fd.append('job_id', selectedJobId);
+
       const res = await candidatesApi.bulkUpload(fd);
       setResult(res);
       qc.invalidateQueries({ queryKey: ['candidates'] });
@@ -190,7 +309,12 @@ function BulkUploadModal({ open, onClose, jobId }: { open: boolean; onClose: () 
     }
   };
 
-  const handleClose = () => { setFiles([]); setResult(null); qc.invalidateQueries({ queryKey: ['candidates'] }); onClose(); };
+  const handleClose = () => {
+    setFiles([]);
+    setResult(null);
+    qc.invalidateQueries({ queryKey: ['candidates'] });
+    onClose();
+  };
 
   return (
     <Modal open={open} onClose={handleClose} title="Bulk Upload CVs" width="max-w-lg">
@@ -203,6 +327,24 @@ function BulkUploadModal({ open, onClose, jobId }: { open: boolean; onClose: () 
         </div>
       ) : (
         <div className="space-y-4">
+          <div>
+            <label className="text-xs font-semibold text-slate-700 mb-1 block">
+              توجيه السير الذاتية إلى الوظيفة (Target Job):
+            </label>
+            <select
+              value={selectedJobId}
+              onChange={(e) => setSelectedJobId(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">-- القائمة العامة لجميع الوظائف --</option>
+              {jobs?.map(j => (
+                <option key={j.id} value={j.id}>
+                  {j.title} ({j.department || 'General'})
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div
             {...getRootProps()}
             className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors
@@ -240,12 +382,14 @@ function BulkUploadModal({ open, onClose, jobId }: { open: boolean; onClose: () 
   );
 }
 
+// ── Main Candidates Page Component ───────────────────────────────────
 export function CandidatesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [bulkOpen, setBulkOpen] = useState(false);
   const [analyzeOpen, setAnalyzeOpen] = useState(false);
-  const { user } = useAuthStore();
+  const [clearAllModalOpen, setClearAllModalOpen] = useState(false);
+
   const qc = useQueryClient();
   const toast = useToast();
 
@@ -258,7 +402,16 @@ export function CandidatesPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['candidates', { page, jobId, status, minScore, search }],
-    queryFn: () => candidatesApi.list({ page, page_size: 20, job_id: jobId, status, min_score: minScore, search: search || undefined, sort_by: 'score_desc' }),
+    queryFn: () =>
+      candidatesApi.list({
+        page,
+        page_size: 20,
+        job_id: jobId,
+        status,
+        min_score: minScore,
+        search: search || undefined,
+        sort_by: 'score_desc',
+      }),
   });
 
   const reEvaluateAllMutation = useMutation({
@@ -273,17 +426,31 @@ export function CandidatesPage() {
   const setParam = (key: string, val: string | null) => {
     const p = new URLSearchParams(searchParams);
     if (val) p.set(key, val); else p.delete(key);
-    if (key !== 'page') p.delete('page'); // Reset page to 1 on other filter changes
+    if (key !== 'page') p.delete('page');
     setSearchParams(p);
   };
+
+  const activeJob = jobId ? jobs?.find(j => j.id === jobId) : null;
+  const totalCandidatesAll = (data?.total || 0);
 
   return (
     <Layout>
       <PageHeader
         title="Candidates"
-        subtitle={data ? `${data.total} total` : ''}
+        subtitle={data ? `${data.total} candidates in view` : ''}
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {totalCandidatesAll > 0 && (
+              <Button
+                variant="outline"
+                className="text-rose-600 border-rose-200 hover:bg-rose-50"
+                icon={<Trash2 size={14} className="text-rose-600" />}
+                onClick={() => setClearAllModalOpen(true)}
+                title="مسح وتفريغ كافة السير الذاتية في العرض الحالي"
+              >
+                مسح المرشحين
+              </Button>
+            )}
             <Button
               variant="outline"
               className="text-blue-600 border-blue-200 hover:bg-blue-50"
@@ -301,12 +468,67 @@ export function CandidatesPage() {
             >
               Re-evaluate All
             </Button>
-            <Button variant="primary" icon={<Upload size={14} />} onClick={() => setBulkOpen(true)}>
+            <Button
+              variant="primary"
+              icon={<Upload size={14} />}
+              onClick={() => setBulkOpen(true)}
+            >
               Bulk Upload
             </Button>
           </div>
         }
       />
+
+      {/* ── Job Selector Pills / Navigation ───────────────────────────── */}
+      <div className="mb-4 bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-xs">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 mb-2 pb-2 border-b border-slate-100">
+          <Briefcase size={16} className="text-blue-600" />
+          <span>التصنيف حسب الوظائف (Jobs):</span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setParam('job_id', null)}
+            className={`px-3.5 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 ${
+              !jobId
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            <Users size={14} className={!jobId ? 'text-blue-200' : 'text-slate-500'} />
+            <span>جميع الوظائف (All Candidates)</span>
+          </button>
+
+          {jobs?.map((j) => {
+            const isSelected = jobId === j.id;
+            return (
+              <button
+                key={j.id}
+                type="button"
+                onClick={() => setParam('job_id', isSelected ? null : String(j.id))}
+                className={`px-3.5 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 ${
+                  isSelected
+                    ? 'bg-blue-600 text-white shadow-xs ring-2 ring-blue-300'
+                    : 'bg-white text-slate-700 hover:bg-blue-50/60 border border-slate-200'
+                }`}
+              >
+                <Briefcase size={14} className={isSelected ? 'text-blue-200' : 'text-blue-600'} />
+                <span>{j.title}</span>
+                {j.candidate_count !== undefined && (
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                      isSelected ? 'bg-blue-700 text-blue-100' : 'bg-blue-50 text-blue-700 border border-blue-200/60'
+                    }`}
+                  >
+                    {j.candidate_count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Status Tag Filter Pills */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -317,7 +539,7 @@ export function CandidatesPage() {
             !status ? 'bg-slate-800 text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
           }`}
         >
-          All Candidates
+          All Stages & Tags
         </button>
         {CANDIDATE_STATUSES.map((st) => {
           const isActive = status === st;
@@ -338,30 +560,30 @@ export function CandidatesPage() {
         })}
       </div>
 
-      {/* Filters */}
-      <Card className="mb-4 p-4">
-        <div className="flex flex-wrap gap-3">
-          <div className="relative flex-1 min-w-40">
+      {/* Filters Card */}
+      <Card className="mb-4 p-3.5 border-slate-200/90 shadow-xs">
+        <div className="flex flex-wrap gap-2.5 items-center">
+          <div className="relative flex-1 min-w-44">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search by name, email..."
-              className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Search by name, email, skills, title..."
+              className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             />
           </div>
           <select
             value={jobId || ''}
             onChange={e => setParam('job_id', e.target.value || null)}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700"
           >
-            <option value="">All Jobs</option>
+            <option value="">All Jobs ({jobs?.length || 0})</option>
             {jobs?.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
           </select>
           <select
             value={status || ''}
             onChange={e => setParam('status', e.target.value || null)}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700"
           >
             <option value="">All Stages</option>
             {PIPELINE_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -369,21 +591,39 @@ export function CandidatesPage() {
           <select
             value={minScore || ''}
             onChange={e => setParam('min_score', e.target.value || null)}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700"
           >
-            <option value="">Any Score</option>
-            <option value="80">80+ Strong Match</option>
-            <option value="60">60+ Potential</option>
-            <option value="40">40+ Weak Match</option>
+            <option value="">Any Match Score</option>
+            <option value="80">80%+ Strong Match</option>
+            <option value="60">60%+ Potential</option>
+            <option value="40">40%+ Weak Match</option>
           </select>
+
+          {(jobId || status || minScore || search) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('');
+                const p = new URLSearchParams(searchParams);
+                p.delete('job_id');
+                p.delete('status');
+                p.delete('min_score');
+                p.delete('search');
+                setSearchParams(p);
+              }}
+              className="px-2.5 py-2 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors border border-rose-200"
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
       </Card>
 
-      {/* Candidate list */}
-      <Card padding={false} className="overflow-hidden">
+      {/* Main Content Area */}
+      <Card padding={false} className="overflow-hidden border-slate-200/90 shadow-xs">
         {isLoading ? (
           <div className="divide-y divide-slate-100">
-            {Array(8).fill(0).map((_, i) => (
+            {Array(6).fill(0).map((_, i) => (
               <div key={i} className="flex items-center gap-4 p-4">
                 <Skeleton className="w-9 h-9 rounded-full flex-shrink-0" />
                 <Skeleton className="flex-1 h-10" />
@@ -394,13 +634,18 @@ export function CandidatesPage() {
         ) : !data?.items.length ? (
           <EmptyState
             icon={<Users size={32} />}
-            title="No candidates found"
-            description="Try adjusting your filters or upload some CVs to get started."
+            title="لا توجد سير ذاتية مطابقة"
+            description="يمكنك البدء برفع ملفات السير الذاتية (Bulk Upload) الخاصة بمسار التوظيف."
           />
         ) : (
           <>
             <div className="divide-y divide-slate-50">
-              {data.items.map((c, i) => <CandidateRow key={`cand-item-${c.id}-${i}`} candidate={c} />)}
+              {data.items.map((c, i) => (
+                <CandidateRow
+                  key={`cand-item-${c.id}-${i}`}
+                  candidate={c}
+                />
+              ))}
             </div>
             {/* Pagination */}
             {data.pages > 1 && (
@@ -418,8 +663,27 @@ export function CandidatesPage() {
         )}
       </Card>
 
-      <BulkUploadModal open={bulkOpen} onClose={() => setBulkOpen(false)} jobId={jobId} />
-      <AnalyzeCvModal open={analyzeOpen} onClose={() => setAnalyzeOpen(false)} jobs={jobs} />
+      {/* Modals */}
+      <ClearAllCandidatesModal
+        open={clearAllModalOpen}
+        onClose={() => setClearAllModalOpen(false)}
+        totalCount={data?.total || 0}
+        jobId={jobId}
+        jobTitle={activeJob?.title}
+      />
+
+      <BulkUploadModal
+        open={bulkOpen}
+        onClose={() => setBulkOpen(false)}
+        jobs={jobs}
+        defaultJobId={jobId}
+      />
+
+      <AnalyzeCvModal
+        open={analyzeOpen}
+        onClose={() => setAnalyzeOpen(false)}
+        jobs={jobs}
+      />
     </Layout>
   );
 }
@@ -490,6 +754,7 @@ function AnalyzeCvModal({ open, onClose, jobs }: { open: boolean; onClose: () =>
 
       await candidatesApi.upload(formData);
       qc.invalidateQueries({ queryKey: ['candidates'] });
+      qc.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast('Candidate successfully imported into database!', 'success');
       onClose();
     } catch {
@@ -554,33 +819,33 @@ function AnalyzeCvModal({ open, onClose, jobs }: { open: boolean; onClose: () =>
         </Button>
 
         {result && (
-          <div className="p-4 bg-slate-900 text-white rounded-xl space-y-3 text-xs mt-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div className="p-4 bg-slate-50 border border-slate-200 text-slate-800 rounded-xl space-y-3 text-xs mt-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
               <div>
-                <h4 className="font-bold text-sm text-blue-400">{result.full_name || 'Extracted Name'}</h4>
-                <p className="text-slate-400">{result.email} · {result.phone} · {result.current_position}</p>
+                <h4 className="font-bold text-sm text-indigo-700">{result.full_name || 'Extracted Name'}</h4>
+                <p className="text-slate-500">{result.email} · {result.phone} · {result.current_position}</p>
               </div>
               <div className="text-right">
-                <span className="text-xl font-bold text-emerald-400">{result.match_score}%</span>
-                <p className="text-[10px] text-slate-400">Match Score</p>
+                <span className="text-xl font-bold text-emerald-600">{result.match_score}%</span>
+                <p className="text-[10px] text-slate-500">Match Score</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <div className="p-2 bg-slate-800/70 rounded-lg">
-                <span className="text-slate-400 block">ATS Score</span>
-                <strong className="text-slate-200">{result.ats_score}%</strong>
+              <div className="p-2 bg-white border border-slate-200 rounded-lg">
+                <span className="text-slate-500 block">ATS Score</span>
+                <strong className="text-slate-800">{result.ats_score}%</strong>
               </div>
-              <div className="p-2 bg-slate-800/70 rounded-lg">
-                <span className="text-slate-400 block">Recommendation</span>
-                <strong className="text-emerald-400">{result.recommendation}</strong>
+              <div className="p-2 bg-white border border-slate-200 rounded-lg">
+                <span className="text-slate-500 block">Recommendation</span>
+                <strong className="text-emerald-600">{result.recommendation}</strong>
               </div>
             </div>
 
             {result.ai_summary && (
               <div>
-                <span className="text-slate-400 text-[11px] block mb-1">AI Executive Summary</span>
-                <p className="text-slate-300 text-[11px] leading-relaxed">{result.ai_summary}</p>
+                <span className="text-slate-500 text-[11px] block mb-1">AI Executive Summary</span>
+                <p className="text-slate-700 text-[11px] leading-relaxed">{result.ai_summary}</p>
               </div>
             )}
 
@@ -607,4 +872,3 @@ function AnalyzeCvModal({ open, onClose, jobs }: { open: boolean; onClose: () =>
     </Modal>
   );
 }
-

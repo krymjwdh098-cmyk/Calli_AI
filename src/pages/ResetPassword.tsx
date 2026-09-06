@@ -99,7 +99,7 @@ export function ResetPasswordPage() {
                   onChange={e => setPassword(e.target.value)}
                   placeholder="8 أحرف كحد أدنى"
                   required
-                  className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-lg text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-all shadow-sm dir-ltr text-left"
+                  className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-lg text-base sm:text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-all shadow-sm dir-ltr text-left"
                 />
               </div>
               <div className="space-y-2">
@@ -110,7 +110,7 @@ export function ResetPasswordPage() {
                   onChange={e => setConfirm(e.target.value)}
                   placeholder="أعد إدخال كلمة المرور"
                   required
-                  className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-lg text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-all shadow-sm dir-ltr text-left"
+                  className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-lg text-base sm:text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-all shadow-sm dir-ltr text-left"
                 />
               </div>
               <button

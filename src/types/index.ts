@@ -10,7 +10,9 @@ export interface User {
 
 export interface TokenResponse {
   access_token: string;
+  refresh_token?: string;
   token_type: string;
+  user?: User;
 }
 
 // ── Job ──────────────────────────────────────────────────────────────
@@ -295,6 +297,18 @@ export interface PipelineAnalytics {
   salary_match_distribution: Record<string, number>;
 }
 
+// ── Candidate Batch / Workspace Page ─────────────────────────
+export interface CandidateBatch {
+  id: number;
+  org_id: number;
+  recruiter_id: number;
+  name: string;
+  description?: string;
+  job_id?: number;
+  candidate_count: number;
+  created_at: string;
+}
+
 // ── Batch ────────────────────────────────────────────────────────────
 export interface BatchJob {
   batch_id: number;
@@ -349,6 +363,7 @@ export interface TeamUser {
   role: string;
   is_active: boolean;
   org_id: number;
+  org_name?: string;
   created_at: string;
 }
 

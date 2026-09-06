@@ -1,7 +1,7 @@
 import { api } from './client';
 import type {
   User, Job, JobCreate, KnockoutRule,
-  Candidate, Paginated, DashboardStats, PipelineAnalytics,
+  Candidate, CandidateBatch, Paginated, DashboardStats, PipelineAnalytics,
   BatchJob, TimelineEvent, WebhookEndpoint, WebhookDelivery,
   TeamUser, TimeToHireReport, TokenResponse, EmailLog, EmailTemplate,
 } from '../types';
@@ -10,10 +10,15 @@ const V1 = '/api/v1';
 
 // ── Auth ──────────────────────────────────────────────────────────────
 export const authApi = {
-  login: (email: string, password: string) =>
-    api.post<TokenResponse>(`${V1}/auth/login`, new URLSearchParams({ username: email, password }), {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    }).then(r => r.data),
+  login: (email: string, password: string) => {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+    return api.post<TokenResponse>(`${V1}/auth/login`, {
+      username: cleanEmail,
+      email: cleanEmail,
+      password: cleanPassword,
+    }).then(r => r.data);
+  },
 
   register: (data: { email: string; password: string; name: string; org_name: string }) =>
     api.post<TokenResponse>(`${V1}/auth/register`, data).then(r => r.data),
@@ -66,7 +71,7 @@ export const jobsApi = {
 // ── Candidates ────────────────────────────────────────────────────────
 export const candidatesApi = {
   list: (params?: {
-    job_id?: number; status?: string; category?: string;
+    job_id?: number; batch_id?: number | string; status?: string; category?: string;
     min_score?: number; source?: string; search?: string;
     page?: number; page_size?: number; sort_by?: string;
   }) => api.get<Paginated<Candidate>>(`${V1}/candidates/`, { params }).then(r => r.data),
@@ -86,7 +91,16 @@ export const candidatesApi = {
   getBatchStatus: (batchId: number) =>
     api.get<BatchJob>(`${V1}/candidates/batches/${batchId}`).then(r => r.data),
 
-  listBatches: () => api.get(`${V1}/candidates/batches/`).then(r => r.data),
+  listBatches: (params?: { job_id?: number }) => api.get<CandidateBatch[]>(`${V1}/candidates/batches`, { params }).then(r => r.data),
+  createBatch: (data: { name: string; description?: string; job_id?: number }) =>
+    api.post<CandidateBatch>(`${V1}/candidates/batches`, data).then(r => r.data),
+  deleteBatch: (id: number) =>
+    api.delete<{ message: string; id: number; deleted_candidates_count: number }>(`${V1}/candidates/batches/${id}`).then(r => r.data),
+  clearBatch: (id: number) =>
+    api.post<{ message: string; id: number; cleared_candidates_count: number }>(`${V1}/candidates/batches/${id}/clear`).then(r => r.data),
+  clearAll: (params?: { batch_id?: number | string; job_id?: number }) =>
+    api.post<{ message: string; deleted_count: number }>(`${V1}/candidates/clear-all`, params || {}).then(r => r.data),
+
 
   decide: (id: number, decision: string, notes?: string) =>
     api.post(`${V1}/candidates/${id}/decide`, { decision, notes }).then(r => r.data),
@@ -159,6 +173,10 @@ export const emailsApi = {
     api.get<EmailLog[]>(`${V1}/emails`, { params }).then(r => r.data),
   send: (data: { candidate_id?: number; recipient_email?: string; recipient_name?: string; subject: string; body: string; trigger_event?: string }) =>
     api.post<EmailLog>(`${V1}/emails/send`, data).then(r => r.data),
+  draft: (data: { candidate_id?: number; type?: string; language?: string; instructions?: string }) =>
+    api.post<{ subject: string; body: string }>(`${V1}/emails/draft`, data).then(r => r.data),
+  deleteLog: (id: number) =>
+    api.delete(`${V1}/emails/${id}`).then(r => r.data),
   getTemplates: () =>
     api.get<EmailTemplate[]>(`${V1}/emails/templates`).then(r => r.data),
   updateTemplate: (data: Partial<EmailTemplate>) =>
@@ -178,10 +196,10 @@ export const dashboardApi = {
 
 // ── Users ─────────────────────────────────────────────────────────────
 export const usersApi = {
-  list: () => api.get<TeamUser[]>(`${V1}/users/`).then(r => r.data),
-  create: (data: { name: string; email: string; password: string; role: string }) =>
-    api.post<TeamUser>(`${V1}/users/`, data).then(r => r.data),
-  update: (id: number, data: Partial<TeamUser & { password: string }>) =>
+  list: () => api.get<TeamUser[]>(`${V1}/users`).then(r => r.data),
+  create: (data: { name: string; email: string; password: string; role: string; create_isolated_workspace?: boolean; org_name?: string }) =>
+    api.post<TeamUser>(`${V1}/users`, data).then(r => r.data),
+  update: (id: number, data: Partial<TeamUser & { password: string; org_name: string }>) =>
     api.patch<TeamUser>(`${V1}/users/${id}`, data).then(r => r.data),
   delete: (id: number) => api.delete(`${V1}/users/${id}`),
 };

@@ -7,10 +7,11 @@ import {
   CheckCircle, XCircle, Flag, Download, RefreshCw, Send,
   AlertTriangle, Clock, Calendar, DollarSign, MessageSquare,
   ThumbsUp, ThumbsDown, ChevronRight, Sparkles, Target, TrendingUp,
-  Trash2, ExternalLink,
+  Trash2, ExternalLink, Copy, Check, FileText, Eye
 } from 'lucide-react';
 import { candidatesApi, emailsApi } from '../api';
 import { Layout } from '../components/layout/Layout';
+import { SendEmailModal, CandidateEmailPreviewCard } from '../components/SendEmailModal';
 import {
   Button, Badge, Card, Modal, Skeleton, useToast, Select,
   Textarea, Tabs, ScoreRing, ProgressBar, Input,
@@ -289,10 +290,23 @@ function ChatPanel({ candidate }: { candidate: Candidate }) {
 function EmailLogPanel({ candidate }: { candidate: Candidate }) {
   const toast = useToast();
   const qc = useQueryClient();
+  const [recipientEmail, setRecipientEmail] = useState(candidate.email || '');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [aiExpanded, setAiExpanded] = useState(false);
+  const [aiType, setAiType] = useState('followup');
+  const [aiLanguage, setAiLanguage] = useState<'ar' | 'en'>('ar');
+  const [aiInstructions, setAiInstructions] = useState('');
+  const [generatingAi, setGeneratingAi] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [previewComposerOpen, setPreviewComposerOpen] = useState(false);
+  const [selectedLogForPreview, setSelectedLogForPreview] = useState<any>(null);
+
+  useEffect(() => {
+    setRecipientEmail(candidate.email || '');
+  }, [candidate.email]);
 
   const { data: emailLogs, isLoading: logsLoading } = useQuery({
     queryKey: ['candidate-emails', candidate.id],
@@ -308,109 +322,409 @@ function EmailLogPanel({ candidate }: { candidate: Candidate }) {
     setSelectedTemplate(tplId);
     const tpl = templates?.find(t => t.id === tplId);
     if (tpl) {
-      setSubject(tpl.subject.replace(/\{\{candidate_name\}\}/g, candidate.full_name).replace(/\{\{job_title\}\}/g, 'Candidate Position').replace(/\{\{company_name\}\}/g, 'CalliQ'));
-      setBody(tpl.body.replace(/\{\{candidate_name\}\}/g, candidate.full_name).replace(/\{\{job_title\}\}/g, 'Candidate Position').replace(/\{\{company_name\}\}/g, 'CalliQ'));
+      setSubject(
+        tpl.subject
+          .replace(/\{\{candidate_name\}\}/g, candidate.full_name || 'Candidate')
+          .replace(/\{\{job_title\}\}/g, candidate.current_position || 'Position')
+          .replace(/\{\{company_name\}\}/g, 'CalliQ')
+      );
+      setBody(
+        tpl.body
+          .replace(/\{\{candidate_name\}\}/g, candidate.full_name || 'Candidate')
+          .replace(/\{\{job_title\}\}/g, candidate.current_position || 'Position')
+          .replace(/\{\{company_name\}\}/g, 'CalliQ')
+          .replace(/\{\{interview_date\}\}/g, 'الموعد المحدد')
+          .replace(/\{\{interview_link\}\}/g, 'Google Meet')
+      );
+    }
+  };
+
+  const handleAiDraft = async () => {
+    setGeneratingAi(true);
+    try {
+      const res = await emailsApi.draft({
+        candidate_id: candidate.id,
+        type: aiType,
+        language: aiLanguage,
+        instructions: aiInstructions.trim(),
+      });
+      if (res?.subject && res?.body) {
+        setSubject(res.subject);
+        setBody(res.body);
+        toast('تم توليد نص الرسالة بنجاح بالـ AI!', 'success');
+        setAiExpanded(false);
+      }
+    } catch {
+      toast('تعذر توليد المسودة بالذكاء الاصطناعي', 'error');
+    } finally {
+      setGeneratingAi(false);
     }
   };
 
   const handleSend = async () => {
-    if (!subject.trim() || !body.trim()) return toast('Please enter subject and message body', 'error');
+    if (!recipientEmail.trim()) return toast('يرجى تحديد البريد الإلكتروني للمستلم', 'error');
+    if (!subject.trim() || !body.trim()) return toast('يرجى كتابة عنوان الموضوع ومحتوى الرسالة', 'error');
     setSending(true);
     try {
-      await emailsApi.send({
+      const sentLog = await emailsApi.send({
         candidate_id: candidate.id,
-        recipient_email: candidate.email,
+        recipient_email: recipientEmail.trim(),
         recipient_name: candidate.full_name,
-        subject,
-        body,
-        trigger_event: 'manual_recruiter_email',
+        subject: subject.trim(),
+        body: body.trim(),
+        trigger_event: `recruiter_${aiType || 'manual_email'}`,
       });
-      toast('Email sent successfully!', 'success');
-      setSubject('');
-      setBody('');
+      toast('تم إرسال الرسالة وتوثيقها في السجل بنجاح!', 'success');
       qc.invalidateQueries({ queryKey: ['candidate-emails', candidate.id] });
+      setSelectedLogForPreview(sentLog);
     } catch {
-      toast('Failed to send email', 'error');
+      toast('فشل إرسال البريد الإلكتروني', 'error');
     } finally {
       setSending(false);
     }
   };
 
+  const handleDeleteLog = async (logId: number) => {
+    try {
+      await emailsApi.deleteLog(logId);
+      qc.invalidateQueries({ queryKey: ['candidate-emails', candidate.id] });
+      toast('تم حذف سجل الرسالة بنجاح', 'success');
+    } catch {
+      toast('فشل حذف سجل الرسالة', 'error');
+    }
+  };
+
+  const handleCopyBody = () => {
+    navigator.clipboard.writeText(`الموضوع: ${subject}\n\n${body}`);
+    setCopied(true);
+    toast('تم النسخ إلى الحافظة!', 'success');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleOpenGmail = () => {
+    if (!recipientEmail) return toast('يرجى إدخال البريد الإلكتروني للمستلم', 'error');
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(recipientEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(gmailUrl, '_blank');
+  };
+
+  const handleOpenClient = () => {
+    if (!recipientEmail) return toast('يرجى إدخال البريد الإلكتروني', 'error');
+    const mailto = `mailto:${encodeURIComponent(recipientEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailto, '_blank');
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <Card>
-        <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-1.5">
-          <Mail size={16} className="text-blue-600" /> Send Email Notification
-        </h3>
+        <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2.5">
+          <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
+            <Mail size={16} className="text-blue-600" /> مراسلة ومتابعة المرشح
+          </h3>
+          <button
+            type="button"
+            onClick={() => setAiExpanded(!aiExpanded)}
+            className={`text-xs px-2.5 py-1 rounded-lg border font-medium flex items-center gap-1 transition-colors cursor-pointer ${
+              aiExpanded
+                ? 'bg-purple-600 text-white border-purple-600'
+                : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
+            }`}
+          >
+            <Sparkles size={12} className={generatingAi ? 'animate-spin' : ''} />
+            {aiExpanded ? 'إغلاق الـ AI' : 'صياغة بالـ AI'}
+          </button>
+        </div>
+
+        {/* AI Drafting Drawer */}
+        {aiExpanded && (
+          <div className="mb-3.5 p-3 bg-purple-50/80 rounded-xl border border-purple-200 space-y-2.5 animate-in fade-in">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-purple-900 flex items-center gap-1">
+                <Sparkles size={13} className="text-purple-600" />
+                توليد رسالة مخصصة للمرشح
+              </span>
+              <div className="flex items-center gap-1 bg-white rounded-md p-0.5 border border-purple-200 text-[10px]">
+                <button
+                  type="button"
+                  onClick={() => setAiLanguage('ar')}
+                  className={`px-2 py-0.5 rounded ${aiLanguage === 'ar' ? 'bg-purple-600 text-white font-bold' : 'text-slate-600'}`}
+                >
+                  عربي
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAiLanguage('en')}
+                  className={`px-2 py-0.5 rounded ${aiLanguage === 'en' ? 'bg-purple-600 text-white font-bold' : 'text-slate-600'}`}
+                >
+                  English
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-semibold text-slate-700 mb-0.5 block">الهدف من الرسالة</label>
+                <select
+                  value={aiType}
+                  onChange={e => setAiType(e.target.value)}
+                  className="w-full text-xs border border-purple-200 bg-white rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                >
+                  <option value="followup">متابعة واستفسار (Follow-up)</option>
+                  <option value="interview">دعوة لمقابلة (Interview)</option>
+                  <option value="shortlist">قبول مبدئي (Shortlist)</option>
+                  <option value="offer">عرض عمل (Job Offer)</option>
+                  <option value="rejection">اعتذار مع شكر (Rejection)</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-slate-700 mb-0.5 block">تعليمات إضافية (اختياري)</label>
+                <input
+                  type="text"
+                  placeholder="مثال: التأكيد على المقابلة التقنية"
+                  value={aiInstructions}
+                  onChange={e => setAiInstructions(e.target.value)}
+                  className="w-full text-xs border border-purple-200 bg-white rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <Button
+                size="sm"
+                className="bg-purple-600 hover:bg-purple-700 text-white text-xs !py-1"
+                icon={<Sparkles size={12} />}
+                onClick={handleAiDraft}
+                loading={generatingAi}
+              >
+                توليد الرسالة
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-medium text-slate-500 mb-1 block">Quick Template</label>
+            <label className="text-xs font-medium text-slate-500 mb-1 block">القوالب السريعة (Templates)</label>
             <select
               className="w-full text-xs border border-slate-200 rounded-lg p-2 bg-white"
               value={selectedTemplate}
               onChange={e => handleTemplateSelect(e.target.value)}
             >
-              <option value="">Select a template...</option>
+              <option value="">اختيار قالب جاهز...</option>
               {templates?.map(t => (
-                <option key={t.id} value={t.id}>{t.name} ({t.event})</option>
+                <option key={t.id} value={t.id}>{t.name}</option>
               ))}
             </select>
           </div>
-          <Input
-            label="To"
-            value={`${candidate.full_name} <${candidate.email}>`}
-            disabled
-          />
-          <Input
-            label="Subject"
-            value={subject}
-            onChange={e => setSubject(e.target.value)}
-            placeholder="e.g. Next steps regarding your application"
-          />
-          <Textarea
-            label="Message Body"
-            value={body}
-            onChange={e => setBody(e.target.value)}
-            rows={5}
-            placeholder="Write your email content here..."
-          />
-          <Button
-            className="w-full justify-center"
-            icon={<Send size={14} />}
-            onClick={handleSend}
-            loading={sending}
-          >
-            Send Notification Email
-          </Button>
+
+          <div>
+            <label className="text-xs font-medium text-slate-600 mb-1 block">البريد الإلكتروني للمستلم</label>
+            <input
+              type="email"
+              value={recipientEmail}
+              onChange={e => setRecipientEmail(e.target.value)}
+              placeholder="name@example.com"
+              className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-slate-600 mb-1 block">عنوان الموضوع</label>
+            <input
+              type="text"
+              value={subject}
+              onChange={e => setSubject(e.target.value)}
+              placeholder="مثال: متابعة بخصوص طلب التوظيف..."
+              className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-medium text-slate-600">نص الرسالة</label>
+              <button
+                type="button"
+                onClick={handleCopyBody}
+                className="text-[11px] text-slate-500 hover:text-slate-800 flex items-center gap-1"
+              >
+                {copied ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                {copied ? 'تم النسخ' : 'نسخ'}
+              </button>
+            </div>
+            <textarea
+              value={body}
+              onChange={e => setBody(e.target.value)}
+              rows={5}
+              placeholder="اكتب نص الرسالة هنا..."
+              className="w-full p-2.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleOpenGmail}
+                className="text-xs text-red-600 hover:text-red-700 px-2.5 py-1.5 rounded-lg border border-red-200 bg-red-50/70 hover:bg-red-100 flex items-center gap-1 transition-colors cursor-pointer"
+                title="فتح وإرسال فوري من Gmail المباشر"
+              >
+                <Mail size={12} />
+                <span>إرسال عبر Gmail</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleOpenClient}
+                className="text-xs text-slate-600 hover:text-blue-600 px-2.5 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1 hover:bg-slate-50 transition-colors"
+              >
+                <ExternalLink size={12} />
+                <span>برنامج البريد</span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPreviewComposerOpen(true)}
+                className="text-xs text-blue-600 hover:text-blue-800 px-2.5 py-1.5 rounded-lg border border-blue-200 hover:bg-blue-50 flex items-center gap-1 font-medium transition-colors cursor-pointer"
+              >
+                <Eye size={12} />
+                <span>معاينة</span>
+              </button>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                icon={<Send size={14} />}
+                onClick={handleSend}
+                loading={sending}
+              >
+                إرسال وتوثيق في السجل
+              </Button>
+            </div>
+          </div>
         </div>
       </Card>
 
       <Card>
         <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-1.5">
-          <Clock size={16} className="text-slate-500" /> Email History Log
+          <Clock size={16} className="text-slate-500" /> سجل المراسلات والإشعارات
         </h3>
         {logsLoading ? (
           <Skeleton className="h-40" />
         ) : !emailLogs || emailLogs.length === 0 ? (
-          <p className="text-xs text-slate-400 py-8 text-center">No email notifications logged for this candidate yet.</p>
+          <div className="text-center py-10">
+            <Mail size={32} className="mx-auto text-slate-300 mb-2" />
+            <p className="text-xs text-slate-500 font-medium">لا توجد رسائل مسجلة لهذا المرشح بعد.</p>
+            <p className="text-[11px] text-slate-400 mt-1">يمكنك إرسال متابعة أو دعوة مقابلة لحفظها في السجل.</p>
+          </div>
         ) : (
-          <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+          <div className="space-y-3 max-h-[440px] overflow-y-auto pr-1">
             {emailLogs.map(log => (
-              <div key={log.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+              <div key={log.id} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5 relative group">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-800">{log.subject}</span>
-                  <Badge className="bg-emerald-100 text-emerald-700 text-[10px]">{log.status}</Badge>
+                  <span className="text-xs font-semibold text-slate-800 line-clamp-1">{log.subject}</span>
+                  <div className="flex items-center gap-1.5">
+                    <Badge className="bg-emerald-100 text-emerald-700 text-[10px]">{log.status}</Badge>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteLog(log.id)}
+                      className="text-slate-300 hover:text-red-500 p-0.5 rounded transition-colors opacity-0 group-hover:opacity-100"
+                      title="حذف من السجل"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
                 </div>
-                <p className="text-xs text-slate-600 line-clamp-2 whitespace-pre-line">{log.body}</p>
-                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-200/60 mt-1">
-                  <span>Event: {log.trigger_event}</span>
-                  <span>{formatDateTime(log.sent_at)}</span>
+                <p className="text-xs text-slate-600 whitespace-pre-line leading-relaxed line-clamp-3">{log.body}</p>
+                <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1.5 border-t border-slate-200/60 mt-1">
+                  <span>إلى: {log.candidate_email}</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedLogForPreview(log)}
+                      className="text-blue-600 hover:text-blue-800 flex items-center gap-1 font-semibold bg-blue-50/80 hover:bg-blue-100 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                    >
+                      <Eye size={11} />
+                      <span>معاينة ما وصل للمرشح</span>
+                    </button>
+                    <span>{formatDateTime(log.sent_at)}</span>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </Card>
+
+      {/* Modal for Previewing Candidate Email Before Sending */}
+      {previewComposerOpen && (
+        <Modal
+          open={previewComposerOpen}
+          onClose={() => setPreviewComposerOpen(false)}
+          title="معاينة شكل الرسالة كما تظهر للمرشح"
+          width="max-w-2xl"
+        >
+          <div className="p-2 space-y-4">
+            <CandidateEmailPreviewCard
+              candidateName={candidate.full_name}
+              recipientEmail={recipientEmail}
+              subject={subject}
+              body={body}
+              date="الآن (معاينة)"
+            />
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <Button variant="secondary" size="sm" onClick={() => setPreviewComposerOpen(false)}>
+                إغلاق
+              </Button>
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => { setPreviewComposerOpen(false); handleSend(); }}>
+                إرسال الآن
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal for Previewing Delivered Email from History */}
+      {selectedLogForPreview && (
+        <Modal
+          open={!!selectedLogForPreview}
+          onClose={() => setSelectedLogForPreview(null)}
+          title="تفاصيل ومعاينة الرسالة المرسلة للمرشح"
+          width="max-w-2xl"
+        >
+          <div className="p-2 space-y-4">
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-xs flex items-center justify-between">
+              <div>
+                <span className="font-bold">الحالة: {selectedLogForPreview.status} (تم الإرسال والتوثيق)</span>
+                <p className="text-[11px] text-emerald-700 mt-0.5">مرسلة بواسطة: {selectedLogForPreview.sent_by || 'المسؤول'}</p>
+              </div>
+              <span className="text-[11px] font-mono text-emerald-800">{formatDateTime(selectedLogForPreview.sent_at)}</span>
+            </div>
+
+            <CandidateEmailPreviewCard
+              candidateName={selectedLogForPreview.candidate_name || candidate.full_name}
+              recipientEmail={selectedLogForPreview.candidate_email}
+              subject={selectedLogForPreview.subject}
+              body={selectedLogForPreview.body}
+              date={formatDateTime(selectedLogForPreview.sent_at)}
+            />
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(selectedLogForPreview.candidate_email)}&su=${encodeURIComponent(selectedLogForPreview.subject)}&body=${encodeURIComponent(selectedLogForPreview.body)}`;
+                  window.open(gmailUrl, '_blank');
+                }}
+                className="text-xs text-red-600 hover:bg-red-50 border border-red-200 px-2.5 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer"
+              >
+                <Mail size={12} />
+                <span>إرسال نسخة عبر Gmail</span>
+              </button>
+              <Button variant="secondary" size="sm" onClick={() => setSelectedLogForPreview(null)}>
+                إغلاق
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -427,6 +741,7 @@ export function CandidateDetailPage() {
   const [decisionModal, setDecisionModal] = useState<'APPROVED' | 'REJECTED' | null>(null);
   const [interviewModal, setInterviewModal] = useState(false);
   const [offerModal, setOfferModal] = useState(false);
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [flagOpen, setFlagOpen] = useState(false);
   const [flagReason, setFlagReason] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -537,8 +852,18 @@ export function CandidateDetailPage() {
                 {c.flagged && <Badge className="bg-amber-100 text-amber-700"><Flag size={11} className="mr-1" />Flagged</Badge>}
               </div>
               {c.current_position && <p className="text-sm text-slate-500 mb-2">{c.current_position}</p>}
-              <div className="flex flex-wrap gap-3 text-sm text-slate-500">
-                {c.email && <a href={`mailto:${c.email}`} className="flex items-center gap-1 hover:text-blue-600"><Mail size={13} />{c.email}</a>}
+              <div className="flex flex-wrap gap-3 text-sm text-slate-500 items-center">
+                {c.email && (
+                  <button
+                    type="button"
+                    onClick={() => setEmailModalOpen(true)}
+                    className="flex items-center gap-1.5 hover:text-blue-700 bg-blue-50/80 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md font-medium text-xs transition-colors cursor-pointer"
+                    title="مراسلة ومتابعة المرشح عبر البريد الإلكتروني"
+                  >
+                    <Mail size={13} />
+                    <span>{c.email}</span>
+                  </button>
+                )}
                 {c.phone && <a href={`tel:${c.phone}`} className="flex items-center gap-1 hover:text-blue-600"><Phone size={13} />{c.phone}</a>}
                 {c.location && <span className="flex items-center gap-1"><MapPin size={13} />{c.location}</span>}
               </div>
@@ -581,6 +906,15 @@ export function CandidateDetailPage() {
           </Button>
           <Button size="sm" variant="outline" icon={<DollarSign size={14} />} onClick={() => setOfferModal(true)}>
             Send offer
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-blue-600 border-blue-200 hover:bg-blue-50"
+            icon={<Mail size={14} />}
+            onClick={() => setEmailModalOpen(true)}
+          >
+            مراسلة بالإيميل
           </Button>
           <Select
             value={c.pipeline_stage || c.status}
@@ -904,6 +1238,7 @@ export function CandidateDetailPage() {
       </div>
 
       {/* Modals */}
+      <SendEmailModal candidate={c} open={emailModalOpen} onClose={() => setEmailModalOpen(false)} />
       {decisionModal && (
         <DecisionModal candidate={c} decision={decisionModal} open={!!decisionModal} onClose={() => setDecisionModal(null)} />
       )}

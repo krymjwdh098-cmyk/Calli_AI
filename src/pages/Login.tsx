@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Brain, Eye, EyeOff, AlertCircle, ShieldCheck, KeyRound, Sparkles, Lock, Mail, ArrowRight } from 'lucide-react';
+import { Brain, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
 import { authApi } from '../api';
 import { useAuthStore } from '../store/auth';
-import { Button } from '../components/ui';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -19,15 +18,25 @@ export function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const { access_token } = await authApi.login(email, password);
-      setToken(access_token);
-      const user = await authApi.me();
-      setUser(user);
-      navigate('/dashboard');
+      const cleanEmail = email.trim();
+      const cleanPw = password.trim();
+      const response = await authApi.login(cleanEmail, cleanPw);
+      if (response && response.access_token) {
+        setToken(response.access_token);
+        if (response.user) {
+          setUser(response.user);
+        } else {
+          const user = await authApi.me();
+          setUser(user);
+        }
+        navigate('/dashboard');
+      } else {
+        setError('فشل استلام رمز الدخول.');
+      }
     } catch (err: any) {
       const errorMessage = err?.response?.data?.detail || 
                           err?.message || 
-                          'بيانات الدخول غير صحيحة. يرجي التأكد من البريد وكلمة المرور.';
+                          'بيانات الدخول غير صحيحة. يرجى التأكد من البريد الإلكتروني وكلمة المرور.';
       setError(typeof errorMessage === 'string' ? errorMessage : 'بيانات الدخول غير صحيحة.');
     } finally {
       setLoading(false);
@@ -76,7 +85,7 @@ export function LoginPage() {
               placeholder="name@company.com"
               required
               autoComplete="off"
-              className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-lg text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-all shadow-sm"
+              className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-lg text-base sm:text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-all shadow-sm"
             />
           </div>
 
@@ -95,7 +104,7 @@ export function LoginPage() {
                 placeholder="••••••••"
                 required
                 autoComplete="off"
-                className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-lg text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-all shadow-sm dir-ltr text-left"
+                className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-lg text-base sm:text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-all shadow-sm dir-ltr text-left"
               />
               <button
                 type="button"
@@ -110,7 +119,7 @@ export function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white font-medium py-3 rounded-lg transition-all mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white font-medium py-3 rounded-lg transition-all mt-4 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? (
               <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -123,12 +132,9 @@ export function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-8 text-center">
-          <p className="text-sm text-neutral-500">
-            ليس لديك حساب؟{' '}
-            <span className="text-neutral-900 font-medium cursor-help" title="يرجى التواصل مع مسؤول النظام لإنشاء حسابك">
-              تواصل مع الإدارة
-            </span>
+        <div className="mt-8 text-center bg-slate-50 border border-slate-200/80 p-3 rounded-xl">
+          <p className="text-xs text-slate-500">
+            🔒 إنشاء الحسابات وإدارتها يتم حصرياً بواسطة مسؤول النظام (Admin).
           </p>
         </div>
       </main>
@@ -204,7 +210,7 @@ export function ForgotPasswordPage() {
                 onChange={e => setEmail(e.target.value)}
                 placeholder="name@company.com"
                 required
-                className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-lg text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-all shadow-sm"
+                className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-lg text-base sm:text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-all shadow-sm"
               />
             </div>
             <button

@@ -69,7 +69,7 @@ export function Input({ label, error, hint, className = '', ...rest }: InputProp
     <div className="flex flex-col gap-1">
       {label && <label className="text-sm font-medium text-slate-700">{label}</label>}
       <input
-        className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+        className={`w-full px-3 py-2 border rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
           ${error ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-white'} ${className}`}
         {...rest}
       />
@@ -91,7 +91,7 @@ export function Textarea({ label, error, className = '', ...rest }: TextareaProp
     <div className="flex flex-col gap-1">
       {label && <label className="text-sm font-medium text-slate-700">{label}</label>}
       <textarea
-        className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none
+        className={`w-full px-3 py-2 border rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none
           ${error ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-white'} ${className}`}
         rows={4}
         {...rest}
@@ -114,7 +114,7 @@ export function Select({ label, error, options, className = '', ...rest }: Selec
     <div className="flex flex-col gap-1">
       {label && <label className="text-sm font-medium text-slate-700">{label}</label>}
       <select
-        className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white
+        className={`w-full px-3 py-2 border rounded-lg text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white
           ${error ? 'border-red-400' : 'border-slate-200'} ${className}`}
         {...rest}
       >

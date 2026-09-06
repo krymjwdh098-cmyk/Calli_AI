@@ -449,6 +449,42 @@ export function DashboardPage() {
           gap: 16px;
           margin-bottom: 20px;
         }
+
+        /* ── Media Queries for Mobile ── */
+        @media (max-width: 768px) {
+          .ats-root { flex-direction: column; }
+          .ats-sidebar { 
+            width: 100%; min-height: auto; padding: 12px; 
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+          }
+          .ats-sidebar-logo { padding: 0 0 12px 0; border: none; }
+          .ats-nav { 
+            display: flex; flex-direction: row; overflow-x: auto; 
+            padding: 0 0 8px 0; border: none;
+            scrollbar-width: none;
+          }
+          .ats-nav::-webkit-scrollbar { display: none; }
+          .ats-nav-label { display: none; }
+          .ats-nav-item { 
+            margin-right: 8px; margin-bottom: 0; white-space: nowrap; 
+            padding: 8px 12px; font-size: 12px;
+          }
+          .ats-sidebar-user { display: none !important; }
+          
+          .ats-header { flex-direction: column; padding: 12px; gap: 12px; position: relative; }
+          .ats-search { max-width: 100%; width: 100%; }
+          .ats-search input { font-size: 16px; }
+          .ats-period-tabs { width: 100%; justify-content: center; margin: 0; }
+          
+          .ats-kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+          .ats-content { padding: 16px; }
+          
+          /* Force charts grid to 1 column on mobile */
+          .ats-chart-grid { grid-template-columns: 1fr !important; }
+          
+          /* Hide complex header items on mobile if needed */
+          .ats-header > div:last-child { align-self: flex-end; }
+        }
         .ats-kpi-card {
           background: #fff;
           border-radius: 16px;

@@ -153,6 +153,28 @@ export async function deleteCandidateFromNeon(id: number) {
   }
 }
 
+export async function fetchDataFromNeon(): Promise<{
+  jobs: any[];
+  candidates: any[];
+  users: any[];
+} | null> {
+  const sql = getNeonConnection();
+  if (!sql) return null;
+
+  const ready = await initNeonTables();
+  if (!ready) return null;
+
+  try {
+    const jobs = await sql`SELECT * FROM jobs ORDER BY id ASC`;
+    const candidates = await sql`SELECT * FROM candidates ORDER BY id ASC`;
+    const users = await sql`SELECT * FROM users ORDER BY id ASC`;
+    return { jobs, candidates, users };
+  } catch (err) {
+    console.error('[Neon DB] Fetch error:', err);
+    return null;
+  }
+}
+
 export async function syncDataToNeon(data: {
   jobs: any[];
   candidates: any[];
@@ -196,6 +218,25 @@ export async function syncDataToNeon(data: {
     }
 
     // Upsert Users
+    // 1. Delete users from Neon that are no longer in the local JSON, or that have mismatched emails
+    // (This prevents unique constraint violations if an email changes ID locally)
+    const localUserIds = data.users.map(u => u.id);
+    const localUserEmails = data.users.map(u => String(u.email || '').trim().toLowerCase());
+    
+    // Using simple queries because Neon serverless client template literals don't support arrays easily
+    const existingNeonUsers = await sql`SELECT id, email FROM users`;
+    for (const nu of existingNeonUsers) {
+      const isIdLocal = localUserIds.includes(nu.id);
+      const isEmailLocal = localUserEmails.includes(String(nu.email || '').trim().toLowerCase());
+      
+      const localUserWithSameId = data.users.find(u => u.id === nu.id);
+      const localUserWithSameEmail = data.users.find(u => String(u.email || '').trim().toLowerCase() === String(nu.email || '').trim().toLowerCase());
+      
+      if (!isIdLocal || (localUserWithSameEmail && localUserWithSameEmail.id !== nu.id)) {
+        await sql`DELETE FROM users WHERE id = ${nu.id}`;
+      }
+    }
+
     for (const u of data.users) {
       await sql`
         INSERT INTO users (id, org_id, email, full_name, role)

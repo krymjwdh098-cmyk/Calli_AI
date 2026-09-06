@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -10,10 +10,11 @@ import {
   TrendingUp, UserPlus, Building2, Activity, FileText, ChevronRight,
   Search, RefreshCw, Award, ArrowUpRight, ArrowDownRight, Sparkles,
   Cpu, Layers, Filter, Check, X, ExternalLink, AlertCircle, UserCheck,
-  UserX, Mail, Key, Shield, Eye
+  UserX, Mail, Key, Shield, Eye, Trash2, KeyRound, Lock, Plus, AlertTriangle
 } from 'lucide-react';
 import { usersApi, jobsApi, dashboardApi, candidatesApi } from '../api';
 import { useAuthStore } from '../store/auth';
+import { useToast } from './ui';
 import type { TeamUser, Job, DashboardStats, PipelineAnalytics } from '../types';
 
 interface AdminDashboardProps {
@@ -32,9 +33,25 @@ const ROLE_COLORS: Record<string, string> = {
 
 export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigateToCandidates }: AdminDashboardProps) {
   const { user: currentUser } = useAuthStore();
+  const qc = useQueryClient();
+  const toast = useToast();
+  
   const [userSearch, setUserSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [timePeriod, setTimePeriod] = useState<'7d' | '30d' | '90d'>('30d');
+
+  // Modals state
+  const [editingUser, setEditingUser] = useState<TeamUser | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [deletingUser, setDeletingUser] = useState<TeamUser | null>(null);
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [newUserData, setNewUserData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'recruiter',
+    create_isolated_workspace: true,
+  });
 
   // Queries
   const { data: users = [], isLoading: loadingUsers, refetch: refetchUsers } = useQuery({
@@ -64,6 +81,60 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
   const { data: aiConfig } = useQuery({
     queryKey: ['admin-ai-config'],
     queryFn: () => dashboardApi.aiConfig(),
+  });
+
+  // Mutations
+  const toggleActiveMutation = useMutation({
+    mutationFn: (u: TeamUser) => usersApi.update(u.id, { is_active: !u.is_active }),
+    onSuccess: (_, u) => {
+      qc.invalidateQueries({ queryKey: ['admin-users-list'] });
+      qc.invalidateQueries({ queryKey: ['team'] });
+      toast(u.is_active ? 'تم تجميد وتعطيل الحساب فورياً' : 'تم تنشيط وتفعيل الحساب بنجاح', 'success');
+    },
+    onError: (err: any) => {
+      toast(err?.response?.data?.detail || 'فشل تحديث حالة الحساب', 'error');
+    }
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: (id: number) => usersApi.delete(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-users-list'] });
+      qc.invalidateQueries({ queryKey: ['team'] });
+      setDeletingUser(null);
+      toast('تم حذف الحساب نهائياً من السيستم وإنهاء جلساته', 'success');
+    },
+    onError: (err: any) => {
+      toast(err?.response?.data?.detail || 'فشل حذف الحساب', 'error');
+    }
+  });
+
+  const updatePasswordMutation = useMutation({
+    mutationFn: ({ id, password }: { id: number; password: string }) => usersApi.update(id, { password }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-users-list'] });
+      qc.invalidateQueries({ queryKey: ['team'] });
+      setEditingUser(null);
+      setNewPassword('');
+      toast('تم تحديث كلمة المرور للحساب بنجاح', 'success');
+    },
+    onError: (err: any) => {
+      toast(err?.response?.data?.detail || 'فشل تحديث كلمة المرور', 'error');
+    }
+  });
+
+  const createUserMutation = useMutation({
+    mutationFn: (data: typeof newUserData) => usersApi.create(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-users-list'] });
+      qc.invalidateQueries({ queryKey: ['team'] });
+      setIsAddUserOpen(false);
+      setNewUserData({ name: '', email: '', password: '', role: 'recruiter', create_isolated_workspace: true });
+      toast('تم إنشاء الحساب الجديد بنجاح مع مساحة عمل مخصصة', 'success');
+    },
+    onError: (err: any) => {
+      toast(err?.response?.data?.detail || 'فشل إنشاء الحساب', 'error');
+    }
   });
 
   const handleRefreshAll = () => {
@@ -391,12 +462,13 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
               </div>
               <p className="text-xs text-slate-500 mt-0.5">Platform administrators and recruiter workspace accounts</p>
             </div>
-            <Link
-              to="/settings"
-              className="text-xs font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1 self-start sm:self-auto hover:underline"
+            <button
+              onClick={() => setIsAddUserOpen(true)}
+              className="text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5 self-start sm:self-auto transition-all cursor-pointer"
             >
-              + Add New User
-            </Link>
+              <Plus size={13} />
+              إضافة مستخدم جديد
+            </button>
           </div>
 
           {/* User Filters */}
@@ -431,6 +503,7 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
                   <th className="py-2.5 px-3">User</th>
                   <th className="py-2.5 px-3">Role</th>
                   <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-3 text-right">إجراءات التحكم</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs">
@@ -439,11 +512,18 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
                     <tr key={`user-${u.id}`} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-[10px]">
+                          <div className={`w-7 h-7 rounded-full text-white font-bold flex items-center justify-center text-[10px] ${
+                            u.is_active ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'bg-slate-400'
+                          }`}>
                             {u.name?.charAt(0).toUpperCase() || 'U'}
                           </div>
                           <div>
-                            <p className="font-semibold text-slate-800 leading-tight">{u.name}</p>
+                            <p className="font-semibold text-slate-800 leading-tight flex items-center gap-1.5">
+                              {u.name}
+                              {u.id === currentUser?.id && (
+                                <span className="text-[9px] bg-indigo-50 text-indigo-700 border border-indigo-200 px-1 py-0.2 rounded font-medium">أنت</span>
+                              )}
+                            </p>
                             <p className="text-[11px] text-slate-400 leading-tight">{u.email}</p>
                           </div>
                         </div>
@@ -454,16 +534,60 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
                         </span>
                       </td>
                       <td className="py-3 px-3">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          Active
-                        </span>
+                        {u.is_active ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            نشط (Active)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                            معطل ومجمد (Frozen)
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {/* Toggle Active Button */}
+                          <button
+                            onClick={() => toggleActiveMutation.mutate(u)}
+                            disabled={toggleActiveMutation.isPending || u.id === currentUser?.id}
+                            className={`p-1.5 rounded-lg border text-xs transition-all cursor-pointer ${
+                              u.is_active
+                                ? 'border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100'
+                                : 'border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
+                            } disabled:opacity-40 disabled:cursor-not-allowed`}
+                            title={u.is_active ? 'تجميد وتعطيل الحساب فوراً' : 'تنشيط وتفعيل الحساب'}
+                          >
+                            {u.is_active ? <UserX size={13} /> : <UserCheck size={13} />}
+                          </button>
+
+                          {/* Edit Password Button */}
+                          <button
+                            onClick={() => { setEditingUser(u); setNewPassword(''); }}
+                            className="p-1.5 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 text-xs transition-all cursor-pointer"
+                            title="تعديل كلمة المرور"
+                          >
+                            <KeyRound size={13} />
+                          </button>
+
+                          {/* Delete User Button */}
+                          {u.id !== currentUser?.id && (
+                            <button
+                              onClick={() => setDeletingUser(u)}
+                              className="p-1.5 rounded-lg border border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 text-xs transition-all cursor-pointer"
+                              title="حذف الحساب نهائياً"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={3} className="py-6 text-center text-slate-400 text-xs">
+                    <td colSpan={4} className="py-6 text-center text-slate-400 text-xs">
                       No registered users found matching filter.
                     </td>
                   </tr>
@@ -539,6 +663,218 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
           </div>
         </div>
       </div>
+
+      {/* MODAL 1: EDIT / RESET PASSWORD */}
+      {editingUser && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-indigo-600 font-bold">
+                <KeyRound size={20} />
+                <h3 className="text-base text-slate-900">تعديل كلمة مرور الحساب</h3>
+              </div>
+              <button
+                onClick={() => setEditingUser(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 mb-4">
+              تعيين كلمة مرور جديدة لحساب <strong className="text-slate-900">{editingUser.name}</strong> ({editingUser.email}):
+            </p>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!newPassword.trim()) return;
+                updatePasswordMutation.mutate({ id: editingUser.id, password: newPassword.trim() });
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">كلمة المرور الجديدة</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="أدخل كلمة المرور الجديدة (مثال: pass2026)"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingUser(null)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={updatePasswordMutation.isPending || !newPassword.trim()}
+                  className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all shadow-sm disabled:opacity-50 cursor-pointer"
+                >
+                  {updatePasswordMutation.isPending ? 'جاري الحفظ...' : 'حفظ وتحديث كلمة المرور'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: CONFIRM DELETE USER */}
+      {deletingUser && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-rose-100">
+            <div className="flex items-center gap-3 text-rose-600 mb-3">
+              <div className="p-2 bg-rose-50 rounded-xl">
+                <AlertTriangle size={22} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">تأكيد حذف الحساب نهائياً</h3>
+                <p className="text-xs text-rose-600 font-medium">سيتم إلغاء الجلسات وإزالة الحساب من النظام</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 mb-6 bg-slate-50 p-3 rounded-xl border border-slate-200/80 leading-relaxed">
+              هل أنت متأكد من رغبتك في حذف حساب <strong className="text-slate-900">{deletingUser.name}</strong> ({deletingUser.email})؟
+              <br />
+              <span className="text-[11px] text-slate-500 mt-1 block">
+                • سيتم قطع الاتصال وإنهاء كافة الجلسات النشطة فوراً ومنعه من تسجيل الدخول.
+              </span>
+            </p>
+
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeletingUser(null)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              >
+                إلغاء التراجع
+              </button>
+              <button
+                type="button"
+                onClick={() => deleteUserMutation.mutate(deletingUser.id)}
+                disabled={deleteUserMutation.isPending}
+                className="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-all shadow-sm disabled:opacity-50 cursor-pointer"
+              >
+                {deleteUserMutation.isPending ? 'جاري الحذف...' : 'نعم، احذف الحساب الآن'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: ADD NEW USER */}
+      {isAddUserOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-purple-600 font-bold">
+                <UserPlus size={20} />
+                <h3 className="text-base text-slate-900">إنشاء حساب مستخدم جديد</h3>
+              </div>
+              <button
+                onClick={() => setIsAddUserOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!newUserData.email || !newUserData.name || !newUserData.password) return;
+                createUserMutation.mutate(newUserData);
+              }}
+              className="space-y-3.5"
+            >
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">الاسم الكامل</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="مثال: HR Recruiter 8"
+                  value={newUserData.name}
+                  onChange={(e) => setNewUserData({ ...newUserData, name: e.target.value })}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">البريد الإلكتروني</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="name@calliq.ai"
+                  value={newUserData.email}
+                  onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">كلمة المرور</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="••••••••"
+                  value={newUserData.password}
+                  onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">الدور والصلاحيات</label>
+                <select
+                  value={newUserData.role}
+                  onChange={(e) => setNewUserData({ ...newUserData, role: e.target.value })}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="recruiter">مسؤول توظيف (HR Recruiter)</option>
+                  <option value="admin">مسؤول نظام كامل (Admin)</option>
+                  <option value="viewer">مشاهد فقط (Viewer)</option>
+                </select>
+              </div>
+
+              <div className="pt-1">
+                <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newUserData.create_isolated_workspace}
+                    onChange={(e) => setNewUserData({ ...newUserData, create_isolated_workspace: e.target.checked })}
+                    className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <span>إنشاء مساحة عمل منعزلة ومستقلة تماماً (Isolated Workspace)</span>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAddUserOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={createUserMutation.isPending}
+                  className="px-4 py-2 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all shadow-sm disabled:opacity-50 cursor-pointer"
+                >
+                  {createUserMutation.isPending ? 'جاري الإنشاء...' : 'إنشاء الحساب الآن'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

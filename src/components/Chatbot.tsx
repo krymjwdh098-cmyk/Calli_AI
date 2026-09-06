@@ -199,8 +199,8 @@ export function Chatbot() {
       {/* Chat Window */}
       <div 
         id="chatbot-window-panel"
-        className={`fixed bottom-6 right-6 w-[92vw] sm:w-[420px] md:w-[460px] h-[600px] max-h-[85vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col transition-all duration-300 origin-bottom-right z-50 overflow-hidden ${
-          isOpen ? 'scale-100 opacity-100 pointer-events-auto' : 'scale-90 opacity-0 pointer-events-none'
+        className={`fixed bottom-0 right-0 sm:bottom-6 sm:right-6 w-full sm:w-[420px] md:w-[460px] h-[100dvh] sm:h-[600px] max-h-[100dvh] sm:max-h-[85vh] bg-white dark:bg-slate-900 sm:rounded-2xl shadow-2xl border-0 sm:border border-slate-200 dark:border-slate-800 flex flex-col transition-all duration-300 sm:origin-bottom-right z-[100] overflow-hidden ${
+          isOpen ? 'translate-y-0 sm:scale-100 opacity-100 pointer-events-auto' : 'translate-y-full sm:translate-y-0 sm:scale-90 opacity-0 pointer-events-none'
         }`}
       >
         {/* Header */}
@@ -329,7 +329,7 @@ export function Chatbot() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="اكتب استفسارك أو اختر من الأيقونات بالأعلى..."
-              className="flex-1 px-3.5 py-2.5 text-xs md:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white placeholder-slate-400"
+              className="flex-1 px-3.5 py-2.5 text-base sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-white placeholder-slate-400"
               disabled={isLoading}
               dir="auto"
             />

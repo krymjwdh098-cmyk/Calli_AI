@@ -18,11 +18,25 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 → attempt refresh
+// Handle 401 & 403 (deactivated / deleted account)
 api.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
     const original = error.config as typeof error.config & { _retry?: boolean };
+    
+    // If account was deactivated or banned (403), immediately clear token and force logout
+    if (error.response?.status === 403 && !window.location.pathname.startsWith('/apply/')) {
+      const detail = (error.response?.data as any)?.detail || '';
+      if (typeof detail === 'string' && (detail.includes('تعطيل') || detail.includes('حذف') || detail.includes('Forbidden') || detail.includes('Authentication'))) {
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('refresh_token');
+        localStorage.removeItem('token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+    }
+
     if (error.response?.status === 401 && !original?._retry) {
       const refreshToken = sessionStorage.getItem('refresh_token') || localStorage.getItem('refresh_token');
       if (refreshToken && original) {

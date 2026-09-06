@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Users, Webhook, Plus, Trash2, Send, Copy, Check,
-  UserCog, Shield, Zap, Eye, EyeOff, Sparkles,
+  UserCog, Shield, Zap, Eye, EyeOff, Sparkles, KeyRound, Key,
   Database, Activity, Server, CheckCircle2, AlertCircle, RefreshCw,
-  Globe, Code, Terminal,
+  Globe, Code, Terminal, Lock
 } from 'lucide-react';
 import { usersApi, webhooksApi, settingsApi, emailsApi } from '../api';
 import { useAuthStore } from '../store/auth';
@@ -17,10 +17,101 @@ import { formatDate } from '../utils';
 import type { TeamUser, WebhookEndpoint } from '../types';
 
 const ROLES = [
-  { value: 'admin', label: 'Admin' },
-  { value: 'recruiter', label: 'Recruiter' },
-  { value: 'viewer', label: 'Viewer' },
+  { value: 'admin', label: 'مسؤول نظام (Admin)' },
+  { value: 'recruiter', label: 'مسؤول توظيف (Recruiter)' },
+  { value: 'viewer', label: 'مشاهد فقط (Viewer)' },
 ];
+
+// ── Edit User & Reset Password Modal ──────────────────────────────
+function EditUserPasswordModal({ user, open, onClose }: { user: any; open: boolean; onClose: () => void }) {
+  const qc = useQueryClient();
+  const toast = useToast();
+  const [form, setForm] = useState({
+    name: user?.name || '',
+    password: '',
+    role: user?.role || 'recruiter',
+    org_name: user?.org_name || '',
+    is_active: user?.is_active ?? true,
+  });
+
+  useEffect(() => {
+    if (user) {
+      setForm({
+        name: user.name || '',
+        password: '',
+        role: user.role || 'recruiter',
+        org_name: user.org_name || '',
+        is_active: user.is_active ?? true,
+      });
+    }
+  }, [user]);
+
+  const mutation = useMutation({
+    mutationFn: () => usersApi.update(user.id, {
+      name: form.name,
+      role: form.role,
+      org_name: form.org_name,
+      is_active: form.is_active,
+      ...(form.password.trim() ? { password: form.password.trim() } : {}),
+    }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['team'] });
+      toast('تم تحديث بيانات المستخدم وكلمة المرور بنجاح', 'success');
+      onClose();
+    },
+    onError: (e: any) => toast(e?.response?.data?.detail || 'فشل تحديث بيانات المستخدم', 'error'),
+  });
+
+  if (!user) return null;
+
+  return (
+    <Modal open={open} onClose={onClose} title={`تعديل الحساب وإعادة تعيين كلمة المرور`}>
+      <div className="space-y-4">
+        <Input
+          label="الاسم الكامل"
+          value={form.name}
+          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+        />
+        <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+          <p className="text-xs text-slate-500 mb-1">البريد الإلكتروني (الحساب)</p>
+          <p className="text-sm font-semibold text-slate-800 dir-ltr text-left">{user.email}</p>
+        </div>
+        <Input
+          label="تعيين كلمة مرور جديدة (اتركها فارغة للحفاظ على الحالية)"
+          type="text"
+          value={form.password}
+          onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+          placeholder="أدخل كلمة مرور جديدة لتعيينها فوراً..."
+          hint="سيتم تعيين هذه كلمة المرور وتفعيلها فوراً لهذا الحساب"
+        />
+        <Select
+          label="دور الحساب"
+          value={form.role}
+          onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+          options={ROLES}
+        />
+        <Input
+          label="اسم مساحة العمل / الشركة"
+          value={form.org_name}
+          onChange={e => setForm(f => ({ ...f, org_name: e.target.value }))}
+        />
+        <label className="flex items-center gap-2 cursor-pointer p-3 bg-slate-50 border border-slate-200 rounded-lg">
+          <input
+            type="checkbox"
+            checked={form.is_active}
+            onChange={e => setForm(f => ({ ...f, is_active: e.target.checked }))}
+            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span className="text-xs font-semibold text-slate-700">الحساب نشط ويمكنه تسجيل الدخول</span>
+        </label>
+
+        <Button className="w-full justify-center" onClick={() => mutation.mutate()} loading={mutation.isPending}>
+          حفظ التغييرات وكلمة المرور
+        </Button>
+      </div>
+    </Modal>
+  );
+}
 
 // ── Team Tab ────────────────────────────────────────────────────────
 function InviteUserModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -29,87 +120,150 @@ function InviteUserModal({ open, onClose }: { open: boolean; onClose: () => void
   const [form, setForm] = useState({
     name: '',
     email: '',
-    password: '',
+    password: 'pass1234',
     role: 'recruiter',
     create_isolated_workspace: true,
     org_name: '',
   });
+  const [createdUser, setCreatedUser] = useState<any>(null);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedPw, setCopiedPw] = useState(false);
 
   const mutation = useMutation({
     mutationFn: () => usersApi.create(form),
-    onSuccess: () => {
+    onSuccess: (res: any) => {
       qc.invalidateQueries({ queryKey: ['team'] });
-      toast('HR user account created successfully with assigned workspace', 'success');
-      onClose();
-      setForm({ name: '', email: '', password: '', role: 'recruiter', create_isolated_workspace: true, org_name: '' });
+      toast('تم إنشاء حساب المستخدم بنجاح', 'success');
+      setCreatedUser({
+        name: form.name,
+        email: form.email,
+        password: form.password || 'pass1234',
+        role: form.role,
+        org_name: form.org_name || res?.org_name || 'Standard Workspace',
+      });
+      setForm({ name: '', email: '', password: 'pass1234', role: 'recruiter', create_isolated_workspace: true, org_name: '' });
     },
-    onError: (e: any) => toast(e?.response?.data?.detail || 'Failed to add member', 'error'),
+    onError: (e: any) => toast(e?.response?.data?.detail || 'فشل إضافة المستخدم', 'error'),
   });
 
+  const handleClose = () => {
+    setCreatedUser(null);
+    setCopiedEmail(false);
+    setCopiedPw(false);
+    onClose();
+  };
+
   return (
-    <Modal open={open} onClose={onClose} title="Add New User Account (Admin Only)">
-      <div className="space-y-4">
-        <Input
-          label="Full name"
-          value={form.name}
-          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-          placeholder="e.g. Sarah Jenkins"
-          required
-        />
-        <Input
-          label="Email address"
-          type="email"
-          value={form.email}
-          onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-          placeholder="recruiter@company.com"
-          required
-        />
-        <Input
-          label="Login password"
-          type="text"
-          value={form.password}
-          onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-          hint="At least 6 characters"
-          placeholder="pass1234"
-          required
-        />
-        <Select
-          label="System Role"
-          value={form.role}
-          onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-          options={ROLES}
-        />
+    <Modal open={open} onClose={handleClose} title={createdUser ? "تم إنشاء الحساب بنجاح! 🎉" : "إضافة حساب مستخدم جديد (Admin Only)"}>
+      {createdUser ? (
+        <div className="space-y-4">
+          <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center">
+            <p className="text-sm font-bold text-emerald-900">تم تجهيز الحساب ويمكن للمستخدم تسجيل الدخول الآن</p>
+            <p className="text-xs text-emerald-700 mt-1">يرجى نسخ أو إرسال بيانات الدخول التالية للمستخدم:</p>
+          </div>
 
-        <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.create_isolated_workspace}
-              onChange={e => setForm(f => ({ ...f, create_isolated_workspace: e.target.checked }))}
-              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span className="text-xs font-semibold text-slate-700">Create separate isolated workspace for this HR user</span>
-          </label>
-          <p className="text-[11px] text-slate-500 pl-5">
-            When enabled, this HR recruiter will have their own private jobs, candidates, and pipeline without interference.
-          </p>
-
-          {form.create_isolated_workspace && (
-            <div className="pt-2">
-              <Input
-                label="Workspace / Company Name (Optional)"
-                value={form.org_name}
-                onChange={e => setForm(f => ({ ...f, org_name: e.target.value }))}
-                placeholder="e.g. Middle East Talent Acquisition"
-              />
+          <div className="space-y-3 bg-slate-50 border border-slate-200 p-4 rounded-xl">
+            <div>
+              <span className="text-xs text-slate-500 font-medium block mb-1">الاسم الكامل:</span>
+              <span className="text-sm font-semibold text-slate-800">{createdUser.name}</span>
             </div>
-          )}
-        </div>
+            <div>
+              <span className="text-xs text-slate-500 font-medium block mb-1">البريد الإلكتروني:</span>
+              <div className="flex items-center justify-between bg-white border border-slate-200 p-2.5 rounded-lg">
+                <span className="text-xs font-mono text-slate-800 dir-ltr">{createdUser.email}</span>
+                <button
+                  type="button"
+                  onClick={() => { navigator.clipboard.writeText(createdUser.email); setCopiedEmail(true); setTimeout(() => setCopiedEmail(false), 2000); }}
+                  className="text-slate-500 hover:text-blue-600 text-xs flex items-center gap-1 font-medium"
+                >
+                  {copiedEmail ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                  {copiedEmail ? 'تم النسخ' : 'نسخ'}
+                </button>
+              </div>
+            </div>
+            <div>
+              <span className="text-xs text-slate-500 font-medium block mb-1">كلمة المرور:</span>
+              <div className="flex items-center justify-between bg-white border border-slate-200 p-2.5 rounded-lg">
+                <span className="text-xs font-mono font-bold text-slate-900 dir-ltr">{createdUser.password}</span>
+                <button
+                  type="button"
+                  onClick={() => { navigator.clipboard.writeText(createdUser.password); setCopiedPw(true); setTimeout(() => setCopiedPw(false), 2000); }}
+                  className="text-slate-500 hover:text-blue-600 text-xs flex items-center gap-1 font-medium"
+                >
+                  {copiedPw ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                  {copiedPw ? 'تم النسخ' : 'نسخ'}
+                </button>
+              </div>
+            </div>
+          </div>
 
-        <Button className="w-full justify-center" onClick={() => mutation.mutate()} loading={mutation.isPending}>
-          Create User Account
-        </Button>
-      </div>
+          <Button className="w-full justify-center" onClick={handleClose}>
+            تم، إغلاق النافذة
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <Input
+            label="الاسم الكامل *"
+            value={form.name}
+            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            placeholder="مثال: سارة أحمد"
+            required
+          />
+          <Input
+            label="البريد الإلكتروني *"
+            type="email"
+            value={form.email}
+            onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+            placeholder="recruiter@company.com"
+            required
+          />
+          <Input
+            label="كلمة المرور *"
+            type="text"
+            value={form.password}
+            onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+            hint="افتراضياً: pass1234 — يمكنك تغييرها الآن"
+            required
+          />
+          <Select
+            label="دور الحساب"
+            value={form.role}
+            onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+            options={ROLES}
+          />
+
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.create_isolated_workspace}
+                onChange={e => setForm(f => ({ ...f, create_isolated_workspace: e.target.checked }))}
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-xs font-semibold text-slate-700">إنشاء مساحة عمل مستقلة لهذا المستخدم</span>
+            </label>
+            <p className="text-[11px] text-slate-500">
+              عند التفعيل، سيكون لهذا المستخدم مساحة عمل مستقلة تحوي الوظائف والمرشحين دون اختلاط مع باقي الفريق.
+            </p>
+
+            {form.create_isolated_workspace && (
+              <div className="pt-2">
+                <Input
+                  label="اسم مساحة العمل / الشركة (اختياري)"
+                  value={form.org_name}
+                  onChange={e => setForm(f => ({ ...f, org_name: e.target.value }))}
+                  placeholder="مثال: الشركة العربية للتوظيف"
+                />
+              </div>
+            )}
+          </div>
+
+          <Button className="w-full justify-center" onClick={() => mutation.mutate()} loading={mutation.isPending} disabled={!form.name || !form.email || !form.password}>
+            إنشاء حساب المستخدم
+          </Button>
+        </div>
+      )}
     </Modal>
   );
 }
@@ -119,23 +273,24 @@ function TeamTab() {
   const qc = useQueryClient();
   const toast = useToast();
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
 
   const { data: team = [], isLoading } = useQuery({ queryKey: ['team'], queryFn: usersApi.list });
 
   const toggleActiveMutation = useMutation({
     mutationFn: (u: TeamUser) => usersApi.update(u.id, { is_active: !u.is_active }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['team'] }); toast('Member updated', 'success'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['team'] }); toast('تم تحديث حالة الحساب بنجاح', 'success'); },
   });
 
   const roleMutation = useMutation({
     mutationFn: ({ id, role }: { id: number; role: string }) => usersApi.update(id, { role }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['team'] }); toast('Role updated', 'success'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['team'] }); toast('تم تحديث الدور بنجاح', 'success'); },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => usersApi.delete(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['team'] }); toast('Member removed', 'success'); },
-    onError: (e: any) => toast(e?.response?.data?.detail || 'Failed to remove member', 'error'),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['team'] }); toast('تم حذف المستخدم بنجاح', 'success'); },
+    onError: (e: any) => toast(e?.response?.data?.detail || 'فشل حذف المستخدم', 'error'),
   });
 
   const canManage = user?.role === 'admin' || user?.role === 'owner';
@@ -147,18 +302,18 @@ function TeamTab() {
           <div>
             <h3 className="text-sm font-bold text-purple-950 flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
-              Administrator User Management
+              إدارة المستخدمين والحسابات (التحكم الكامل للأدمن)
             </h3>
             <p className="text-xs text-purple-700 mt-0.5">
-              You have full administrative privileges to add HR recruiters, manage roles, and provision separate workspaces.
+              بصفتك المسؤول، يمكنك إضافة مسؤولين وتوظيف جدد، إعادة تعيين كلمات المرور، وتحديد مساحات العمل.
             </p>
           </div>
-          <Button icon={<Plus size={14} />} onClick={() => setInviteOpen(true)}>Add User</Button>
+          <Button icon={<Plus size={14} />} onClick={() => setInviteOpen(true)}>إضافة مستخدم جديد</Button>
         </div>
       ) : (
         <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl">
           <p className="text-xs text-slate-600">
-            <strong>Logged in as:</strong> {user?.name} ({user?.role?.toUpperCase()}) — Workspace: <em>{user?.org_name || 'Standard Workspace'}</em>. Team user addition is managed by the System Administrator.
+            <strong>مسجل كـ:</strong> {user?.name} ({user?.role?.toUpperCase()}) — مساحة العمل: <em>{user?.org_name || 'مساحة العمل القياسية'}</em>. إضافة وتعديل المستخدمين يتم حصرياً عبر مسؤول النظام (Admin).
           </p>
         </div>
       )}
@@ -168,7 +323,7 @@ function TeamTab() {
           <div className="p-4 space-y-3">{Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-12" />)}</div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {team.map((m: any) => (
+            {team.filter((m: any) => canManage || m.id === user?.id).map((m: any) => (
               <div key={m.id} className="flex items-center gap-4 p-4">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                   m.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700'
@@ -178,7 +333,7 @@ function TeamTab() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-slate-800 truncate">{m.name}</p>
-                    {m.id === user?.id && <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">You</span>}
+                    {m.id === user?.id && <span className="text-[10px] bg-indigo-50 text-indigo-700 border border-indigo-200 px-1.5 py-0.5 rounded font-medium">حسابك الحالي</span>}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
                     <p className="text-xs text-slate-500 truncate">{m.email}</p>
@@ -190,7 +345,7 @@ function TeamTab() {
                     value={m.role}
                     onChange={e => roleMutation.mutate({ id: m.id, role: e.target.value })}
                     options={ROLES}
-                    className="!py-1.5 text-xs w-32"
+                    className="!py-1.5 text-xs w-36"
                   />
                 ) : (
                   <Badge className={m.role === 'admin' ? 'bg-purple-100 text-purple-700 font-semibold capitalize' : 'bg-emerald-100 text-emerald-700 capitalize'}>
@@ -198,16 +353,23 @@ function TeamTab() {
                   </Badge>
                 )}
                 <Badge className={m.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}>
-                  {m.is_active ? 'Active' : 'Disabled'}
+                  {m.is_active ? 'نشط' : 'معطل'}
                 </Badge>
-                {canManage && m.id !== user?.id && (
+                {canManage && (
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => toggleActiveMutation.mutate(m)}>
-                      {m.is_active ? <EyeOff size={14} /> : <Eye size={14} />}
+                    <Button variant="ghost" size="sm" onClick={() => setEditingUser(m)} title="تعديل الحساب وإعادة تعيين كلمة المرور">
+                      <KeyRound size={14} className="text-blue-600" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(m.id)}>
-                      <Trash2 size={14} className="text-red-500" />
-                    </Button>
+                    {m.id !== user?.id && (
+                      <>
+                        <Button variant="ghost" size="sm" onClick={() => toggleActiveMutation.mutate(m)} title={m.is_active ? 'تعطيل الحساب' : 'تفعيل الحساب'}>
+                          {m.is_active ? <EyeOff size={14} /> : <Eye size={14} />}
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => deleteMutation.mutate(m.id)} title="حذف الحساب">
+                          <Trash2 size={14} className="text-red-500" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -217,6 +379,9 @@ function TeamTab() {
       </Card>
 
       <InviteUserModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
+      {editingUser && (
+        <EditUserPasswordModal user={editingUser} open={Boolean(editingUser)} onClose={() => setEditingUser(null)} />
+      )}
     </div>
   );
 }

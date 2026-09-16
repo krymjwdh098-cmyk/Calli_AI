@@ -6,6 +6,10 @@ export interface User {
   role: 'owner' | 'admin' | 'recruiter' | 'viewer';
   org_id: number;
   org_name?: string;
+  company_logo?: string;
+  company_tagline?: string;
+  company_website?: string;
+  primary_color?: string;
 }
 
 export interface TokenResponse {
@@ -244,6 +248,7 @@ export interface Candidate {
   knockout_flags: string[];
   source: string;
   file_name?: string;
+  file_content?: string;
   duplicate_of?: number;
   processing_attempts: number;
   last_error?: string;
@@ -364,6 +369,10 @@ export interface TeamUser {
   is_active: boolean;
   org_id: number;
   org_name?: string;
+  company_logo?: string;
+  company_tagline?: string;
+  company_website?: string;
+  primary_color?: string;
   created_at: string;
 }
 
@@ -400,8 +409,142 @@ export interface EmailLog {
 export interface EmailTemplate {
   id: string;
   event: string;
+  category?: 'rejection' | 'interview' | 'offer' | 'confirmation' | 'shortlist' | 'custom' | string;
   name: string;
   subject: string;
   body: string;
   is_active: boolean;
+  description?: string;
+  updated_at?: string;
 }
+
+// ── Candidate Inquiries ────────────────────────────────────────────────
+export interface CandidateInquiry {
+  id: number;
+  org_id: number;
+  job_id?: number;
+  job_title?: string;
+  candidate_name: string;
+  candidate_email: string;
+  candidate_phone?: string;
+  question: string;
+  ai_answer?: string;
+  status: 'PENDING' | 'ANSWERED' | 'STARRED';
+  hr_reply?: string;
+  hr_replied_at?: string;
+  created_at: string;
+}
+
+// ── Talent Pools & Collections ────────────────────────────────────────────────
+export interface TalentPool {
+  id: number;
+  org_id: number;
+  name: string;
+  description?: string;
+  tags?: string[];
+  color?: string;
+  candidate_ids: number[];
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface SequenceStep {
+  id: number;
+  step_number: number;
+  delay_hours: number;
+  subject: string;
+  body_template: string;
+}
+
+export interface Sequence {
+  id: number;
+  org_id: number;
+  title: string;
+  description?: string;
+  trigger_event?: string;
+  steps: SequenceStep[];
+  active_enrollments_count?: number;
+  created_at: string;
+}
+
+export interface SequenceEnrollment {
+  id: number;
+  org_id: number;
+  sequence_id: number;
+  sequence_title: string;
+  candidate_id: number;
+  candidate_name: string;
+  candidate_email: string;
+  current_step: number;
+  status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+  enrolled_at: string;
+  next_send_at: string;
+  history: {
+    step_number: number;
+    subject: string;
+    sent_at: string;
+    status: 'SENT' | 'FAILED';
+  }[];
+}
+
+// ── Automated Email Drip Campaigns ──────────────────────────────────────────
+export type DripTriggerStage =
+  | 'Application Received'
+  | 'Screening'
+  | 'Phone Interview'
+  | 'Technical'
+  | 'Final Interview'
+  | 'Shortlisted'
+  | 'Offer Sent'
+  | 'Hired'
+  | 'Rejected'
+  | 'Withdrew';
+
+export interface DripStep {
+  id: number;
+  step_number: number;
+  delay_value: number;
+  delay_unit: 'hours' | 'days';
+  delay_hours: number;
+  subject: string;
+  body_template: string;
+  action_type?: 'EMAIL' | 'INTERNAL_NOTIFICATION';
+}
+
+export interface DripCampaign {
+  id: number;
+  org_id: number;
+  title: string;
+  description?: string;
+  trigger_stage: string;
+  target_job_id?: number | null;
+  target_job_title?: string;
+  target_pool_id?: number | null;
+  is_active: boolean;
+  steps: DripStep[];
+  enrolled_count: number;
+  completed_count: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface DripExecutionLog {
+  id: number;
+  org_id: number;
+  campaign_id: number;
+  campaign_title: string;
+  trigger_stage: string;
+  candidate_id: number;
+  candidate_name: string;
+  candidate_email: string;
+  step_number: number;
+  total_steps: number;
+  subject: string;
+  body_rendered: string;
+  status: 'SCHEDULED' | 'SENT' | 'FAILED' | 'SKIPPED';
+  scheduled_for: string;
+  executed_at?: string;
+  error?: string;
+}
+
+

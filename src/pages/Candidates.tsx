@@ -5,16 +5,16 @@ import { useDropzone } from 'react-dropzone';
 import {
   Upload, Search, Filter, ChevronRight, Users, AlertTriangle,
   CheckCircle, XCircle, Clock, RefreshCw, Sparkles,
-  Trash2, ExternalLink, Briefcase, Eraser, Mail,
+  Trash2, ExternalLink, Briefcase, Eraser, Mail, Download, FolderHeart,
 } from 'lucide-react';
-import { candidatesApi, jobsApi } from '../api';
+import { candidatesApi, jobsApi, talentPoolsApi } from '../api';
 import { Button, Badge, Card, Modal, Skeleton, EmptyState, useToast, Spinner, Textarea } from '../components/ui';
 import { Layout, PageHeader } from '../components/layout/Layout';
 import { ScoreRing } from '../components/ui';
 import { SendEmailModal } from '../components/SendEmailModal';
 import {
   getCategoryBadge, getCategoryLabel, getStatusBadge,
-  initials, avatarColor, daysSince, CANDIDATE_STATUSES,
+  initials, avatarColor, daysSince, CANDIDATE_STATUSES, exportCandidatesToCSV,
 } from '../utils';
 import type { Candidate } from '../types';
 
@@ -23,6 +23,46 @@ const PIPELINE_STAGES = [
   'Final Interview', 'Shortlisted', 'Offer Sent', 'Hired',
   'Rejected', 'Withdrew', 'Ghosted',
 ];
+
+function CandidateRowSkeleton() {
+  return (
+    <div className="flex items-center gap-4 p-4 border-b border-slate-100 last:border-0">
+      {/* Avatar Skeleton */}
+      <Skeleton className="w-9 h-9 rounded-full flex-shrink-0" />
+
+      {/* Info Skeleton */}
+      <div className="flex-1 min-w-0 space-y-2">
+        <div className="flex items-center gap-2">
+          <Skeleton className="w-36 h-4" />
+          <Skeleton className="w-14 h-3.5 rounded" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="w-28 h-3" />
+          <Skeleton className="w-16 h-3" />
+          <Skeleton className="w-20 h-3" />
+        </div>
+      </div>
+
+      {/* Match Score Ring Skeleton */}
+      <div className="flex-shrink-0">
+        <Skeleton className="w-12 h-12 rounded-full" />
+      </div>
+
+      {/* Status & Category Tag Skeleton */}
+      <div className="flex-shrink-0 hidden sm:flex flex-col items-end gap-1.5">
+        <Skeleton className="w-24 h-6 rounded-md" />
+        <Skeleton className="w-16 h-4 rounded-full" />
+      </div>
+
+      {/* Quick Action Buttons Skeleton */}
+      <div className="flex items-center gap-1">
+        <Skeleton className="w-7 h-7 rounded-lg" />
+        <Skeleton className="w-7 h-7 rounded-lg" />
+        <Skeleton className="w-7 h-7 rounded-lg" />
+      </div>
+    </div>
+  );
+}
 
 function CandidateRow({ candidate }: { candidate: Candidate; [key: string]: any }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -113,29 +153,8 @@ function CandidateRow({ candidate }: { candidate: Candidate; [key: string]: any 
         </div>
       </Link>
 
-      {/* Quick Actions */}
+      {/* Row Actions */}
       <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setShowEmailModal(true);
-          }}
-          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-          title="مراسلة ومتابعة المرشح عبر البريد الإلكتروني"
-        >
-          <Mail size={15} />
-        </button>
-        <a
-          href={`/candidates/${candidate.id}`}
-          target="_blank"
-          rel="noreferrer"
-          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors"
-          title="Open in new page / tab"
-        >
-          <ExternalLink size={15} />
-        </a>
         <button
           type="button"
           onClick={(e) => {
@@ -389,16 +408,21 @@ export function CandidatesPage() {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [analyzeOpen, setAnalyzeOpen] = useState(false);
   const [clearAllModalOpen, setClearAllModalOpen] = useState(false);
+  const [exportingCsv, setExportingCsv] = useState(false);
 
   const qc = useQueryClient();
   const toast = useToast();
 
   const page = Number(searchParams.get('page') || 1);
   const jobId = searchParams.get('job_id') ? Number(searchParams.get('job_id')) : undefined;
+  const poolId = searchParams.get('pool_id') ? Number(searchParams.get('pool_id')) : undefined;
   const status = searchParams.get('status') || undefined;
   const minScore = searchParams.get('min_score') ? Number(searchParams.get('min_score')) : undefined;
 
   const { data: jobs } = useQuery({ queryKey: ['jobs'], queryFn: () => jobsApi.list() });
+  const { data: talentPools = [] } = useQuery({ queryKey: ['talent-pools'], queryFn: () => talentPoolsApi.list() });
+
+  const activePool = poolId ? talentPools.find(p => p.id === poolId) : null;
 
   const { data, isLoading } = useQuery({
     queryKey: ['candidates', { page, jobId, status, minScore, search }],
@@ -413,6 +437,37 @@ export function CandidatesPage() {
         sort_by: 'score_desc',
       }),
   });
+
+  const activeJob = jobId ? jobs?.find(j => j.id === jobId) : null;
+  const totalCandidatesAll = (data?.total || 0);
+
+  const handleExportCSV = async () => {
+    try {
+      setExportingCsv(true);
+      const fullList = await candidatesApi.list({
+        page: 1,
+        page_size: 1000,
+        job_id: jobId,
+        status,
+        min_score: minScore,
+        search: search || undefined,
+        sort_by: 'score_desc',
+      });
+      const candidatesToExport = fullList?.items?.length ? fullList.items : (data?.items || []);
+      if (!candidatesToExport.length) {
+        toast('لم يتم العثور على مرشحين للتصدير', 'error');
+        return;
+      }
+      const jobSlug = activeJob ? activeJob.title.toLowerCase().replace(/[^\w\u0600-\u06FF]+/g, '_') : 'all';
+      const filename = `candidates_${jobSlug}_${new Date().toISOString().slice(0, 10)}.csv`;
+      exportCandidatesToCSV(candidatesToExport, filename);
+      toast(`تم تصدير ${candidatesToExport.length} مرشح بنجاح إلى CSV`, 'success');
+    } catch {
+      toast('فشل تصدير بيانات المرشحين', 'error');
+    } finally {
+      setExportingCsv(false);
+    }
+  };
 
   const reEvaluateAllMutation = useMutation({
     mutationFn: () => candidatesApi.reEvaluateAll(),
@@ -430,9 +485,6 @@ export function CandidatesPage() {
     setSearchParams(p);
   };
 
-  const activeJob = jobId ? jobs?.find(j => j.id === jobId) : null;
-  const totalCandidatesAll = (data?.total || 0);
-
   return (
     <Layout>
       <PageHeader
@@ -441,39 +493,34 @@ export function CandidatesPage() {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {totalCandidatesAll > 0 && (
-              <Button
-                variant="outline"
-                className="text-rose-600 border-rose-200 hover:bg-rose-50"
-                icon={<Trash2 size={14} className="text-rose-600" />}
-                onClick={() => setClearAllModalOpen(true)}
-                title="مسح وتفريغ كافة السير الذاتية في العرض الحالي"
-              >
-                مسح المرشحين
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  className="text-emerald-700 border-emerald-200 hover:bg-emerald-50 bg-emerald-50/50"
+                  icon={<Download size={14} className="text-emerald-600" />}
+                  onClick={handleExportCSV}
+                  loading={exportingCsv}
+                  title="تصدير قائمة المرشحين الحالية إلى ملف CSV لتقارير الإكسيل"
+                >
+                  تصدير CSV
+                </Button>
+                <Button
+                  variant="outline"
+                  className="text-rose-600 border-rose-200 hover:bg-rose-50"
+                  icon={<Trash2 size={14} className="text-rose-600" />}
+                  onClick={() => setClearAllModalOpen(true)}
+                  title="مسح وتفريغ كافة السير الذاتية في العرض الحالي"
+                >
+                  مسح المرشحين
+                </Button>
+              </>
             )}
-            <Button
-              variant="outline"
-              className="text-blue-600 border-blue-200 hover:bg-blue-50"
-              icon={<Sparkles size={14} className="text-blue-600" />}
-              onClick={() => setAnalyzeOpen(true)}
-            >
-              Instant AI CV Scanner
-            </Button>
-            <Button
-              variant="outline"
-              className="text-slate-600 border-slate-200 hover:bg-slate-50"
-              icon={<RefreshCw size={14} />}
-              onClick={() => reEvaluateAllMutation.mutate()}
-              loading={reEvaluateAllMutation.isPending}
-            >
-              Re-evaluate All
-            </Button>
             <Button
               variant="primary"
               icon={<Upload size={14} />}
               onClick={() => setBulkOpen(true)}
             >
-              Bulk Upload
+              رفع السير الذاتية (Bulk Upload)
             </Button>
           </div>
         }
@@ -581,6 +628,18 @@ export function CandidatesPage() {
             {jobs?.map(j => <option key={j.id} value={j.id}>{j.title}</option>)}
           </select>
           <select
+            value={poolId || ''}
+            onChange={e => setParam('pool_id', e.target.value || null)}
+            className="px-3 py-2 border border-purple-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 bg-purple-50/50 text-purple-800 font-medium"
+          >
+            <option value="">بنوك المواهب CRM ({talentPools.length})</option>
+            {talentPools.map(p => (
+              <option key={p.id} value={p.id}>
+                بنك: {p.name} ({p.candidate_ids?.length || 0})
+              </option>
+            ))}
+          </select>
+          <select
             value={status || ''}
             onChange={e => setParam('status', e.target.value || null)}
             className="px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700"
@@ -599,13 +658,14 @@ export function CandidatesPage() {
             <option value="40">40%+ Weak Match</option>
           </select>
 
-          {(jobId || status || minScore || search) && (
+          {(jobId || poolId || status || minScore || search) && (
             <button
               type="button"
               onClick={() => {
                 setSearch('');
                 const p = new URLSearchParams(searchParams);
                 p.delete('job_id');
+                p.delete('pool_id');
                 p.delete('status');
                 p.delete('min_score');
                 p.delete('search');
@@ -624,23 +684,19 @@ export function CandidatesPage() {
         {isLoading ? (
           <div className="divide-y divide-slate-100">
             {Array(6).fill(0).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 p-4">
-                <Skeleton className="w-9 h-9 rounded-full flex-shrink-0" />
-                <Skeleton className="flex-1 h-10" />
-                <Skeleton className="w-12 h-12 rounded-full flex-shrink-0" />
-              </div>
+              <CandidateRowSkeleton key={`cand-skel-${i}`} />
             ))}
           </div>
-        ) : !data?.items.length ? (
+        ) : !((activePool ? (data?.items || []).filter(c => activePool.candidate_ids?.includes(c.id)) : (data?.items || [])).length) ? (
           <EmptyState
             icon={<Users size={32} />}
             title="لا توجد سير ذاتية مطابقة"
-            description="يمكنك البدء برفع ملفات السير الذاتية (Bulk Upload) الخاصة بمسار التوظيف."
+            description="يمكنك البدء برفع ملفات السير الذاتية (Bulk Upload) الخاصة بمسار التوظيف أو تغيير معايير الفلترة."
           />
         ) : (
           <>
             <div className="divide-y divide-slate-50">
-              {data.items.map((c, i) => (
+              {(activePool ? (data?.items || []).filter(c => activePool.candidate_ids?.includes(c.id)) : (data?.items || [])).map((c, i) => (
                 <CandidateRow
                   key={`cand-item-${c.id}-${i}`}
                   candidate={c}

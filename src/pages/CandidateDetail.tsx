@@ -7,9 +7,9 @@ import {
   CheckCircle, XCircle, Flag, Download, RefreshCw, Send,
   AlertTriangle, Clock, Calendar, DollarSign, MessageSquare,
   ThumbsUp, ThumbsDown, ChevronRight, Sparkles, Target, TrendingUp,
-  Trash2, ExternalLink, Copy, Check, FileText, Eye
+  Trash2, ExternalLink, Copy, Check, FileText, Eye, HelpCircle, FolderGit2, FolderHeart, Play
 } from 'lucide-react';
-import { candidatesApi, emailsApi } from '../api';
+import { candidatesApi, emailsApi, inquiriesApi, talentPoolsApi, sequencesApi } from '../api';
 import { Layout } from '../components/layout/Layout';
 import { SendEmailModal, CandidateEmailPreviewCard } from '../components/SendEmailModal';
 import {
@@ -729,6 +729,165 @@ function EmailLogPanel({ candidate }: { candidate: Candidate }) {
   );
 }
 
+// ── Candidate CV & Direct Application Details Panel ────────────────────
+function CandidateCVPanel({ candidate }: { candidate: Candidate }) {
+  const toast = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyCV = () => {
+    if (!candidate.file_content) return toast('لا يوجد نص سيرته ذاتية متاح للنسخ', 'error');
+    navigator.clipboard.writeText(candidate.file_content);
+    setCopied(true);
+    toast('تم نسخ محتوى السيرة الذاتية والبيانات المرفقة بالحافظة!', 'success');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="space-y-4 font-sans text-right dir-rtl">
+      {/* Submitted Application Data Summary Header */}
+      <Card className="p-5 border-l-4 border-l-indigo-600 bg-gradient-to-l from-white via-indigo-50/20 to-white shadow-xs">
+        <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
+          <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <Sparkles size={18} className="text-indigo-600" />
+            <span>بيانات التقديم المباشر والأسئلة التمهيدية (Screening Summary)</span>
+          </h3>
+          <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-200">
+            {candidate.source || 'بوابة التوظيف العامة'}
+          </Badge>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+            <span className="text-[11px] font-semibold text-slate-500 block mb-1">الراتب المتوقع (Expected Salary):</span>
+            <span className="text-sm font-extrabold text-slate-900">
+              {candidate.salary_expectation
+                ? formatSalary(candidate.salary_expectation, candidate.salary_currency)
+                : 'غير مخصص'}
+            </span>
+          </div>
+
+          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+            <span className="text-[11px] font-semibold text-slate-500 block mb-1">فترة الإشعار (Notice Period):</span>
+            <span className="text-sm font-extrabold text-slate-900">
+              {candidate.remote_preference || (candidate.notice_period_days != null ? `${candidate.notice_period_days} يوم` : 'غير محددة')}
+            </span>
+          </div>
+
+          <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+            <span className="text-[11px] font-semibold text-slate-500 block mb-1">سنوات الخبرة المباشرة:</span>
+            <span className="text-sm font-extrabold text-slate-900">
+              {candidate.years_experience != null ? `${candidate.years_experience} سنوات` : 'غير محددة'}
+            </span>
+          </div>
+        </div>
+
+        {candidate.decision_notes && (
+          <div className="p-3.5 bg-indigo-50/60 rounded-xl border border-indigo-100 text-xs text-indigo-950">
+            <span className="font-bold text-indigo-700 block mb-1">أبرز المشاريع والإنجازات التي ذكرها المرشح:</span>
+            <p className="whitespace-pre-line leading-relaxed">{candidate.decision_notes.replace('[أبرز المشاريع والإنجازات المذكورة عند التقديم]: ', '')}</p>
+          </div>
+        )}
+      </Card>
+
+      {/* CV Raw Text Container */}
+      <Card className="p-5 space-y-3">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <FileText size={18} className="text-blue-600" />
+            <h3 className="text-sm font-bold text-slate-800">محتوى السيرة الذاتية الأصلي ومعلومات الطلب (Full CV & Application Text)</h3>
+            {candidate.file_name && (
+              <span className="text-xs text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full font-mono">
+                {candidate.file_name}
+              </span>
+            )}
+          </div>
+          {candidate.file_content && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleCopyCV}
+              className="text-xs flex items-center gap-1.5"
+            >
+              {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+              <span>{copied ? 'تم النسخ' : 'نسخ النص بالكامل'}</span>
+            </Button>
+          )}
+        </div>
+
+        {candidate.file_content ? (
+          <div className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs font-mono leading-relaxed overflow-x-auto max-h-[600px] overflow-y-auto whitespace-pre-wrap border border-slate-800">
+            {candidate.file_content}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-slate-400">
+            <FileText size={36} className="mx-auto text-slate-300 mb-2" />
+            <p className="text-xs font-medium">لم يتم إرفاق ملف سيرة ذاتية نصي أو أن النص غير متاح للمعالجة.</p>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+// ── Candidate Inquiries Panel ───────────────────────────────────────────
+function CandidateInquiriesPanel({ candidate }: { candidate: Candidate }) {
+  const { data: inquiries = [], isLoading } = useQuery({
+    queryKey: ['candidate-inquiries', candidate.email],
+    queryFn: () => inquiriesApi.list({ search: candidate.email }),
+    enabled: !!candidate.email,
+  });
+
+  return (
+    <Card className="p-5 space-y-4">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+          <HelpCircle size={16} className="text-indigo-600" />
+          استفسارات وتساؤلات المرشح (Candidate Inquiries)
+        </h3>
+        <Badge variant="secondary" className="bg-slate-100 text-slate-700">
+          إجمالي الاستفسارات: {inquiries.length}
+        </Badge>
+      </div>
+
+      {isLoading ? (
+        <p className="text-xs text-slate-400 py-4 text-center">جاري تحميل الاستفسارات...</p>
+      ) : inquiries.length === 0 ? (
+        <div className="text-center py-8 text-slate-500 space-y-2">
+          <HelpCircle size={32} className="mx-auto text-slate-300" />
+          <p className="text-xs font-medium">لم يقم هذا المرشح بأي استفسارات سابقة من رابط التقديم.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {inquiries.map((inquiry: any) => (
+            <div key={inquiry.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span className="font-bold text-slate-800">{inquiry.job_title}</span>
+                <span>{new Date(inquiry.created_at).toLocaleString('ar-EG', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+              </div>
+              <div className="bg-white p-3 rounded-lg border border-slate-200 text-xs text-slate-900 font-semibold">
+                <span className="text-indigo-600 font-bold block mb-1">السؤال:</span>
+                "{inquiry.question}"
+              </div>
+              {inquiry.ai_answer && (
+                <div className="bg-indigo-50/70 p-3 rounded-lg border border-indigo-100 text-xs text-indigo-950">
+                  <span className="text-indigo-700 font-bold block mb-1">إجابة Gemini AI المولد آلياً:</span>
+                  {inquiry.ai_answer}
+                </div>
+              )}
+              {inquiry.hr_reply && (
+                <div className="bg-emerald-50/70 p-3 rounded-lg border border-emerald-200 text-xs text-emerald-950 font-medium">
+                  <span className="text-emerald-700 font-bold block mb-1">رد مسؤول التوظيف (مُرسل للبريد):</span>
+                  {inquiry.hr_reply}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────
 export function CandidateDetailPage() {
   const { id } = useParams();
@@ -745,6 +904,30 @@ export function CandidateDetailPage() {
   const [flagOpen, setFlagOpen] = useState(false);
   const [flagReason, setFlagReason] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [talentPoolModalOpen, setTalentPoolModalOpen] = useState(false);
+  const [sequenceModalOpen, setSequenceModalOpen] = useState(false);
+  const [selectedSeqId, setSelectedSeqId] = useState<number | ''>('');
+
+  const { data: talentPools = [] } = useQuery({
+    queryKey: ['talent-pools'],
+    queryFn: () => talentPoolsApi.list(),
+  });
+
+  const { data: sequences = [] } = useQuery({
+    queryKey: ['sequences'],
+    queryFn: () => sequencesApi.list(),
+  });
+
+  const enrollCandidateSeqMutation = useMutation({
+    mutationFn: (seqId: number) => sequencesApi.enroll(seqId, { candidate_ids: [candidateId] }),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['sequences'] });
+      toast(res.message || 'تم تفعيل السلسلة التلقائية للمرشح بنجاح', 'success');
+      setSequenceModalOpen(false);
+      setSelectedSeqId('');
+    },
+    onError: (err: any) => toast(err.response?.data?.detail || 'فشل تفعيل السلسلة التلقائية', 'error'),
+  });
 
   const deleteMutation = useMutation({
     mutationFn: () => candidatesApi.delete(candidateId),
@@ -872,6 +1055,25 @@ export function CandidateDetailPage() {
                 {c.github && <a href={c.github} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-slate-800"><Github size={16} /></a>}
                 {c.portfolio && <a href={c.portfolio} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-600"><Globe size={16} /></a>}
               </div>
+
+              {/* Talent CRM Pools badges */}
+              {talentPools.filter(p => p.candidate_ids?.includes(c.id)).length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-2.5 border-t border-slate-100">
+                  <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1">
+                    <FolderHeart size={12} className="text-purple-600" />
+                    بنوك المواهب:
+                  </span>
+                  {talentPools.filter(p => p.candidate_ids?.includes(c.id)).map(pool => (
+                    <span
+                      key={pool.id}
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200/80 flex items-center gap-1"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                      {pool.name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -916,6 +1118,24 @@ export function CandidateDetailPage() {
           >
             مراسلة بالإيميل
           </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-purple-600 border-purple-200 hover:bg-purple-50"
+            icon={<FolderHeart size={14} />}
+            onClick={() => setTalentPoolModalOpen(true)}
+          >
+            بنك المواهب
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+            icon={<Send size={14} />}
+            onClick={() => setSequenceModalOpen(true)}
+          >
+            سلسلة رسائل تلقائية
+          </Button>
           <Select
             value={c.pipeline_stage || c.status}
             onChange={e => stageMutation.mutate(e.target.value)}
@@ -926,31 +1146,9 @@ export function CandidateDetailPage() {
           <Button size="sm" variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50" icon={<Sparkles size={14} className="text-blue-600" />} onClick={() => reEvaluateMutation.mutate()} loading={reEvaluateMutation.isPending}>
             Re-evaluate AI
           </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="text-indigo-600 border-indigo-200 hover:bg-indigo-50" 
-            icon={<ExternalLink size={14} />} 
-            onClick={() => syncNotionMutation.mutate()} 
-            loading={syncNotionMutation.isPending}
-            title="Sync this candidate to your Notion database"
-          >
-            Sync to Notion
-          </Button>
-          <a href={candidatesApi.downloadCV(c.id)} target="_blank" rel="noreferrer">
-            <Button size="sm" variant="ghost" icon={<Download size={14} />}>CV</Button>
-          </a>
-          <Button size="sm" variant="ghost" icon={<RefreshCw size={14} />} onClick={() => reprocessMutation.mutate()} loading={reprocessMutation.isPending}>
-            Reprocess
-          </Button>
           <Button size="sm" variant="ghost" icon={<Flag size={14} className={c.flagged ? 'text-amber-500' : ''} />} onClick={() => c.flagged ? flagMutation.mutate() : setFlagOpen(true)}>
             {c.flagged ? 'Unflag' : 'Flag'}
           </Button>
-          <a href={`/candidates/${c.id}`} target="_blank" rel="noreferrer">
-            <Button size="sm" variant="outline" icon={<ExternalLink size={14} />}>
-              Open in new page
-            </Button>
-          </a>
           <Button size="sm" variant="danger" icon={<Trash2 size={14} />} onClick={() => setDeleteConfirmOpen(true)}>
             Delete Candidate
           </Button>
@@ -961,10 +1159,12 @@ export function CandidateDetailPage() {
       <Tabs
         tabs={[
           { label: 'Overview', icon: <Briefcase size={14} /> },
+          { label: 'السيرة الذاتية والتقديم', icon: <FileText size={14} /> },
           { label: 'AI Analysis', icon: <Target size={14} /> },
           { label: 'Timeline', icon: <Clock size={14} /> },
           { label: 'Chat', icon: <MessageSquare size={14} /> },
           { label: 'Email & Notifications', icon: <Mail size={14} /> },
+          { label: 'الاستفسارات (Inquiries)', icon: <HelpCircle size={14} /> },
         ]}
         active={tab}
         onChange={setTab}
@@ -975,6 +1175,40 @@ export function CandidateDetailPage() {
         {tab === 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2 space-y-4">
+              {/* Direct Application Submitted Info Card */}
+              {(c.salary_expectation != null || c.notice_period_days != null || c.decision_notes || c.remote_preference) && (
+                <Card className="border-r-4 border-r-blue-600 bg-gradient-to-r from-blue-50/40 via-white to-white">
+                  <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <Sparkles size={16} className="text-blue-600" />
+                    <span>بيانات التقديم المباشر والأسئلة التمهيدية (Submitted Application Details)</span>
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs mb-3">
+                    <div className="p-2.5 bg-white rounded-lg border border-slate-100 shadow-2xs">
+                      <span className="text-slate-400 block mb-0.5">الراتب المتوقع (Salary):</span>
+                      <span className="font-bold text-slate-800">
+                        {c.salary_expectation ? formatSalary(c.salary_expectation, c.salary_currency) : 'غير مخصص'}
+                      </span>
+                    </div>
+                    <div className="p-2.5 bg-white rounded-lg border border-slate-100 shadow-2xs">
+                      <span className="text-slate-400 block mb-0.5">فترة الإشعار (Notice Period):</span>
+                      <span className="font-bold text-slate-800">
+                        {c.remote_preference || (c.notice_period_days != null ? `${c.notice_period_days} يوم` : 'غير محددة')}
+                      </span>
+                    </div>
+                    <div className="p-2.5 bg-white rounded-lg border border-slate-100 shadow-2xs">
+                      <span className="text-slate-400 block mb-0.5">خبرة مصرح بها (Exp):</span>
+                      <span className="font-bold text-slate-800">{c.years_experience} سنوات</span>
+                    </div>
+                  </div>
+                  {c.decision_notes && (
+                    <div className="p-3 bg-blue-50/80 rounded-lg text-xs text-blue-900 leading-relaxed border border-blue-100">
+                      <strong className="block mb-1 text-blue-700">أبرز المشاريع والإنجازات المذكورة عند التقديم:</strong>
+                      {c.decision_notes.replace('[أبرز المشاريع والإنجازات المذكورة عند التقديم]: ', '')}
+                    </div>
+                  )}
+                </Card>
+              )}
+
               {c.ai_summary && (
                 <Card>
                   <h3 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
@@ -997,6 +1231,29 @@ export function CandidateDetailPage() {
                           <p className="text-sm font-medium text-slate-700">{p.title}</p>
                           <p className="text-xs text-slate-500">{p.company} {p.start && `· ${p.start} – ${p.end || 'Present'}`}</p>
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
+
+              {c.projects && c.projects.length > 0 && (
+                <Card>
+                  <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-1.5">
+                    <FolderGit2 size={14} className="text-blue-600" /> Key Projects & Highlights
+                  </h3>
+                  <div className="space-y-3">
+                    {c.projects.map((proj, i) => (
+                      <div key={i} className="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                        <p className="text-sm font-bold text-slate-800">{proj.name}</p>
+                        {proj.description && <p className="text-xs text-slate-600 mt-1 leading-relaxed">{proj.description}</p>}
+                        {proj.technologies && proj.technologies.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {proj.technologies.map(t => (
+                              <span key={t} className="px-2 py-0.5 bg-white text-slate-500 text-[10px] rounded border border-slate-200">{t}</span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1103,8 +1360,11 @@ export function CandidateDetailPage() {
           </div>
         )}
 
+        {/* ── السيرة الذاتية والتقديم ───────────────────────────── */}
+        {tab === 1 && <CandidateCVPanel candidate={c} />}
+
         {/* ── AI Analysis ─────────────────────────────────────────── */}
-        {tab === 1 && (
+        {tab === 2 && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2 space-y-4">
               <Card>
@@ -1203,7 +1463,7 @@ export function CandidateDetailPage() {
         )}
 
         {/* ── Timeline ─────────────────────────────────────────────── */}
-        {tab === 2 && (
+        {tab === 3 && (
           <Card>
             <h3 className="text-sm font-semibold text-slate-700 mb-4">Activity timeline</h3>
             {!timeline ? (
@@ -1231,10 +1491,13 @@ export function CandidateDetailPage() {
         )}
 
         {/* ── Chat ─────────────────────────────────────────────────── */}
-        {tab === 3 && <ChatPanel candidate={c} />}
+        {tab === 4 && <ChatPanel candidate={c} />}
 
         {/* ── Email & Notifications ─────────────────────────────────── */}
-        {tab === 4 && <EmailLogPanel candidate={c} />}
+        {tab === 5 && <EmailLogPanel candidate={c} />}
+
+        {/* ── Candidate Inquiries ───────────────────────────────────── */}
+        {tab === 6 && <CandidateInquiriesPanel candidate={c} />}
       </div>
 
       {/* Modals */}
@@ -1281,6 +1544,155 @@ export function CandidateDetailPage() {
               loading={deleteMutation.isPending}
             >
               Delete Permanently
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Talent Pools Membership Modal */}
+      <Modal
+        open={talentPoolModalOpen}
+        onClose={() => setTalentPoolModalOpen(false)}
+        title={`بنوك ومجموعات المواهب - ${c.full_name}`}
+        width="max-w-md"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-500 leading-relaxed">
+            اختر بنوك المواهب التي ترغب في إدراج المرشح <strong>{c.full_name}</strong> ضمنها لتسهيل تصنيفه ومتابعته مستقبلاً:
+          </p>
+
+          {talentPools.length === 0 ? (
+            <div className="p-4 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+              لا توجد بنوك مواهب حالياً. يمكنك إنشاء بنك مواهب جديد من صفحة مجمع المواهب CRM.
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {talentPools.map((pool) => {
+                const inPool = (pool.candidate_ids || []).includes(c.id);
+                return (
+                  <div
+                    key={pool.id}
+                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                      inPool ? 'border-purple-200 bg-purple-50/60' : 'border-slate-200 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <FolderHeart size={14} className={inPool ? 'text-purple-600' : 'text-slate-400'} />
+                        <span className="text-xs font-bold text-slate-800">{pool.name}</span>
+                      </div>
+                      {pool.description && (
+                        <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{pool.description}</p>
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={inPool ? 'danger' : 'outline'}
+                      className="text-xs"
+                      onClick={async () => {
+                        try {
+                          if (inPool) {
+                            await talentPoolsApi.removeCandidate(pool.id, c.id);
+                            toast('تم استبعاد المرشح من بنك المواهب', 'success');
+                          } else {
+                            await talentPoolsApi.addCandidates(pool.id, [c.id]);
+                            toast('تمت إضافة المرشح لبنك المواهب بنجاح', 'success');
+                          }
+                          qc.invalidateQueries({ queryKey: ['talent-pools'] });
+                        } catch (err: any) {
+                          toast('حدث خطأ أثناء تحديث بنك المواهب', 'error');
+                        }
+                      }}
+                    >
+                      {inPool ? 'استبعاد' : 'إضافة'}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="pt-2 flex justify-between items-center border-t border-slate-100">
+            <Link
+              to="/talent-crm"
+              className="text-xs text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1"
+            >
+              <span>إدارة بنوك المواهب CRM</span>
+              <ExternalLink size={12} />
+            </Link>
+            <Button variant="outline" size="sm" onClick={() => setTalentPoolModalOpen(false)}>
+              إغلاق
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Sequence Enrollment Modal */}
+      <Modal
+        open={sequenceModalOpen}
+        onClose={() => setSequenceModalOpen(false)}
+        title={`تفعيل سلسلة رسائل تلقائية للمرشح`}
+        width="max-w-md"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-slate-500">
+            اختر السلسلة التلقائية لتفعيل إرسال رسائل المتابعة والتذكير المجدولة للمرشح <strong>{c.full_name}</strong>:
+          </p>
+
+          {sequences.length === 0 ? (
+            <div className="p-4 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+              لا توجد سلاسل تلقائية متاحة. يمكنك إنشاء سلسلة تلقائية من مجمع المواهب CRM.
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {sequences.map((seq) => {
+                const isSelected = selectedSeqId === seq.id;
+                return (
+                  <div
+                    key={seq.id}
+                    onClick={() => setSelectedSeqId(seq.id)}
+                    className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                      isSelected ? 'border-emerald-600 bg-emerald-50/70 ring-1 ring-emerald-500' : 'border-slate-200 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-slate-800">{seq.title}</span>
+                      <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md">
+                        {seq.steps?.length || 0} خطوات
+                      </span>
+                    </div>
+                    {seq.description && (
+                      <p className="text-[11px] text-slate-500 mb-2 line-clamp-1">{seq.description}</p>
+                    )}
+                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                      <Clock size={11} />
+                      <span>
+                        الخطوات: {seq.steps?.map(s => `${s.delay_hours}h`).join(' ➔ ') || 'فوري'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+            <Button variant="outline" size="sm" onClick={() => setSequenceModalOpen(false)}>
+              إلغاء
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={!selectedSeqId}
+              loading={enrollCandidateSeqMutation.isPending}
+              onClick={() => {
+                if (selectedSeqId) {
+                  enrollCandidateSeqMutation.mutate(Number(selectedSeqId));
+                }
+              }}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              تفعيل وبدء السلسلة الآن
             </Button>
           </div>
         </div>

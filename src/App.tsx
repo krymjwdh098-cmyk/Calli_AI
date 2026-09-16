@@ -10,7 +10,8 @@ import { CandidatesPage } from './pages/Candidates';
 import { CandidateDetailPage } from './pages/CandidateDetail';
 import { ApplyPage } from './pages/Apply';
 import { SettingsPage } from './pages/Settings';
-import { ReportsPage } from './pages/Reports';
+import { InquiriesPage } from './pages/Inquiries';
+import { TalentCRM } from './pages/TalentCRM';
 import { NotFoundPage } from './pages/NotFound';
 
 export default function App() {
@@ -28,10 +29,12 @@ export default function App() {
       <Route path="/jobs" element={<ProtectedRoute><JobsPage /></ProtectedRoute>} />
       <Route path="/candidates" element={<ProtectedRoute><CandidatesPage /></ProtectedRoute>} />
       <Route path="/candidates/:id" element={<ProtectedRoute><CandidateDetailPage /></ProtectedRoute>} />
-      <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+      <Route path="/inquiries" element={<ProtectedRoute><InquiriesPage /></ProtectedRoute>} />
+      <Route path="/talent-crm" element={<ProtectedRoute><TalentCRM /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
 
       {/* Redirects */}
+      <Route path="/reports" element={<Navigate to="/dashboard" replace />} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

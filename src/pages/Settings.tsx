@@ -4,7 +4,9 @@ import {
   Users, Webhook, Plus, Trash2, Send, Copy, Check,
   UserCog, Shield, Zap, Eye, EyeOff, Sparkles, KeyRound, Key,
   Database, Activity, Server, CheckCircle2, AlertCircle, RefreshCw,
-  Globe, Code, Terminal, Lock
+  Globe, Code, Terminal, Lock, Building2, Image, Upload, Save, Mail,
+  FileText, Edit3, Layers, Filter, Search, RotateCcw, Play, CheckSquare,
+  Calendar, DollarSign, Tag, Info, AlertTriangle, ExternalLink
 } from 'lucide-react';
 import { usersApi, webhooksApi, settingsApi, emailsApi } from '../api';
 import { useAuthStore } from '../store/auth';
@@ -906,107 +908,570 @@ function DatabaseTab() {
   );
 }
 
-// ── Email Templates Tab ─────────────────────────────────────────────
+// ── Email Templates Management System ─────────────────────────────────────────
+const AVAILABLE_TAGS = [
+  { tag: '{{candidate_name}}', label: 'Candidate Name', desc: 'e.g. Karim Abdelrahman' },
+  { tag: '{{job_title}}', label: 'Job Position', desc: 'e.g. Senior Full Stack Engineer' },
+  { tag: '{{company_name}}', label: 'Company Name', desc: 'e.g. CalliQ HR' },
+  { tag: '{{recruiter_name}}', label: 'Recruiter Name', desc: 'e.g. CalliQ Recruiter' },
+  { tag: '{{interview_date}}', label: 'Interview Date', desc: 'e.g. Tomorrow at 3:00 PM' },
+  { tag: '{{interview_link}}', label: 'Meeting Link', desc: 'e.g. https://meet.google.com/...' },
+  { tag: '{{offer_amount}}', label: 'Offer Salary', desc: 'e.g. 35,000' },
+  { tag: '{{offer_currency}}', label: 'Currency', desc: 'e.g. EGP' },
+  { tag: '{{offer_deadline}}', label: 'Deadline', desc: 'e.g. 5 Business Days' },
+];
+
+function getCategoryMeta(category?: string, event?: string) {
+  const cat = category || (
+    event === 'rejection_notice' ? 'rejection' :
+    event === 'interview_scheduled' ? 'interview' :
+    event === 'offer_letter' ? 'offer' :
+    event === 'application_received' ? 'confirmation' :
+    event === 'shortlisted' ? 'shortlist' : 'custom'
+  );
+
+  switch (cat) {
+    case 'rejection':
+      return { key: 'rejection', label: 'Candidate Rejection', badgeClass: 'bg-rose-50 text-rose-700 border-rose-200' };
+    case 'interview':
+      return { key: 'interview', label: 'Interview Scheduling', badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+    case 'offer':
+      return { key: 'offer', label: 'Offer Letter', badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+    case 'confirmation':
+      return { key: 'confirmation', label: 'Application Receipt', badgeClass: 'bg-blue-50 text-blue-700 border-blue-200' };
+    case 'shortlist':
+      return { key: 'shortlist', label: 'Shortlisted Candidate', badgeClass: 'bg-amber-50 text-amber-700 border-amber-200' };
+    default:
+      return { key: 'custom', label: 'Custom Response', badgeClass: 'bg-purple-50 text-purple-700 border-purple-200' };
+  }
+}
+
+function renderSampleEmailContent(template: any, user?: any) {
+  const sampleCandidate = 'Karim Abdelrahman';
+  const sampleJob = 'Senior Full Stack Engineer';
+  const sampleCompany = user?.org_name || 'CalliQ HR Systems';
+  const recruiter = user?.name || 'CalliQ Recruiter';
+
+  let subject = (template?.subject || '')
+    .replace(/\{\{candidate_name\}\}/g, sampleCandidate)
+    .replace(/\{\{job_title\}\}/g, sampleJob)
+    .replace(/\{\{company_name\}\}/g, sampleCompany)
+    .replace(/\{\{recruiter_name\}\}/g, recruiter)
+    .replace(/\{\{interview_date\}\}/g, 'Tomorrow at 3:00 PM (Cairo Time)')
+    .replace(/\{\{interview_link\}\}/g, 'https://meet.google.com/calliq-interview-room')
+    .replace(/\{\{offer_amount\}\}/g, '35,000')
+    .replace(/\{\{offer_currency\}\}/g, 'EGP')
+    .replace(/\{\{offer_deadline\}\}/g, '5 Business Days');
+
+  let body = (template?.body || '')
+    .replace(/\{\{candidate_name\}\}/g, sampleCandidate)
+    .replace(/\{\{job_title\}\}/g, sampleJob)
+    .replace(/\{\{company_name\}\}/g, sampleCompany)
+    .replace(/\{\{recruiter_name\}\}/g, recruiter)
+    .replace(/\{\{interview_date\}\}/g, 'Tomorrow at 3:00 PM (Cairo Time)')
+    .replace(/\{\{interview_link\}\}/g, 'https://meet.google.com/calliq-interview-room')
+    .replace(/\{\{offer_amount\}\}/g, '35,000')
+    .replace(/\{\{offer_currency\}\}/g, 'EGP')
+    .replace(/\{\{offer_deadline\}\}/g, '5 Business Days');
+
+  return { subject, body, sampleCandidate, sampleJob, sampleCompany };
+}
+
 function EmailTemplatesTab() {
   const toast = useToast();
   const qc = useQueryClient();
-  const [editingTpl, setEditingTpl] = useState<any>(null);
+  const user = useAuthStore(s => s.user);
 
-  const { data: templates, isLoading } = useQuery({
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  
+  // Modals
+  const [editingTpl, setEditingTpl] = useState<any>(null);
+  const [editorTab, setEditorTab] = useState<'edit' | 'preview'>('edit');
+  const [previewTpl, setPreviewTpl] = useState<any>(null);
+  const [testSendTpl, setTestSendTpl] = useState<any>(null);
+  const [testRecipientEmail, setTestRecipientEmail] = useState<string>('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [showResetModal, setShowResetModal] = useState<boolean>(false);
+
+  const { data: templates = [], isLoading } = useQuery({
     queryKey: ['email-templates'],
     queryFn: () => emailsApi.getTemplates(),
   });
 
-  const updateMutation = useMutation({
-    mutationFn: (tpl: any) => emailsApi.updateTemplate(tpl),
+  const saveMutation = useMutation({
+    mutationFn: (tpl: any) => emailsApi.saveTemplate(tpl),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['email-templates'] });
-      toast('Email template updated successfully!', 'success');
+      toast('Email template saved successfully!', 'success');
       setEditingTpl(null);
     },
-    onError: () => toast('Failed to update email template', 'error'),
+    onError: () => toast('Failed to save email template', 'error'),
   });
 
+  const toggleActiveMutation = useMutation({
+    mutationFn: (tpl: any) => emailsApi.saveTemplate({ ...tpl, is_active: !tpl.is_active }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['email-templates'] });
+      toast('Template active status updated', 'success');
+    },
+    onError: () => toast('Failed to update status', 'error'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => emailsApi.deleteTemplate(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['email-templates'] });
+      toast('Template deleted successfully', 'success');
+      setConfirmDeleteId(null);
+    },
+    onError: () => toast('Failed to delete template', 'error'),
+  });
+
+  const resetMutation = useMutation({
+    mutationFn: () => emailsApi.resetTemplates(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['email-templates'] });
+      toast('Email templates restored to system defaults!', 'success');
+      setShowResetModal(false);
+    },
+    onError: () => toast('Failed to reset templates', 'error'),
+  });
+
+  const testSendMutation = useMutation({
+    mutationFn: (data: { template_id: string; recipient_email?: string }) =>
+      emailsApi.testSendTemplate(data),
+    onSuccess: (res) => {
+      toast(res.message || 'Test email dispatched successfully!', 'success');
+      setTestSendTpl(null);
+    },
+    onError: () => toast('Failed to send test email', 'error'),
+  });
+
+  // Filter templates
+  const filteredTemplates = templates.filter(t => {
+    const meta = getCategoryMeta(t.category, t.event);
+    const matchesCat = selectedCategory === 'all' || meta.key === selectedCategory;
+    const searchLower = searchTerm.trim().toLowerCase();
+    const matchesSearch = !searchLower ||
+      t.name.toLowerCase().includes(searchLower) ||
+      t.subject.toLowerCase().includes(searchLower) ||
+      t.body.toLowerCase().includes(searchLower) ||
+      (t.event || '').toLowerCase().includes(searchLower);
+    return matchesCat && matchesSearch;
+  });
+
+  const handleOpenCreateNew = () => {
+    setEditingTpl({
+      id: '',
+      name: '',
+      event: 'custom',
+      category: 'custom',
+      subject: 'Notice regarding your application for {{job_title}}',
+      body: 'Dear {{candidate_name}},\n\nThank you for taking the time to apply for the {{job_title}} position at {{company_name}}.\n\nWe would like to invite you to the next step of our recruitment process.\n\nBest regards,\n{{company_name}} Talent Team',
+      is_active: true,
+      description: 'Custom response template for candidate communications.',
+    });
+    setEditorTab('edit');
+  };
+
+  const handleDuplicate = (tpl: any) => {
+    const duplicate = {
+      ...tpl,
+      id: '',
+      name: `${tpl.name} (Copy)`,
+      updated_at: new Date().toISOString(),
+    };
+    saveMutation.mutate(duplicate);
+  };
+
+  const handleInsertTagInEditor = (tag: string) => {
+    if (!editingTpl) return;
+    setEditingTpl((prev: any) => ({
+      ...prev,
+      body: (prev.body || '') + (prev.body && !prev.body.endsWith(' ') ? ' ' : '') + tag,
+    }));
+  };
+
+  const categories = [
+    { key: 'all', label: 'All Templates', count: templates.length },
+    { key: 'rejection', label: '🔴 Rejections', count: templates.filter(t => getCategoryMeta(t.category, t.event).key === 'rejection').length },
+    { key: 'interview', label: '📅 Interviews', count: templates.filter(t => getCategoryMeta(t.category, t.event).key === 'interview').length },
+    { key: 'offer', label: '📄 Offer Letters', count: templates.filter(t => getCategoryMeta(t.category, t.event).key === 'offer').length },
+    { key: 'confirmation', label: '📩 Confirmations', count: templates.filter(t => getCategoryMeta(t.category, t.event).key === 'confirmation').length },
+    { key: 'shortlist', label: '⭐ Shortlisted', count: templates.filter(t => getCategoryMeta(t.category, t.event).key === 'shortlist').length },
+    { key: 'custom', label: '⚡ Custom', count: templates.filter(t => getCategoryMeta(t.category, t.event).key === 'custom').length },
+  ];
+
   return (
-    <div className="space-y-6 max-w-4xl">
-      <Card>
-        <div className="flex items-center justify-between mb-4">
+    <div className="space-y-6 max-w-5xl">
+      {/* Top Header Card */}
+      <Card className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
-              <Send size={16} className="text-blue-600" />
-              Automated Candidate Email Templates
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Configure automated email notifications sent to candidates when they apply, get shortlisted, schedule interviews, or receive offers.
+            <div className="flex items-center gap-2 mb-2">
+              <span className="p-2 bg-indigo-500/20 text-indigo-300 rounded-xl border border-indigo-400/30">
+                <Mail size={20} />
+              </span>
+              <h2 className="text-lg font-bold text-white tracking-tight">Email Template Management System</h2>
+            </div>
+            <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+              Create, customize, and manage predefined response templates for candidate rejection, interview invitations, offer letters, and status updates with automated variable insertion.
             </p>
           </div>
-        </div>
-
-        {isLoading ? (
-          <Skeleton className="h-40" />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {templates?.map(t => (
-              <div key={t.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-slate-800">{t.name}</span>
-                    <Badge className={t.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}>
-                      {t.is_active ? 'Active' : 'Disabled'}
-                    </Badge>
-                  </div>
-                  <p className="text-xs font-medium text-slate-600 mb-1">Subject: {t.subject}</p>
-                  <p className="text-xs text-slate-500 line-clamp-3 bg-white p-2 rounded border border-slate-100 whitespace-pre-line">
-                    {t.body}
-                  </p>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-                  <span className="text-[10px] text-slate-400 font-mono">Event: {t.event}</span>
-                  <Button size="sm" variant="outline" onClick={() => setEditingTpl(t)}>
-                    Edit Template
-                  </Button>
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center gap-2.5">
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<RotateCcw size={14} />}
+              className="bg-white/10 hover:bg-white/20 text-white border-white/20 text-xs"
+              onClick={() => setShowResetModal(true)}
+            >
+              Reset Defaults
+            </Button>
+            <Button
+              size="sm"
+              icon={<Plus size={15} />}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg text-xs"
+              onClick={handleOpenCreateNew}
+            >
+              Create Template
+            </Button>
           </div>
-        )}
+        </div>
       </Card>
 
+      {/* Filter Tabs & Search Bar */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm">
+        {/* Category Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
+          {categories.map(cat => (
+            <button
+              key={cat.key}
+              onClick={() => setSelectedCategory(cat.key)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                selectedCategory === cat.key
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+              }`}
+            >
+              <span>{cat.label}</span>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                selectedCategory === cat.key ? 'bg-indigo-700 text-white' : 'bg-slate-200 text-slate-700'
+              }`}>
+                {cat.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative w-full md:w-64">
+          <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search templates..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Template Grid */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Skeleton className="h-48 rounded-2xl" />
+          <Skeleton className="h-48 rounded-2xl" />
+        </div>
+      ) : filteredTemplates.length === 0 ? (
+        <EmptyState
+          icon={<FileText size={32} className="text-slate-400" />}
+          title="No email templates found"
+          description={searchTerm ? "No templates match your search criteria." : "No templates exist in this category yet."}
+          action={
+            <Button size="sm" icon={<Plus size={14} />} onClick={handleOpenCreateNew}>
+              Create New Template
+            </Button>
+          }
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredTemplates.map(tpl => {
+            const meta = getCategoryMeta(tpl.category, tpl.event);
+            return (
+              <div
+                key={tpl.id}
+                className="bg-white border border-slate-200/90 hover:border-indigo-300 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4 group"
+              >
+                <div>
+                  {/* Top Header Row */}
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${meta.badgeClass}`}>
+                          {meta.label}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                          {tpl.event}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                        {tpl.name}
+                      </h4>
+                    </div>
+
+                    {/* Active Toggle */}
+                    <button
+                      onClick={() => toggleActiveMutation.mutate(tpl)}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all border flex items-center gap-1 ${
+                        tpl.is_active
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                          : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
+                      }`}
+                      title={tpl.is_active ? 'Click to disable auto-send' : 'Click to enable auto-send'}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${tpl.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                      <span>{tpl.is_active ? 'Active' : 'Disabled'}</span>
+                    </button>
+                  </div>
+
+                  {/* Subject Line */}
+                  <div className="mb-2 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                    <span className="text-[11px] font-bold text-slate-500 block mb-0.5">Subject:</span>
+                    <p className="text-xs font-semibold text-slate-800 truncate">{tpl.subject}</p>
+                  </div>
+
+                  {/* Body Snippet */}
+                  <div className="relative">
+                    <p className="text-xs text-slate-600 line-clamp-3 bg-slate-50/70 p-2.5 rounded-xl border border-slate-100/80 leading-relaxed whitespace-pre-line font-normal">
+                      {tpl.body}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Card Action Row */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-1 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      icon={<Edit3 size={12} />}
+                      onClick={() => { setEditingTpl({ ...tpl }); setEditorTab('edit'); }}
+                      className="text-xs py-1 px-2.5"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      icon={<Eye size={12} />}
+                      onClick={() => setPreviewTpl(tpl)}
+                      className="text-xs py-1 px-2.5 text-slate-600"
+                    >
+                      Preview
+                    </Button>
+                    <button
+                      onClick={() => handleDuplicate(tpl)}
+                      className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors text-xs"
+                      title="Duplicate Template"
+                    >
+                      <Copy size={13} />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      icon={<Send size={12} className="text-indigo-600" />}
+                      onClick={() => { setTestSendTpl(tpl); setTestRecipientEmail(user?.email || ''); }}
+                      className="text-xs py-1 px-2.5 text-indigo-700 bg-indigo-50/60 border-indigo-200 hover:bg-indigo-100"
+                    >
+                      Test Send
+                    </Button>
+                    <button
+                      onClick={() => setConfirmDeleteId(tpl.id)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                      title="Delete Template"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Editor Modal (Create & Edit) */}
       {editingTpl && (
-        <Modal open={!!editingTpl} onClose={() => setEditingTpl(null)} title={`Edit ${editingTpl.name}`}>
-          <div className="space-y-4">
-            <Input
-              label="Template Name"
-              value={editingTpl.name}
-              onChange={e => setEditingTpl({ ...editingTpl, name: e.target.value })}
-            />
-            <Input
-              label="Subject Line"
-              value={editingTpl.subject}
-              onChange={e => setEditingTpl({ ...editingTpl, subject: e.target.value })}
-              hint="Available tags: {{candidate_name}}, {{job_title}}, {{company_name}}"
-            />
-            <Textarea
-              label="Email Body"
-              value={editingTpl.body}
-              onChange={e => setEditingTpl({ ...editingTpl, body: e.target.value })}
-              rows={6}
-              hint="Available tags: {{candidate_name}}, {{job_title}}, {{company_name}}, {{interview_date}}, {{interview_link}}, {{offer_amount}}"
-            />
-            <label className="flex items-center gap-2 cursor-pointer pt-1">
-              <input
-                type="checkbox"
-                checked={editingTpl.is_active}
-                onChange={e => setEditingTpl({ ...editingTpl, is_active: e.target.checked })}
-                className="rounded border-slate-300 text-blue-600"
-              />
-              <span className="text-xs text-slate-700">Enable automatic sending for this event</span>
-            </label>
-            <div className="flex justify-end gap-2 pt-2">
+        <Modal
+          open={!!editingTpl}
+          onClose={() => setEditingTpl(null)}
+          title={editingTpl.id ? `Edit: ${editingTpl.name}` : 'Create New Email Template'}
+        >
+          <div className="space-y-4 max-w-2xl">
+            {/* Modal Header Tabs */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setEditorTab('edit')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
+                    editorTab === 'edit'
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'text-slate-500 hover:bg-slate-100'
+                  }`}
+                >
+                  ✏️ Edit Template Content
+                </button>
+                <button
+                  onClick={() => setEditorTab('preview')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
+                    editorTab === 'preview'
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'text-slate-500 hover:bg-slate-100'
+                  }`}
+                >
+                  👁️ Live Rendered Preview
+                </button>
+              </div>
+
+              <span className="text-[11px] font-mono text-slate-400">
+                ID: {editingTpl.id || 'new_template'}
+              </span>
+            </div>
+
+            {editorTab === 'edit' ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Input
+                    label="Template Name"
+                    value={editingTpl.name}
+                    onChange={e => setEditingTpl({ ...editingTpl, name: e.target.value })}
+                    placeholder="e.g. Senior Engineer Interview Invitation"
+                  />
+
+                  <Select
+                    label="Category / Trigger Event"
+                    value={editingTpl.event}
+                    onChange={e => {
+                      const val = e.target.value;
+                      const cat = val === 'rejection_notice' ? 'rejection' :
+                        val === 'interview_scheduled' ? 'interview' :
+                        val === 'offer_letter' ? 'offer' :
+                        val === 'application_received' ? 'confirmation' :
+                        val === 'shortlisted' ? 'shortlist' : 'custom';
+                      setEditingTpl({ ...editingTpl, event: val, category: cat });
+                    }}
+                    options={[
+                      { value: 'rejection_notice', label: '🔴 Candidate Rejection (rejection_notice)' },
+                      { value: 'interview_scheduled', label: '📅 Interview Scheduling (interview_scheduled)' },
+                      { value: 'offer_letter', label: '📄 Offer Letter (offer_letter)' },
+                      { value: 'application_received', label: '📩 Application Confirmation (application_received)' },
+                      { value: 'shortlisted', label: '⭐ Shortlisted Notice (shortlisted)' },
+                      { value: 'custom', label: '⚡ Custom Response Template (custom)' },
+                    ]}
+                  />
+                </div>
+
+                <Input
+                  label="Description / Usage Context"
+                  value={editingTpl.description || ''}
+                  onChange={e => setEditingTpl({ ...editingTpl, description: e.target.value })}
+                  placeholder="e.g. Sent when inviting candidates to technical interview stage"
+                />
+
+                <Input
+                  label="Subject Line"
+                  value={editingTpl.subject}
+                  onChange={e => setEditingTpl({ ...editingTpl, subject: e.target.value })}
+                  placeholder="Subject line with {{candidate_name}} or {{job_title}}"
+                />
+
+                {/* Variable Tags Chip Inserter */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Tag size={13} className="text-indigo-600" />
+                      Dynamic Variables (Click chip to insert into body):
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-normal">Auto-populated dynamically per candidate</span>
+                  </label>
+                  <div className="flex flex-wrap gap-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                    {AVAILABLE_TAGS.map(t => (
+                      <button
+                        key={t.tag}
+                        type="button"
+                        onClick={() => handleInsertTagInEditor(t.tag)}
+                        className="px-2 py-1 bg-white hover:bg-indigo-50 text-indigo-700 font-mono text-[11px] rounded-lg border border-slate-200 hover:border-indigo-300 transition-all flex items-center gap-1 shadow-2xs group"
+                        title={t.desc}
+                      >
+                        <Plus size={10} className="text-indigo-500 group-hover:scale-125 transition-transform" />
+                        <span>{t.tag}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <Textarea
+                  label="Email Body Content"
+                  value={editingTpl.body}
+                  onChange={e => setEditingTpl({ ...editingTpl, body: e.target.value })}
+                  rows={8}
+                />
+
+                <div className="flex items-center justify-between pt-1">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editingTpl.is_active}
+                      onChange={e => setEditingTpl({ ...editingTpl, is_active: e.target.checked })}
+                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span className="text-xs font-semibold text-slate-700">
+                      Enable automatic trigger for this event
+                    </span>
+                  </label>
+                </div>
+              </div>
+            ) : (
+              /* Live Render Preview in Modal */
+              <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-3 shadow-xs">
+                  <div className="border-b border-slate-100 pb-2.5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Subject Preview:</span>
+                    <h3 className="text-sm font-bold text-slate-900 mt-0.5">
+                      {renderSampleEmailContent(editingTpl, user).subject}
+                    </h3>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Email Body Preview:</span>
+                    <div className="mt-2 text-xs text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50/80 p-3 rounded-lg border border-slate-100">
+                      {renderSampleEmailContent(editingTpl, user).body}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
               <Button variant="outline" onClick={() => setEditingTpl(null)}>Cancel</Button>
               <Button
-                onClick={() => updateMutation.mutate(editingTpl)}
-                loading={updateMutation.isPending}
+                onClick={() => saveMutation.mutate(editingTpl)}
+                loading={saveMutation.isPending}
+                disabled={!editingTpl.name || !editingTpl.subject || !editingTpl.body}
+                icon={<Save size={14} />}
               >
                 Save Template
               </Button>
@@ -1014,6 +1479,600 @@ function EmailTemplatesTab() {
           </div>
         </Modal>
       )}
+
+      {/* Live Inbox Preview Modal */}
+      {previewTpl && (
+        <Modal
+          open={!!previewTpl}
+          onClose={() => setPreviewTpl(null)}
+          title={`Email Preview: ${previewTpl.name}`}
+        >
+          <div className="space-y-4 max-w-2xl">
+            {/* Inbox Style Frame */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
+              {/* Inbox Header */}
+              <div className="bg-slate-900 text-white p-4 space-y-2">
+                <div className="flex items-center justify-between text-xs text-slate-300">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="font-semibold text-white">CalliQ Candidate Mailer</span>
+                  </div>
+                  <span>Today at 3:15 PM</span>
+                </div>
+                <h3 className="text-sm font-bold text-white tracking-wide">
+                  {renderSampleEmailContent(previewTpl, user).subject}
+                </h3>
+              </div>
+
+              {/* Email Meta */}
+              <div className="p-4 bg-slate-50 border-b border-slate-200 text-xs space-y-1">
+                <p className="text-slate-600"><strong className="text-slate-800">From:</strong> {user?.name || 'CalliQ HR'} &lt;hr@calliq.ai&gt;</p>
+                <p className="text-slate-600"><strong className="text-slate-800">To:</strong> Karim Abdelrahman &lt;cillkareem@gmail.com&gt;</p>
+              </div>
+
+              {/* Email Rendered Body */}
+              <div className="p-6 text-xs text-slate-800 leading-relaxed whitespace-pre-line bg-white min-h-[160px]">
+                {renderSampleEmailContent(previewTpl, user).body}
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-2">
+              <Button
+                size="sm"
+                variant="outline"
+                icon={<Send size={13} />}
+                onClick={() => { setTestSendTpl(previewTpl); setPreviewTpl(null); setTestRecipientEmail(user?.email || ''); }}
+              >
+                Send Test Email
+              </Button>
+
+              <Button size="sm" onClick={() => setPreviewTpl(null)}>
+                Close Preview
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Test Email Modal */}
+      {testSendTpl && (
+        <Modal
+          open={!!testSendTpl}
+          onClose={() => setTestSendTpl(null)}
+          title={`Send Test Email: ${testSendTpl.name}`}
+        >
+          <div className="space-y-4">
+            <p className="text-xs text-slate-600">
+              Send a real test email log for <strong>{testSendTpl.name}</strong> to verify formatting and variable tag population.
+            </p>
+
+            <Input
+              label="Recipient Email Address"
+              type="email"
+              value={testRecipientEmail}
+              onChange={e => setTestRecipientEmail(e.target.value)}
+              placeholder="e.g. hr@company.com"
+            />
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setTestSendTpl(null)}>Cancel</Button>
+              <Button
+                icon={<Send size={14} />}
+                loading={testSendMutation.isPending}
+                onClick={() => testSendMutation.mutate({
+                  template_id: testSendTpl.id,
+                  recipient_email: testRecipientEmail,
+                })}
+              >
+                Dispatch Test Email
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {confirmDeleteId && (
+        <Modal
+          open={!!confirmDeleteId}
+          onClose={() => setConfirmDeleteId(null)}
+          title="Delete Email Template"
+        >
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-3 bg-rose-50 text-rose-800 rounded-xl border border-rose-200 text-xs">
+              <AlertTriangle size={18} className="shrink-0 text-rose-600" />
+              <span>Are you sure you want to delete this template? This action cannot be undone.</span>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setConfirmDeleteId(null)}>Cancel</Button>
+              <Button
+                className="bg-rose-600 hover:bg-rose-700 text-white"
+                loading={deleteMutation.isPending}
+                onClick={() => deleteMutation.mutate(confirmDeleteId)}
+              >
+                Delete Template
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Reset Defaults Confirmation Modal */}
+      {showResetModal && (
+        <Modal
+          open={showResetModal}
+          onClose={() => setShowResetModal(false)}
+          title="Restore System Default Templates"
+        >
+          <div className="space-y-4">
+            <div className="p-3 bg-amber-50 text-amber-800 rounded-xl border border-amber-200 text-xs flex items-center gap-3">
+              <RotateCcw size={18} className="shrink-0 text-amber-600" />
+              <span>
+                Restoring defaults will reset all email templates (rejections, interview invitations, offer letters, confirmations) to their original factory settings.
+              </span>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowResetModal(false)}>Cancel</Button>
+              <Button
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+                loading={resetMutation.isPending}
+                onClick={() => resetMutation.mutate()}
+              >
+                Reset to Defaults
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ── Company Profile Tab ─────────────────────────────────────────────
+const PRESET_LOGOS = [
+  {
+    id: 'apex',
+    name: 'Apex Global',
+    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="24" fill="%232563eb"/><path d="M50 20L80 75H20L50 20Z" fill="white" opacity="0.9"/><circle cx="50" cy="55" r="10" fill="%2360a5fa"/></svg>',
+  },
+  {
+    id: 'vertex',
+    name: 'Vertex AI',
+    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="24" fill="%237c3aed"/><circle cx="50" cy="50" r="28" stroke="white" stroke-width="8"/><circle cx="50" cy="50" r="12" fill="%23c084fc"/></svg>',
+  },
+  {
+    id: 'nexa',
+    name: 'Nexa Talent',
+    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="24" fill="%23059669"/><rect x="25" y="25" width="50" height="50" rx="12" fill="white" opacity="0.9"/><path d="M35 65L50 35L65 65" stroke="%23059669" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  },
+  {
+    id: 'crown',
+    name: 'Crown Talent',
+    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="24" fill="%23d97706"/><path d="M25 68L20 38L38 52L50 28L62 52L80 38L75 68H25Z" fill="white"/></svg>',
+  },
+  {
+    id: 'horizon',
+    name: 'Horizon Labs',
+    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="24" fill="%234f46e5"/><path d="M25 40C25 40 40 25 50 25C60 25 75 40 75 40C75 40 60 75 50 75C40 75 25 40 25 40Z" fill="white" opacity="0.95"/></svg>',
+  },
+  {
+    id: 'innovate',
+    name: 'Innovate Tech',
+    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="24" fill="%23e11d48"/><path d="M30 30H70V70H30V30Z" fill="white" transform="rotate(45 50 50)"/><circle cx="50" cy="50" r="10" fill="%23e11d48"/></svg>',
+  },
+  {
+    id: 'quantum',
+    name: 'Quantum HR',
+    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="24" fill="%230f172a"/><circle cx="50" cy="38" r="14" fill="%2338bdf8"/><path d="M26 74C26 60 36 52 50 52C64 52 74 60 74 74H26Z" fill="%2338bdf8"/></svg>',
+  },
+  {
+    id: 'sphere',
+    name: 'Sphere Group',
+    url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="24" fill="%230891b2"/><circle cx="38" cy="38" r="18" fill="white" opacity="0.9"/><circle cx="62" cy="62" r="18" fill="white" opacity="0.6"/></svg>',
+  },
+];
+
+function CompanyProfileTab() {
+  const { user, updateUser } = useAuthStore();
+  const qc = useQueryClient();
+  const toast = useToast();
+
+  const isAdmin = user?.role === 'admin' || user?.role === 'owner';
+
+  const { data: teamUsers = [] } = useQuery({
+    queryKey: ['admin-users-list'],
+    queryFn: () => usersApi.list(),
+    enabled: isAdmin,
+  });
+
+  const [selectedUserId, setSelectedUserId] = useState<number>(user?.id || 1);
+  const [orgName, setOrgName] = useState(user?.org_name || '');
+  const [companyLogo, setCompanyLogo] = useState(user?.company_logo || '');
+  const [companyTagline, setCompanyTagline] = useState(user?.company_tagline || '');
+  const [companyWebsite, setCompanyWebsite] = useState(user?.company_website || '');
+  const [primaryColor, setPrimaryColor] = useState(user?.primary_color || '#4f46e5');
+
+  const selectedUser = teamUsers.find((u) => u.id === selectedUserId) || user;
+
+  useEffect(() => {
+    if (selectedUser) {
+      setOrgName(selectedUser.org_name || '');
+      setCompanyLogo(selectedUser.company_logo || '');
+      setCompanyTagline(selectedUser.company_tagline || '');
+      setCompanyWebsite(selectedUser.company_website || '');
+      setPrimaryColor(selectedUser.primary_color || '#4f46e5');
+    }
+  }, [selectedUserId, selectedUser?.id, selectedUser?.org_name, selectedUser?.company_logo]);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast('حجم الملف كبير جداً، يرجى اختيار شعار أقل من 2 ميجابايت', 'error');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setCompanyLogo(result);
+      toast('تم اختيار الشعار بنجاح! انقر "حفظ ملف الشركة" للتفعيل النهائي', 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (selectedUserId === user?.id) {
+        return usersApi.updateCompanyProfile({
+          org_name: orgName,
+          company_logo: companyLogo,
+          company_tagline: companyTagline,
+          company_website: companyWebsite,
+          primary_color: primaryColor,
+        });
+      } else {
+        return usersApi.update(selectedUserId, {
+          org_name: orgName,
+          company_logo: companyLogo,
+          company_tagline: companyTagline,
+          company_website: companyWebsite,
+          primary_color: primaryColor,
+        });
+      }
+    },
+    onSuccess: (updatedUser) => {
+      if (selectedUserId === user?.id || updatedUser.org_id === user?.org_id) {
+        updateUser({
+          org_name: updatedUser.org_name,
+          company_logo: updatedUser.company_logo,
+          company_tagline: updatedUser.company_tagline,
+          company_website: updatedUser.company_website,
+          primary_color: updatedUser.primary_color,
+        });
+      }
+      qc.invalidateQueries({ queryKey: ['team'] });
+      qc.invalidateQueries({ queryKey: ['admin-users-list'] });
+      qc.invalidateQueries({ queryKey: ['jobs'] });
+      qc.invalidateQueries({ queryKey: ['admin-jobs-list'] });
+      qc.invalidateQueries({ queryKey: ['apply-job'] });
+      qc.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      toast(`تم حفظ وتحديث ملف الشركة وهويتها البصرية وتطبيقها فورياً على جميع الوظائف والإيميلات والروابط العامة!`, 'success');
+    },
+    onError: (err: any) => {
+      toast(err?.response?.data?.detail || 'فشل حفظ ملف الشركة', 'error');
+    },
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Target Account Selector for Admin */}
+      {isAdmin && teamUsers.length > 1 && (
+        <div className="bg-indigo-50/90 border border-indigo-200 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-xs">
+              <Building2 size={20} />
+            </div>
+            <div>
+              <span className="text-xs font-bold text-slate-900 block">التحكم في شعارات وهويات جميع حسابات HR والشركات</span>
+              <span className="text-[11px] text-slate-600 block">بصفتك المسؤول (Admin)، اختر الحساب الذي تريد تعديل اسمه وشعاره وهويته البصرية:</span>
+            </div>
+          </div>
+          <select
+            value={selectedUserId}
+            onChange={(e) => setSelectedUserId(Number(e.target.value))}
+            className="px-3.5 py-2 text-xs font-bold bg-white border border-indigo-300 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs w-full sm:w-auto"
+          >
+            {teamUsers.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.org_name || u.name} — ({u.email})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Intro Header */}
+      <div className="bg-white text-slate-900 p-5 rounded-2xl shadow-sm border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-semibold border border-indigo-100">
+            <Building2 size={13} />
+            <span>تخصيص الهوية والشعار لحساب: {selectedUser?.org_name || selectedUser?.name || 'الشركة'}</span>
+          </div>
+          <h2 className="text-lg font-bold text-slate-900">ملف الشركة واللوجو (Company Profile & Logo)</h2>
+          <p className="text-xs text-slate-500">
+            رفع شعار الشركة، تخصيص الاسم والهوية - تتحدث تلقائياً في شريط النظام العلوي، لوحة التحكم، وقوالب إيميلات المرشحين ورابط التقديم العام.
+          </p>
+        </div>
+        <Button
+          onClick={() => saveMutation.mutate()}
+          loading={saveMutation.isPending}
+          icon={<Save size={15} />}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs self-start sm:self-auto cursor-pointer"
+        >
+          حفظ ملف الشركة
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Form Controls Left */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Logo Selection & Upload Card */}
+          <Card>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+                  <Image size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">شعار الشركة (Company Logo)</h3>
+                  <p className="text-xs text-slate-500">اختر شعاراً من النماذج الجاهزة أو قم برفع شعارك الخاص</p>
+                </div>
+              </div>
+              {companyLogo && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCompanyLogo('');
+                    toast('تمت إزالة الشعار الحالي', 'info');
+                  }}
+                  className="text-xs text-rose-600 hover:text-rose-700 font-semibold px-2.5 py-1 bg-rose-50 rounded-lg hover:bg-rose-100 transition-colors"
+                >
+                  حذف الشعار
+                </button>
+              )}
+            </div>
+
+            {/* Current Active Logo */}
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 mb-5 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                {companyLogo ? (
+                  <img
+                    src={companyLogo}
+                    alt="Active Logo"
+                    className="w-14 h-14 rounded-xl object-contain bg-white p-1.5 border border-slate-200 shadow-xs"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-xl bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-lg border border-slate-300">
+                    <Building2 size={24} />
+                  </div>
+                )}
+                <div>
+                  <span className="text-xs font-bold text-slate-800 block">
+                    {companyLogo ? 'الشعار الحالي النشط' : 'لم يتم تحديد شعار بعد'}
+                  </span>
+                  <span className="text-[11px] text-slate-500 block">
+                    {companyLogo ? 'يظهر هذا الشعار للمرشحين وفي واجهات النظام' : 'اختر شعاراً أدناه لتمييز حسابك'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Upload button */}
+              <label className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors">
+                <Upload size={14} className="text-indigo-600" />
+                <span>رفع شعار جديد</span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            {/* Preset Logos Selector */}
+            <div>
+              <label className="text-xs font-bold text-slate-700 mb-2.5 block flex items-center gap-1.5">
+                <Sparkles size={13} className="text-amber-500" />
+                معرض الشعارات الاحترافية السريعة (Preset Logos):
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {PRESET_LOGOS.map((preset) => {
+                  const isSelected = companyLogo === preset.url;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => {
+                        setCompanyLogo(preset.url);
+                        toast(`تم اختيار شعار ${preset.name}`, 'success');
+                      }}
+                      className={`p-3 rounded-xl border text-right flex items-center gap-2.5 transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-500/30'
+                          : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      <img
+                        src={preset.url}
+                        alt={preset.name}
+                        className="w-8 h-8 rounded-lg object-contain bg-white p-0.5 border border-slate-200 flex-shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[11px] font-bold text-slate-800 block truncate">{preset.name}</span>
+                        {isSelected && (
+                          <span className="text-[10px] text-indigo-600 font-extrabold flex items-center gap-0.5">
+                            <Check size={10} /> نشط
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </Card>
+
+          {/* Company Text Info Card */}
+          <Card className="space-y-4">
+            <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+              <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                <Building2 size={18} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">بيانات الشركة ومساحة العمل</h3>
+                <p className="text-xs text-slate-500">اسم الشركة، الشعار النصي، والرابط الرسمي</p>
+              </div>
+            </div>
+
+            <div className="space-y-3.5">
+              <Input
+                label="اسم الشركة / المؤسسة (Company Name)"
+                placeholder="مثال: شركة النجم للتكنولوجيا"
+                value={orgName}
+                onChange={(e) => setOrgName(e.target.value)}
+                hint="يظهر هذا الاسم في هيدر لوحة التحكم، الإيميلات المرسلة للمرشحين، وعقود التوظيف"
+              />
+
+              <Input
+                label="الوصف المختصر / Tagline"
+                placeholder="مثال: Leading Tech & AI Talent Solutions"
+                value={companyTagline}
+                onChange={(e) => setCompanyTagline(e.target.value)}
+                hint="شعار مختصر يظهر أسفل اسم الشركة"
+              />
+
+              <Input
+                label="موقع الشركة الإلكتروني (Company Website)"
+                placeholder="https://mycompany.com"
+                value={companyWebsite}
+                onChange={(e) => setCompanyWebsite(e.target.value)}
+                hint="يتم تضمينه تلقائياً في التوقيع الرقمي لإيميلات التوظيف"
+              />
+            </div>
+          </Card>
+        </div>
+
+        {/* Live Previews Right */}
+        <div className="lg:col-span-5 space-y-5">
+          {/* Header Preview Box */}
+          <Card>
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <Eye size={14} className="text-indigo-600" />
+                معاينة هيدر لوحة التحكم (Dashboard View)
+              </span>
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
+                مباشر
+              </span>
+            </div>
+
+            <div className="p-4 bg-slate-50 text-slate-900 rounded-xl shadow-xs border border-slate-200 space-y-3">
+              <div className="flex items-center gap-3">
+                {companyLogo ? (
+                  <img
+                    src={companyLogo}
+                    alt=""
+                    className="w-10 h-10 rounded-lg object-contain bg-white p-1 border border-slate-200"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white text-sm">
+                    {orgName ? orgName.charAt(0) : 'C'}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <h4 className="text-sm font-bold truncate text-slate-900">{orgName || 'CalliQ HR Workspace'}</h4>
+                  <p className="text-[10px] text-slate-500 truncate">{companyTagline || 'منصة التوظيف الذكية'}</p>
+                </div>
+              </div>
+              <div className="text-[11px] text-indigo-700 bg-white px-3 py-1.5 rounded-lg border border-indigo-100 flex items-center justify-between font-medium shadow-2xs">
+                <span>Good afternoon, Mohamed!</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              </div>
+            </div>
+          </Card>
+
+          {/* Candidate Email Preview Box */}
+          <Card>
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <Mail size={14} className="text-blue-600" />
+                معاينة هيدر الإيميل للمرشحين (Candidate Email Header)
+              </span>
+              <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-bold">
+                تأثير فوري
+              </span>
+            </div>
+
+            <div className="border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white text-xs">
+              {/* Email Top bar */}
+              <div className="bg-slate-100 px-3 py-2 border-b border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
+                <span>From: careers@{orgName ? orgName.toLowerCase().replace(/[^a-z0-9]/g, '') : 'company'}.com</span>
+                <span>إشعار رسمي</span>
+              </div>
+
+              {/* Email Body Header */}
+              <div className="p-4 space-y-3 bg-white">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    {companyLogo ? (
+                      <img
+                        src={companyLogo}
+                        alt=""
+                        className="w-9 h-9 rounded-lg object-contain bg-slate-50 p-1 border border-slate-200"
+                      />
+                    ) : (
+                      <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">
+                        {orgName ? orgName.charAt(0) : 'C'}
+                      </div>
+                    )}
+                    <div>
+                      <span className="font-bold text-slate-800 block text-xs">{orgName || 'CalliQ ATS'}</span>
+                      <span className="text-[10px] text-slate-400 block">{companyTagline || 'Talent Acquisition'}</span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded font-bold">
+                    دعوة مقابلة
+                  </span>
+                </div>
+
+                <div className="p-2.5 bg-slate-50 rounded-lg text-slate-600 text-[11px] leading-relaxed">
+                  مرحباً كريم، يسعدنا دعوتك لمقابلة عمل في شركة <strong>{orgName || 'الشركة'}</strong> لمناقشة دور مهندس البرمجيات.
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 text-[10px] text-slate-400">
+                  مع تحيات فريق التوظيف في {orgName || 'CalliQ'} • {companyWebsite || 'https://company.com'}
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Action Save Button Sticky Footer */}
+          <div className="pt-2">
+            <Button
+              onClick={() => saveMutation.mutate()}
+              loading={saveMutation.isPending}
+              icon={<Save size={16} />}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm py-3 rounded-xl shadow-md cursor-pointer justify-center"
+            >
+              {saveMutation.isPending ? 'جاري حفظ التغييرات...' : 'حفظ ملف الشركة وتحديث اللوجو الآن'}
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1047,32 +2106,52 @@ function AccountTab() {
 }
 
 export function SettingsPage() {
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'admin' || user?.role === 'owner';
   const [tab, setTab] = useState(0);
+
+  const tabsList = [
+    ...(isAdmin ? [{ label: 'ملف الشركة واللوجو (Admin Only)', icon: <Building2 size={14} /> }] : []),
+    { label: 'فريق العمل (Team)', icon: <Users size={14} /> },
+    { label: 'قوالب البريد (Email Templates)', icon: <Send size={14} /> },
+    { label: 'الويب هوك (Webhooks)', icon: <Webhook size={14} /> },
+    { label: 'الحساب الشخصي (Account)', icon: <UserCog size={14} /> },
+  ];
 
   return (
     <Layout>
-      <PageHeader title="Settings" subtitle="Manage your team, database, email templates, AI engine, webhooks, and workspace" />
+      <PageHeader
+        title="الإعدادات"
+        subtitle={
+          isAdmin
+            ? "تخصيص ملف الشركة واللوجو، فريق العمل، القوالب البريدية، الويب هوك، والحساب الشخصي"
+            : "إدارة فريق العمل، القوالب البريدية، الويب هوك، والحساب الشخصي"
+        }
+      />
 
       <Tabs
-        tabs={[
-          { label: 'Team', icon: <Users size={14} /> },
-          { label: 'Database', icon: <Database size={14} /> },
-          { label: 'Email Templates', icon: <Send size={14} /> },
-          { label: 'AI Engine', icon: <Sparkles size={14} /> },
-          { label: 'Webhooks', icon: <Webhook size={14} /> },
-          { label: 'Account', icon: <UserCog size={14} /> },
-        ]}
+        tabs={tabsList}
         active={tab}
         onChange={setTab}
       />
 
       <div className="mt-5">
-        {tab === 0 && <TeamTab />}
-        {tab === 1 && <DatabaseTab />}
-        {tab === 2 && <EmailTemplatesTab />}
-        {tab === 3 && <AIEngineTab />}
-        {tab === 4 && <WebhooksTab />}
-        {tab === 5 && <AccountTab />}
+        {isAdmin ? (
+          <>
+            {tab === 0 && <CompanyProfileTab />}
+            {tab === 1 && <TeamTab />}
+            {tab === 2 && <EmailTemplatesTab />}
+            {tab === 3 && <WebhooksTab />}
+            {tab === 4 && <AccountTab />}
+          </>
+        ) : (
+          <>
+            {tab === 0 && <TeamTab />}
+            {tab === 1 && <EmailTemplatesTab />}
+            {tab === 2 && <WebhooksTab />}
+            {tab === 3 && <AccountTab />}
+          </>
+        )}
       </div>
     </Layout>
   );

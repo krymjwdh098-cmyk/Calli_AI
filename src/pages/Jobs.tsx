@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
   Plus, Users, Link2, QrCode, Power, Trash2, ChevronRight,
-  Briefcase, AlertTriangle, Copy, Check, ExternalLink, Shield,
+  Briefcase, AlertTriangle, Copy, Check, ExternalLink, Shield, Share2,
 } from 'lucide-react';
 import { jobsApi } from '../api';
 import { useAuthStore } from '../store/auth';
@@ -11,6 +11,48 @@ import { useToast, Button, Card, Modal, Input, Textarea, TagInput, Badge, EmptyS
 import { Layout, PageHeader } from '../components/layout/Layout';
 import type { Job, KnockoutRule, JobCreate } from '../types';
 import { formatDate } from '../utils';
+
+function JobCardSkeleton() {
+  return (
+    <Card padding={false} className="overflow-hidden border border-slate-200">
+      <div className="p-4 space-y-4">
+        {/* Title and status */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center gap-2">
+              <Skeleton className="w-44 h-5" />
+              <Skeleton className="w-14 h-5 rounded-full" />
+            </div>
+            <Skeleton className="w-28 h-4" />
+          </div>
+        </div>
+
+        {/* Metrics line */}
+        <div className="flex items-center gap-3">
+          <Skeleton className="w-20 h-3.5" />
+          <Skeleton className="w-16 h-3.5" />
+          <Skeleton className="w-16 h-3.5" />
+        </div>
+
+        {/* Required skills */}
+        <div className="flex flex-wrap gap-1.5">
+          <Skeleton className="w-14 h-5 rounded" />
+          <Skeleton className="w-16 h-5 rounded" />
+          <Skeleton className="w-12 h-5 rounded" />
+          <Skeleton className="w-14 h-5 rounded" />
+        </div>
+
+        {/* Quick action buttons */}
+        <div className="flex items-center gap-2 flex-wrap pt-1">
+          <Skeleton className="w-24 h-8 rounded-lg" />
+          <Skeleton className="w-24 h-8 rounded-lg" />
+          <Skeleton className="w-20 h-8 rounded-lg" />
+          <Skeleton className="w-8 h-8 rounded-lg" />
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 function JobCard({ job, onManage }: { job: Job; onManage: (j: Job) => void; [key: string]: any }) {
   const qc = useQueryClient();
@@ -116,6 +158,25 @@ function JobCard({ job, onManage }: { job: Job; onManage: (j: Job) => void; [key
           <Button variant="outline" size="sm" icon={copied ? <Check size={13} /> : <Copy size={13} />} onClick={copyLink}>
             {copied ? 'Copied!' : 'Copy Link'}
           </Button>
+          <a
+            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(fullApplyUrl)}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs rounded-lg border border-blue-200 transition-colors"
+            title="مشاركة مباشرة على LinkedIn"
+          >
+            <Share2 size={12} />
+            <span>LinkedIn</span>
+          </a>
+          <a
+            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`فرصة عمل: ${job.title} - ${job.company || 'CalliQ HR'}\nللتقديم المباشر وإرفاق السيرة الذاتية:\n${fullApplyUrl}`)}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs rounded-lg border border-emerald-200 transition-colors"
+            title="مشاركة على WhatsApp"
+          >
+            <span>واتساب</span>
+          </a>
           <Button variant="outline" size="sm" icon={<QrCode size={13} />} onClick={handleQR}>QR</Button>
           <Button variant="outline" size="sm" icon={<Shield size={13} />} onClick={() => onManage(job)}>Rules</Button>
           <Button
@@ -301,7 +362,7 @@ export function JobsPage() {
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-52" />)}
+          {Array(6).fill(0).map((_, i) => <JobCardSkeleton key={`job-skel-${i}`} />)}
         </div>
       ) : jobs.length === 0 ? (
         <EmptyState

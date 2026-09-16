@@ -6,6 +6,7 @@ import {
   Eye, CheckCircle2, ArrowRight
 } from 'lucide-react';
 import { emailsApi } from '../api';
+import { useAuthStore } from '../store/auth';
 import { Button, Modal, Input, Textarea, Badge, useToast, ScoreRing } from './ui';
 import { initials, avatarColor, getStatusBadge } from '../utils';
 import type { Candidate } from '../types';
@@ -23,7 +24,7 @@ export function CandidateEmailPreviewCard({
   recipientEmail,
   subject,
   body,
-  senderName = 'فريق التوظيف - CalliQ ATS',
+  senderName,
   date = 'الآن',
 }: {
   candidateName: string;
@@ -33,6 +34,13 @@ export function CandidateEmailPreviewCard({
   senderName?: string;
   date?: string;
 }) {
+  const { user } = useAuthStore();
+  const companyLogo = user?.company_logo;
+  const companyName = user?.org_name || 'CalliQ ATS';
+  const companyTagline = user?.company_tagline || 'Talent Acquisition Platform';
+  const companyWebsite = user?.company_website || 'https://calliq.ai';
+  const displaySender = senderName || `فريق التوظيف - ${companyName}`;
+
   return (
     <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white text-slate-800 text-xs">
       {/* Email Client Header Bar */}
@@ -60,8 +68,8 @@ export function CandidateEmailPreviewCard({
         <div className="text-[11px] space-y-1 text-slate-600">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-slate-400 font-semibold min-w-8">من:</span>
-            <span className="font-semibold text-slate-800">{senderName}</span>
-            <span className="text-slate-400 text-[10px] font-mono">&lt;careers@calliq.ai&gt;</span>
+            <span className="font-semibold text-slate-800">{displaySender}</span>
+            <span className="text-slate-400 text-[10px] font-mono">&lt;careers@{companyName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'company'}.com&gt;</span>
           </div>
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-slate-400 font-semibold min-w-8">إلى:</span>
@@ -75,38 +83,54 @@ export function CandidateEmailPreviewCard({
       <div className="p-5 space-y-4 bg-white">
         {/* Company Branded Header Banner */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
-              C
-            </div>
+          <div className="flex items-center gap-2.5">
+            {companyLogo ? (
+              <img
+                src={companyLogo}
+                alt={companyName}
+                className="w-9 h-9 rounded-lg object-contain bg-slate-50 p-1 border border-slate-200 shadow-xs"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
+                {companyName.charAt(0) || 'C'}
+              </div>
+            )}
             <div>
-              <span className="font-bold text-slate-800 block text-xs tracking-tight">CalliQ ATS</span>
-              <span className="text-[10px] text-slate-400 block">Talent Acquisition Platform</span>
+              <span className="font-bold text-slate-800 block text-xs tracking-tight">{companyName}</span>
+              <span className="text-[10px] text-slate-400 block">{companyTagline}</span>
             </div>
           </div>
           <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded font-medium">إشعار توظيف رسمي</span>
         </div>
 
         {/* Rendered Body with formatted paragraphs */}
-        <div className="text-slate-700 leading-relaxed whitespace-pre-line text-xs font-sans min-h-[100px] p-2 bg-slate-50/40 rounded-lg">
+        <div className="text-slate-700 leading-relaxed whitespace-pre-line text-xs font-sans min-h-[100px] p-3 bg-slate-50/40 rounded-lg border border-slate-100">
           {body || 'لا يوجد محتوى في الرسالة...'}
         </div>
 
         {/* Company Signature */}
         <div className="pt-3 border-t border-slate-100 flex items-start gap-3 bg-slate-50/70 p-3 rounded-lg">
-          <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
-            HR
-          </div>
+          {companyLogo ? (
+            <img
+              src={companyLogo}
+              alt=""
+              className="w-8 h-8 rounded-full object-contain bg-white p-0.5 border border-slate-200 flex-shrink-0"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
+              HR
+            </div>
+          )}
           <div className="text-[11px] leading-snug">
-            <p className="font-semibold text-slate-800">CalliQ Recruitment Team</p>
+            <p className="font-semibold text-slate-800">{companyName} Recruitment Team</p>
             <p className="text-slate-500 text-[10px]">قسم الموارد البشرية وإدارة الكفاءات</p>
-            <p className="text-slate-400 text-[10px] mt-0.5">https://calliq.ai • careers@calliq.ai</p>
+            <p className="text-slate-400 text-[10px] mt-0.5">{companyWebsite} • careers@{companyName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'company'}.com</p>
           </div>
         </div>
 
         {/* Email Footer Disclaimer */}
         <div className="text-[10px] text-slate-400 text-center pt-2">
-          تم إرسال هذا البريد تلقائياً عبر منصة CalliQ AI لإدارة التوظيف. يمكنك الرد مباشرة على هذه الرسالة عبر بريدك الإلكتروني.
+          تم إرسال هذا البريد تلقائياً عبر منصة {companyName} لإدارة التوظيف. يمكنك الرد مباشرة على هذه الرسالة عبر بريدك الإلكتروني.
         </div>
       </div>
     </div>

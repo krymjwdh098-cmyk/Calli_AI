@@ -7,6 +7,7 @@ interface AuthState {
   user: User | null;
   setToken: (token: string) => void;
   setUser: (user: User) => void;
+  updateUser: (partial: Partial<User>) => void;
   logout: () => void;
 }
 
@@ -21,6 +22,10 @@ export const useAuthStore = create<AuthState>()(
         set({ token });
       },
       setUser: (user) => set({ user }),
+      updateUser: (partial) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...partial } : null,
+        })),
       logout: () => {
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('refresh_token');

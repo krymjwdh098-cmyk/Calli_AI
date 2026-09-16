@@ -16,7 +16,7 @@ import { initNeonTables, syncDataToNeon, testNeonConnection, deleteCandidateFrom
 const pdfParse: (dataBuffer: Buffer, options?: any) => Promise<{ text: string; numpages: number }> = (pdfParseModule as any).default || pdfParseModule;
 
 const app = express();
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = 3000;
 
 // CORS configuration - allow requests from Vercel or any origin in production
 app.use(cors({
@@ -119,6 +119,10 @@ interface DBUser {
   role: 'owner' | 'admin' | 'recruiter' | 'viewer';
   org_id: number;
   org_name: string;
+  company_logo?: string;
+  company_tagline?: string;
+  company_website?: string;
+  primary_color?: string;
   password?: string;
   is_active: boolean;
   created_at: string;
@@ -304,11 +308,413 @@ interface DBEmailLog {
 interface DBEmailTemplate {
   id: string;
   event: string;
+  category?: string;
   name: string;
   subject: string;
   body: string;
   is_active: boolean;
+  description?: string;
+  updated_at?: string;
 }
+
+interface DBCandidateInquiry {
+  id: number;
+  org_id: number;
+  job_id?: number;
+  job_title?: string;
+  candidate_name: string;
+  candidate_email: string;
+  candidate_phone?: string;
+  question: string;
+  ai_answer?: string;
+  status: 'PENDING' | 'ANSWERED' | 'STARRED';
+  hr_reply?: string;
+  hr_replied_at?: string;
+  created_at: string;
+}
+
+const INQUIRIES: DBCandidateInquiry[] = [];
+let nextInquiryId = 1;
+
+// ── Talent Pools & Collections ────────────────────────────────────────────────
+export interface DBTalentPool {
+  id: number;
+  org_id: number;
+  name: string;
+  description?: string;
+  tags?: string[];
+  color?: string;
+  candidate_ids: number[];
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface DBSequenceStep {
+  id: number;
+  step_number: number;
+  delay_hours: number;
+  subject: string;
+  body_template: string;
+}
+
+export interface DBSequence {
+  id: number;
+  org_id: number;
+  title: string;
+  description?: string;
+  trigger_event?: string;
+  steps: DBSequenceStep[];
+  created_at: string;
+}
+
+export interface DBSequenceEnrollment {
+  id: number;
+  org_id: number;
+  sequence_id: number;
+  sequence_title: string;
+  candidate_id: number;
+  candidate_name: string;
+  candidate_email: string;
+  current_step: number;
+  status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+  enrolled_at: string;
+  next_send_at: string;
+  history: {
+    step_number: number;
+    subject: string;
+    sent_at: string;
+    status: 'SENT' | 'FAILED';
+  }[];
+}
+
+const TALENT_POOLS: DBTalentPool[] = [
+  {
+    id: 1,
+    org_id: 1,
+    name: 'قادة React (React Leaders)',
+    description: 'خبراء ومصممو واجهات React و Next.js المتفوقون للمشاريع الكبيرة.',
+    tags: ['React', 'TypeScript', 'Frontend'],
+    color: 'blue',
+    candidate_ids: [1, 3],
+    created_at: new Date(Date.now() - 10 * 86400000).toISOString(),
+  },
+  {
+    id: 2,
+    org_id: 1,
+    name: 'مرشحو المستقبل (Future Candidates)',
+    description: 'مرشحون مميزون ذوو تقييمات عالية للوظائف المستقبلية.',
+    tags: ['High Score', 'Leadership', 'Future'],
+    color: 'emerald',
+    candidate_ids: [1, 2],
+    created_at: new Date(Date.now() - 5 * 86400000).toISOString(),
+  },
+  {
+    id: 3,
+    org_id: 1,
+    name: 'مصممو UI/UX (UI/UX Designers)',
+    description: 'مبدعو تصميم واجهات وتجربة المستخدم.',
+    tags: ['UI', 'UX', 'Figma'],
+    color: 'purple',
+    candidate_ids: [],
+    created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+  }
+];
+
+const SEQUENCES: DBSequence[] = [
+  {
+    id: 1,
+    org_id: 1,
+    title: 'سلسلة التذكير بمواعيد المقابلات (Interview Reminder Sequence)',
+    description: 'سلسلة رسائل متابعة تلقائية لتأكيد الموعد والتذكير بعد 48 ساعة.',
+    trigger_event: 'AFTER_INTERVIEW_SCHEDULED',
+    steps: [
+      {
+        id: 1,
+        step_number: 1,
+        delay_hours: 0,
+        subject: 'تأكيد موعد المقابلة الوظيفية: {{job_title}}',
+        body_template: 'مرحباً {{candidate_name}}،\n\nنود تأكيد موعد مقابلتك المحددة لوظيفة {{job_title}} في شركة {{company_name}}.\n\nموعد المقابلة: {{interview_date}}\nرابط الاجتماع: {{interview_link}}\n\nنتمنى لك كل التوفيق!\nفريق التوظيف'
+      },
+      {
+        id: 2,
+        step_number: 2,
+        delay_hours: 48,
+        subject: 'تذكير: موعد المقابلة القادمة خلال 48 ساعة',
+        body_template: 'مرحباً {{candidate_name}}،\n\nتذكير ودي بموعد مقابلتك القادمة لوظيفة {{job_title}}.\n\nيرجى التأكد من الانضمام عبر الرابط: {{interview_link}}\n\nتحياتنا،\n{{company_name}}'
+      }
+    ],
+    created_at: new Date(Date.now() - 7 * 86400000).toISOString(),
+  },
+  {
+    id: 2,
+    org_id: 1,
+    title: 'متابعة العرض الوظيفي (Job Offer Nurturing Sequence)',
+    description: 'سلسلة تذكير تلقائية بالعرض الوظيفي بعد 3 أيام من صدوره.',
+    trigger_event: 'AFTER_OFFER_SENT',
+    steps: [
+      {
+        id: 1,
+        step_number: 1,
+        delay_hours: 0,
+        subject: 'عرض وظيفي رسمي: {{job_title}} في {{company_name}}',
+        body_template: 'عزيزي {{candidate_name}}،\n\nيسرنا تقديم عرض العمل الرسمي لوظيفة {{job_title}}.\n\nالراتب المقترح: {{offer_amount}} {{offer_currency}}\nالموعد النهائي للرد: {{offer_deadline}}\n\nيسعدنا انضمامك لفريقنا!'
+      },
+      {
+        id: 2,
+        step_number: 2,
+        delay_hours: 72,
+        subject: 'تذكير بالعرض الوظيفي المتاح - {{company_name}}',
+        body_template: 'عزيزي {{candidate_name}}،\n\nنود التذكير بأن عرض العمل لوظيفة {{job_title}} لا يزال بانتظار موافقتك.\n\nينتهي العرض بتاريخ: {{offer_deadline}}.\nفي حال كان لديك أي استفسارات، لا تتردد في التواصل معنا مباشرة.\n\nمع أطيب التحيات،\nفريق التوظيف'
+      }
+    ],
+    created_at: new Date(Date.now() - 4 * 86400000).toISOString(),
+  }
+];
+
+const SEQUENCE_ENROLLMENTS: DBSequenceEnrollment[] = [];
+
+// ── Automated Email Drip Campaigns (Talent CRM) ─────────────────────────────
+export interface DBDripStep {
+  id: number;
+  step_number: number;
+  delay_value: number;
+  delay_unit: 'hours' | 'days';
+  delay_hours: number;
+  subject: string;
+  body_template: string;
+  action_type?: 'EMAIL' | 'INTERNAL_NOTIFICATION';
+}
+
+export interface DBDripCampaign {
+  id: number;
+  org_id: number;
+  title: string;
+  description?: string;
+  trigger_stage: string;
+  target_job_id?: number | null;
+  target_job_title?: string;
+  target_pool_id?: number | null;
+  is_active: boolean;
+  steps: DBDripStep[];
+  enrolled_count: number;
+  completed_count: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface DBDripExecutionLog {
+  id: number;
+  org_id: number;
+  campaign_id: number;
+  campaign_title: string;
+  trigger_stage: string;
+  candidate_id: number;
+  candidate_name: string;
+  candidate_email: string;
+  step_number: number;
+  total_steps: number;
+  subject: string;
+  body_rendered: string;
+  status: 'SCHEDULED' | 'SENT' | 'FAILED' | 'SKIPPED';
+  scheduled_for: string;
+  executed_at?: string;
+  error?: string;
+}
+
+const DRIP_CAMPAIGNS: DBDripCampaign[] = [
+  {
+    id: 1,
+    org_id: 1,
+    title: 'حملة استلام الطلبات والتأكيد التلقائي (Application Received Drip)',
+    description: 'سلسلة تقطير تبدأ فور تقديم المرشح، تشكر المرشح وتوضح خطوات التقييم والفرز ثم رسالة تعريفية بعد 48 ساعة.',
+    trigger_stage: 'Application Received',
+    target_job_id: null,
+    target_pool_id: null,
+    is_active: true,
+    enrolled_count: 3,
+    completed_count: 2,
+    created_at: new Date(Date.now() - 14 * 86400000).toISOString(),
+    steps: [
+      {
+        id: 1,
+        step_number: 1,
+        delay_value: 0,
+        delay_unit: 'hours',
+        delay_hours: 0,
+        subject: 'تم استلام طلب التقديم بنجاح - {{job_title}} في {{company_name}}',
+        body_template: 'عزيزي/عزيزتي {{candidate_name}}،\n\nنشكرك على اهتمامك بالانضمام إلى فريق {{company_name}} والتقديم على وظيفة {{job_title}}.\n\nتم استلام سيرتك الذاتية وتجري الآن مراجعتها عبر نظام الفرز الذكي. سنقوم بموافاتك بالخطوات القادمة قريباً.\n\nمع أطيب التحيات،\nفريق استقطاب المواهب - {{company_name}}'
+      },
+      {
+        id: 2,
+        step_number: 2,
+        delay_value: 48,
+        delay_unit: 'hours',
+        delay_hours: 48,
+        subject: 'تعرف على بيئة العمل وثقافة الابتكار في {{company_name}}',
+        body_template: 'مرحباً {{candidate_name}}،\n\nبينما يواصل فريق التوظيف مراجعة ملفك لوظيفة {{job_title}}، يسعدنا مشاركتك لمحة سريعة عن قيم وثقافة العمل لدينا في {{company_name}}.\n\nيمكنك زيارة موقعنا والاطلاع على مشاريعنا وشهادات الموظفين.\n\nنتمنى لك كل التوفيق!\n{{company_name}}'
+      }
+    ]
+  },
+  {
+    id: 2,
+    org_id: 1,
+    title: 'سلسلة التذكير بمواعيد المقابلات (Interview Scheduled Drip)',
+    description: 'ترسل تفاصيل المقابلة فور جدولتها، وتتبعها برسالة تذكيرية قبل 24 ساعة لضمان الحضور.',
+    trigger_stage: 'Interview Scheduled',
+    target_job_id: null,
+    target_pool_id: null,
+    is_active: true,
+    enrolled_count: 2,
+    completed_count: 1,
+    created_at: new Date(Date.now() - 10 * 86400000).toISOString(),
+    steps: [
+      {
+        id: 1,
+        step_number: 1,
+        delay_value: 0,
+        delay_unit: 'hours',
+        delay_hours: 0,
+        subject: 'دعوة لمقابلة وظيفية: {{job_title}} - {{company_name}}',
+        body_template: 'عزيزي {{candidate_name}}،\n\nيسرنا دعوتك لحضور مقابلة تقييمية لوظيفة {{job_title}}.\n\n📅 الموعد: {{interview_date}}\n📍 رابط الاجتماع: {{interview_link}}\n\nيرجى التأكد من الحضور قبل الموعد بـ 5 دقائق.\n\nتحياتنا،\n{{company_name}}'
+      },
+      {
+        id: 2,
+        step_number: 2,
+        delay_value: 24,
+        delay_unit: 'hours',
+        delay_hours: 24,
+        subject: 'تذكير بموعد مقابلتك القادمة مع فريق {{company_name}}',
+        body_template: 'مرحباً {{candidate_name}}،\n\nتذكير ودي بموعد مقابلتك المحدد لوظيفة {{job_title}}.\n\nالرابط المباشر: {{interview_link}}\n\nإذا واجهتك أي صعوبة تقنية، يرجى الرد على هذا البريد فوراً.\n\nنتطلع للحديث معك!'
+      }
+    ]
+  },
+  {
+    id: 3,
+    org_id: 1,
+    title: 'حملة متابعة وقبول العروض الوظيفية (Offer Sent Nurturing)',
+    description: 'إرسال خطاب العرض ومتابعة المرشح بعد 3 أيام للإجابة على الاستفسارات والتأكيد.',
+    trigger_stage: 'Offer Sent',
+    target_job_id: null,
+    target_pool_id: null,
+    is_active: true,
+    enrolled_count: 1,
+    completed_count: 1,
+    created_at: new Date(Date.now() - 7 * 86400000).toISOString(),
+    steps: [
+      {
+        id: 1,
+        step_number: 1,
+        delay_value: 0,
+        delay_unit: 'hours',
+        delay_hours: 0,
+        subject: 'تهانينا! عرض عمل رسمي لوظيفة {{job_title}} - {{company_name}}',
+        body_template: 'عزيزي {{candidate_name}}،\n\nيسعدنا جداً تقديم عرض التوظيف الرسمي لك لشغل وظيفة {{job_title}} لدى {{company_name}}.\n\nالراتب والمزايا: {{offer_amount}} {{offer_currency}}\nمهلة الرد: {{offer_deadline}}\n\nنتشرف بانضمامك لفريقنا ونتمنى لك مسيرة مهنية مميزة معنا.\n\nمع وافر التقدير،\nإدارة الموارد البشرية'
+      },
+      {
+        id: 2,
+        step_number: 2,
+        delay_value: 3,
+        delay_unit: 'days',
+        delay_hours: 72,
+        subject: 'متابعة العرض الوظيفي: هل لديك أي استفسارات؟ - {{company_name}}',
+        body_template: 'مرحباً {{candidate_name}}،\n\nنود الاطمئنان على استلامك للعرض الوظيفي الرسمي واستطلاع ما إذا كانت لديك أي استفسارات حول بيئة العمل، المزايا، أو خطوات البدء.\n\nيسعدنا دائماً تقديم أي توضيحات.\n\nأطيب التحيات،\n{{company_name}}'
+      }
+    ]
+  },
+  {
+    id: 4,
+    org_id: 1,
+    title: 'تغذية العلاقات ودعوة بنك المواهب (Talent Pool Nurture)',
+    description: 'سلسلة بعد مرحلة الاعتذار لإبقاء المرشحين المتميزين ضمن شبكة المواهب للوظائف المستقبلية.',
+    trigger_stage: 'Rejected',
+    target_job_id: null,
+    target_pool_id: null,
+    is_active: true,
+    enrolled_count: 2,
+    completed_count: 2,
+    created_at: new Date(Date.now() - 5 * 86400000).toISOString(),
+    steps: [
+      {
+        id: 1,
+        step_number: 1,
+        delay_value: 0,
+        delay_unit: 'hours',
+        delay_hours: 0,
+        subject: 'تحديث بشأن طلب التقديم لوظيفة {{job_title}} - {{company_name}}',
+        body_template: 'عزيزي {{candidate_name}}،\n\nنشكرك على الوقت الذي خصصته لمشاركتنا خبراتك لوظيفة {{job_title}}.\n\nنود إبلاغك بأنه وقع الاختيار على مرشح آخر لهذه الفرصة بالذات، إلا أننا نقدر كفاءتك العالية ورغبتك في الانضمام إلينا.\n\nمع تمنياتنا لك بالتوفيق الدائم.\n{{company_name}}'
+      },
+      {
+        id: 2,
+        step_number: 2,
+        delay_value: 7,
+        delay_unit: 'days',
+        delay_hours: 168,
+        subject: 'ابقَ على تواصل: ملفك المهني محفوظ في بنك مواهب {{company_name}}',
+        body_template: 'مرحباً {{candidate_name}}،\n\nنود إعلامك بأن سيرتك الذاتية محفوظة ومميزة ضمن بنك المواهب النشط لدينا. عند فتح أي شواغر جديدة تتوافق مع خبراتك، ستكون لك الأولوية في التواصل.\n\nشكراً لثقتك بنا!\n{{company_name}} Talent Network'
+      }
+    ]
+  }
+];
+
+const DRIP_LOGS: DBDripExecutionLog[] = [
+  {
+    id: 1,
+    org_id: 1,
+    campaign_id: 1,
+    campaign_title: 'حملة استلام الطلبات والتأكيد التلقائي (Application Received Drip)',
+    trigger_stage: 'Application Received',
+    candidate_id: 1,
+    candidate_name: 'Karim Abdelrahman',
+    candidate_email: 'cillkareem@gmail.com',
+    step_number: 1,
+    total_steps: 2,
+    subject: 'تم استلام طلب التقديم بنجاح - Senior Full Stack Engineer في CalliQ',
+    body_rendered: 'عزيزي كريم، نشكرك على تقديمك لوظيفة Senior Full Stack Engineer. تم استلام السيرة الذاتية بنجاح.',
+    status: 'SENT',
+    scheduled_for: new Date(Date.now() - 7 * 86400000).toISOString(),
+    executed_at: new Date(Date.now() - 7 * 86400000).toISOString(),
+  },
+  {
+    id: 2,
+    org_id: 1,
+    campaign_id: 1,
+    campaign_title: 'حملة استلام الطلبات والتأكيد التلقائي (Application Received Drip)',
+    trigger_stage: 'Application Received',
+    candidate_id: 1,
+    candidate_name: 'Karim Abdelrahman',
+    candidate_email: 'cillkareem@gmail.com',
+    step_number: 2,
+    total_steps: 2,
+    subject: 'تعرف على بيئة العمل وثقافة الابتكار في CalliQ',
+    body_rendered: 'مرحباً كريم، يسعدنا مشاركتك لمحة سريعة عن ثقافة العمل ومشاريعنا في CalliQ.',
+    status: 'SENT',
+    scheduled_for: new Date(Date.now() - 5 * 86400000).toISOString(),
+    executed_at: new Date(Date.now() - 5 * 86400000).toISOString(),
+  },
+  {
+    id: 3,
+    org_id: 1,
+    campaign_id: 2,
+    campaign_title: 'سلسلة التذكير بمواعيد المقابلات (Interview Scheduled Drip)',
+    trigger_stage: 'Interview Scheduled',
+    candidate_id: 2,
+    candidate_name: 'Dr. Elena Rostova',
+    candidate_email: 'elena.rostova@ailab.org',
+    step_number: 1,
+    total_steps: 2,
+    subject: 'دعوة لمقابلة وظيفية: Lead AI Researcher - CalliQ',
+    body_rendered: 'Dear Dr. Elena, We are excited to invite you to a technical interview for the Lead AI Researcher role.',
+    status: 'SENT',
+    scheduled_for: new Date(Date.now() - 2 * 86400000).toISOString(),
+    executed_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+  }
+];
+
+let nextTalentPoolId = 4;
+let nextSequenceId = 3;
+let nextEnrollmentId = 1;
+let nextDripCampaignId = 5;
+let nextDripLogId = 4;
 
 const EMAIL_LOGS: DBEmailLog[] = [
   {
@@ -339,48 +745,87 @@ const EMAIL_LOGS: DBEmailLog[] = [
   }
 ];
 
-const EMAIL_TEMPLATES: DBEmailTemplate[] = [
+const DEFAULT_EMAIL_TEMPLATES: DBEmailTemplate[] = [
   {
-    id: 'tpl_app_received',
-    event: 'application_received',
-    name: 'Application Confirmation',
-    subject: 'Application Received - {{job_title}} at {{company_name}}',
-    body: 'Dear {{candidate_name}},\n\nThank you for applying for the {{job_title}} position at {{company_name}}.\n\nWe have successfully received your CV and application. Our AI-powered recruitment engine is evaluating your qualifications against the job benchmarks.\n\nWe will update you on the next steps shortly.\n\nBest regards,\n{{company_name}} Talent Team',
+    id: 'tpl_rejection_standard',
+    event: 'rejection_notice',
+    category: 'rejection',
+    name: 'Standard Rejection Notice',
+    description: 'Polite, professional rejection for applicants not selected for current opening.',
+    subject: 'Update regarding your application for {{job_title}} at {{company_name}}',
+    body: 'Dear {{candidate_name}},\n\nThank you for taking the time to apply for the {{job_title}} position at {{company_name}}.\n\nAfter careful review of all applications, we have decided to move forward with other candidates whose qualifications more closely align with our current role requirements.\n\nWe genuinely appreciate your interest in {{company_name}} and wish you the best of success in your career journey.\n\nSincerely,\n{{company_name}} Talent Acquisition Team',
     is_active: true,
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'tpl_rejection_talent_pool',
+    event: 'rejection_notice',
+    category: 'rejection',
+    name: 'Encouraging Rejection (Talent Pool)',
+    description: 'Warm rejection encouraging candidate to stay connected for future opportunities.',
+    subject: 'Thank you for interviewing with {{company_name}} - {{job_title}}',
+    body: 'Dear {{candidate_name}},\n\nThank you for taking the time to interview with our team for the {{job_title}} position at {{company_name}}.\n\nWhile we were very impressed with your background and qualifications, we have chosen another candidate who possesses specialized experience for this specific role.\n\nWe would love to keep your profile in our active talent pool and reach out when future roles matching your skills become available.\n\nWarm regards,\n{{company_name}} Recruitment Team',
+    is_active: true,
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'tpl_interview_invite',
     event: 'interview_scheduled',
-    name: 'Interview Invitation',
-    subject: 'Interview Scheduled - {{job_title}} at {{company_name}}',
-    body: 'Dear {{candidate_name}},\n\nWe are excited to invite you to an interview for the {{job_title}} position!\n\n📅 Date & Time: {{interview_date}}\n📍 Location/Link: {{interview_link}}\n\nPlease confirm if this time works for you by replying to this email.\n\nBest regards,\n{{company_name}} Hiring Team',
+    category: 'interview',
+    name: 'Standard Interview Invitation',
+    description: 'General interview invitation with date, time, and video call link.',
+    subject: 'Interview Invitation: {{job_title}} at {{company_name}}',
+    body: 'Dear {{candidate_name}},\n\nWe are excited to invite you to an interview for the {{job_title}} position at {{company_name}}!\n\n📅 Date & Time: {{interview_date}}\n📍 Location/Link: {{interview_link}}\n👤 Interviewer: {{recruiter_name}}\n\nPlease confirm if this time works for you by replying to this email.\n\nBest regards,\n{{company_name}} Hiring Team',
     is_active: true,
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'tpl_interview_tech',
+    event: 'interview_scheduled',
+    category: 'interview',
+    name: 'Technical Assessment & Interview',
+    description: 'Invitation for technical assessment or coding/case study round.',
+    subject: 'Technical Interview Stage: {{job_title}} - {{company_name}}',
+    body: 'Dear {{candidate_name}},\n\nCongratulations on passing the initial screening! We would like to invite you to the Technical Interview stage for the {{job_title}} position at {{company_name}}.\n\n📅 Date & Time: {{interview_date}}\n📍 Meeting Link: {{interview_link}}\n\nIn this round, we will discuss your technical problem-solving approach and past engineering projects.\n\nLooking forward to speaking with you!\n\nWarm regards,\n{{company_name}} Technical Team',
+    is_active: true,
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'tpl_offer_standard',
+    event: 'offer_letter',
+    category: 'offer',
+    name: 'Official Job Offer Letter',
+    description: 'Formal employment offer letter with salary, benefits, and response deadline.',
+    subject: 'Official Offer of Employment: {{job_title}} at {{company_name}}',
+    body: 'Dear {{candidate_name}},\n\nOn behalf of {{company_name}}, I am thrilled to extend an official offer of employment for the position of {{job_title}}!\n\n💰 Offered Salary: {{offer_amount}} {{offer_currency}}\n📅 Target Start / Response Expiry: {{offer_deadline}}\n\nWe were deeply impressed by your experience and enthusiasm, and we believe you will be a tremendous addition to our team.\n\nPlease review the offer details and let us know if you accept.\n\nWarm regards,\n{{company_name}} Executive Leadership',
+    is_active: true,
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'tpl_app_received',
+    event: 'application_received',
+    category: 'confirmation',
+    name: 'Application Receipt Confirmation',
+    description: 'Automated receipt acknowledgment sent immediately after applying.',
+    subject: 'Application Received - {{job_title}} at {{company_name}}',
+    body: 'Dear {{candidate_name}},\n\nThank you for applying for the {{job_title}} position at {{company_name}}.\n\nWe have successfully received your CV and application. Our AI-powered recruitment engine is evaluating your qualifications against our benchmarks.\n\nWe will update you on the next steps shortly.\n\nBest regards,\n{{company_name}} Talent Team',
+    is_active: true,
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'tpl_shortlisted',
     event: 'shortlisted',
-    name: 'Shortlisted Notification',
+    category: 'shortlist',
+    name: 'Shortlisted Candidate Notice',
+    description: 'Notification sent when candidate is shortlisted for phone screening.',
     subject: 'Great news regarding your application for {{job_title}}!',
     body: 'Dear {{candidate_name}},\n\nCongratulations! Your profile has been shortlisted for the {{job_title}} role at {{company_name}}.\n\nOur recruiters were impressed by your background and experience. A member of our hiring team will reach out soon to coordinate the next interview phase.\n\nBest regards,\n{{company_name}} Recruitment Team',
     is_active: true,
-  },
-  {
-    id: 'tpl_rejection',
-    event: 'rejection_notice',
-    name: 'Rejection Notice',
-    subject: 'Update on your application for {{job_title}} at {{company_name}}',
-    body: 'Dear {{candidate_name}},\n\nThank you for taking the time to apply for the {{job_title}} role at {{company_name}}.\n\nAfter careful review of all applications, we have decided to move forward with other candidates whose qualifications more closely align with our current needs.\n\nWe appreciate your interest in {{company_name}} and wish you all the best in your career search.\n\nSincerely,\n{{company_name}} Talent Acquisition',
-    is_active: true,
-  },
-  {
-    id: 'tpl_offer',
-    event: 'offer_letter',
-    name: 'Official Job Offer',
-    subject: 'Job Offer: {{job_title}} at {{company_name}}',
-    body: 'Dear {{candidate_name}},\n\nWe are thrilled to offer you the position of {{job_title}} at {{company_name}}!\n\n💰 Offer Details: {{offer_amount}} {{offer_currency}}\n📅 Start Date / Target Response: {{offer_deadline}}\n\nPlease review the offer and let us know if you accept.\n\nWarm regards,\n{{company_name}} Executive Team',
-    is_active: true,
+    updated_at: new Date().toISOString(),
   }
 ];
+
+const EMAIL_TEMPLATES: DBEmailTemplate[] = JSON.parse(JSON.stringify(DEFAULT_EMAIL_TEMPLATES));
 
 let nextEmailLogId = 10;
 function sendAutomatedCandidateEmail(
@@ -440,6 +885,120 @@ function sendAutomatedCandidateEmail(
   saveDatabase();
 
   return log;
+}
+
+function triggerDripCampaignsForCandidate(
+  triggerStage: string,
+  candidate: DBCandidate,
+  extraData?: Record<string, any>
+) {
+  try {
+    const orgId = candidate.org_id || 1;
+    const targetJob = candidate.job_id ? JOBS.find(j => j.id === candidate.job_id) : JOBS[0];
+    const companyName = targetJob?.company || 'CalliQ';
+    const jobTitle = targetJob?.title || candidate.current_position || 'Open Position';
+
+    const normStage = (triggerStage || '').trim().toLowerCase();
+
+    const matchingCampaigns = DRIP_CAMPAIGNS.filter(c => {
+      if (c.org_id !== orgId || !c.is_active) return false;
+      const cNorm = (c.trigger_stage || '').trim().toLowerCase();
+
+      const match =
+        cNorm === normStage ||
+        (normStage.includes('apply') || normStage.includes('application') || normStage.includes('received') || normStage.includes('new')) && (cNorm.includes('apply') || cNorm.includes('received')) ||
+        (normStage.includes('interview') || normStage.includes('scheduled')) && (cNorm.includes('interview')) ||
+        (normStage.includes('offer')) && (cNorm.includes('offer')) ||
+        (normStage.includes('reject')) && (cNorm.includes('reject')) ||
+        (normStage.includes('shortlist')) && (cNorm.includes('shortlist')) ||
+        (normStage.includes('screen')) && (cNorm.includes('screen')) ||
+        (normStage.includes('hire')) && (cNorm.includes('hire'));
+
+      if (!match) return false;
+
+      if (c.target_job_id && candidate.job_id && c.target_job_id !== candidate.job_id) return false;
+
+      if (c.target_pool_id) {
+        const pool = TALENT_POOLS.find(p => p.id === c.target_pool_id);
+        if (!pool || !pool.candidate_ids.includes(candidate.id)) return false;
+      }
+
+      return true;
+    });
+
+    for (const camp of matchingCampaigns) {
+      camp.enrolled_count = (camp.enrolled_count || 0) + 1;
+
+      for (const step of camp.steps) {
+        const delayHours = step.delay_hours ?? (step.delay_unit === 'days' ? (step.delay_value || 0) * 24 : (step.delay_value || 0));
+        const scheduledFor = new Date(Date.now() + delayHours * 3600 * 1000).toISOString();
+
+        const replacePlaceholders = (text: string) => {
+          return (text || '')
+            .replace(/\{\{candidate_name\}\}/g, candidate.full_name || 'Candidate')
+            .replace(/\{\{job_title\}\}/g, jobTitle)
+            .replace(/\{\{company_name\}\}/g, companyName)
+            .replace(/\{\{interview_date\}\}/g, extraData?.interview_date || candidate.interview_scheduled || 'الموعد المحدد')
+            .replace(/\{\{interview_link\}\}/g, extraData?.interview_link || candidate.interview_link || 'https://meet.google.com/calliq-interview')
+            .replace(/\{\{offer_amount\}\}/g, String(extraData?.offer_amount || candidate.offer_amount || '120,000'))
+            .replace(/\{\{offer_currency\}\}/g, String(extraData?.offer_currency || candidate.offer_currency || 'USD'))
+            .replace(/\{\{offer_deadline\}\}/g, String(extraData?.offer_deadline || candidate.offer_deadline || '7 Days'));
+        };
+
+        const subject = replacePlaceholders(step.subject);
+        const body = replacePlaceholders(step.body_template);
+        const isImmediate = delayHours === 0;
+
+        const log: DBDripExecutionLog = {
+          id: nextDripLogId++,
+          org_id: orgId,
+          campaign_id: camp.id,
+          campaign_title: camp.title,
+          trigger_stage: camp.trigger_stage,
+          candidate_id: candidate.id,
+          candidate_name: candidate.full_name,
+          candidate_email: candidate.email,
+          step_number: step.step_number,
+          total_steps: camp.steps.length,
+          subject,
+          body_rendered: body,
+          status: isImmediate ? 'SENT' : 'SCHEDULED',
+          scheduled_for: scheduledFor,
+          executed_at: isImmediate ? new Date().toISOString() : undefined,
+        };
+
+        DRIP_LOGS.unshift(log);
+
+        if (isImmediate) {
+          EMAIL_LOGS.unshift({
+            id: nextEmailLogId++,
+            org_id: orgId,
+            candidate_id: candidate.id,
+            candidate_name: candidate.full_name,
+            candidate_email: candidate.email,
+            subject,
+            body,
+            trigger_event: `drip_${camp.trigger_stage.toLowerCase().replace(/\s+/g, '_')}_step_${step.step_number}`,
+            status: 'Sent',
+            sent_by: `Drip Campaign: ${camp.title}`,
+            sent_at: new Date().toISOString(),
+          });
+
+          AUDIT_LOGS.unshift({
+            id: AUDIT_LOGS.length + 1,
+            action: `Drip Campaign Triggered: ${camp.title} (Step ${step.step_number})`,
+            user: 'Automated CRM Drip Engine',
+            target: `${candidate.full_name} <${candidate.email}>`,
+            timestamp: new Date().toISOString(),
+          });
+        }
+      }
+    }
+
+    saveDatabase();
+  } catch (dripErr) {
+    console.error('[Drip Campaign Trigger Error]:', dripErr);
+  }
 }
 
 // ── Initial Demo Seed Data ──────────────────────────────────────────────────
@@ -888,6 +1447,27 @@ function initDataPersistence() {
       if (parsed.EMAIL_LOGS && Array.isArray(parsed.EMAIL_LOGS)) {
         EMAIL_LOGS.splice(0, EMAIL_LOGS.length, ...parsed.EMAIL_LOGS);
       }
+      if (parsed.EMAIL_TEMPLATES && Array.isArray(parsed.EMAIL_TEMPLATES) && parsed.EMAIL_TEMPLATES.length > 0) {
+        EMAIL_TEMPLATES.splice(0, EMAIL_TEMPLATES.length, ...parsed.EMAIL_TEMPLATES);
+      }
+      if (parsed.INQUIRIES && Array.isArray(parsed.INQUIRIES)) {
+        INQUIRIES.splice(0, INQUIRIES.length, ...parsed.INQUIRIES);
+      }
+      if (parsed.TALENT_POOLS && Array.isArray(parsed.TALENT_POOLS)) {
+        TALENT_POOLS.splice(0, TALENT_POOLS.length, ...parsed.TALENT_POOLS);
+      }
+      if (parsed.SEQUENCES && Array.isArray(parsed.SEQUENCES)) {
+        SEQUENCES.splice(0, SEQUENCES.length, ...parsed.SEQUENCES);
+      }
+      if (parsed.SEQUENCE_ENROLLMENTS && Array.isArray(parsed.SEQUENCE_ENROLLMENTS)) {
+        SEQUENCE_ENROLLMENTS.splice(0, SEQUENCE_ENROLLMENTS.length, ...parsed.SEQUENCE_ENROLLMENTS);
+      }
+      if (parsed.DRIP_CAMPAIGNS && Array.isArray(parsed.DRIP_CAMPAIGNS)) {
+        DRIP_CAMPAIGNS.splice(0, DRIP_CAMPAIGNS.length, ...parsed.DRIP_CAMPAIGNS);
+      }
+      if (parsed.DRIP_LOGS && Array.isArray(parsed.DRIP_LOGS)) {
+        DRIP_LOGS.splice(0, DRIP_LOGS.length, ...parsed.DRIP_LOGS);
+      }
       if (parsed.SESSIONS && typeof parsed.SESSIONS === 'object') {
         SESSIONS.clear();
         for (const [token, uid] of Object.entries(parsed.SESSIONS)) {
@@ -901,6 +1481,12 @@ function initDataPersistence() {
       if (parsed.nextWebhookId) nextWebhookId = Math.max(nextWebhookId, parsed.nextWebhookId);
       if (parsed.nextCandidateBatchId) nextCandidateBatchId = Math.max(nextCandidateBatchId, parsed.nextCandidateBatchId);
       if (parsed.nextEmailLogId) nextEmailLogId = Math.max(nextEmailLogId, parsed.nextEmailLogId);
+      if (parsed.nextInquiryId) nextInquiryId = Math.max(nextInquiryId, parsed.nextInquiryId);
+      if (parsed.nextTalentPoolId) nextTalentPoolId = Math.max(nextTalentPoolId, parsed.nextTalentPoolId);
+      if (parsed.nextSequenceId) nextSequenceId = Math.max(nextSequenceId, parsed.nextSequenceId);
+      if (parsed.nextEnrollmentId) nextEnrollmentId = Math.max(nextEnrollmentId, parsed.nextEnrollmentId);
+      if (parsed.nextDripCampaignId) nextDripCampaignId = Math.max(nextDripCampaignId, parsed.nextDripCampaignId);
+      if (parsed.nextDripLogId) nextDripLogId = Math.max(nextDripLogId, parsed.nextDripLogId);
 
       // Recalculate max IDs to prevent any ID collision
       const maxUid = USERS.reduce((m, u) => Math.max(m, u.id || 0), 0);
@@ -918,6 +1504,24 @@ function initDataPersistence() {
       const maxEid = EMAIL_LOGS.reduce((m, e) => Math.max(m, e.id || 0), 0);
       nextEmailLogId = Math.max(nextEmailLogId, maxEid + 1);
 
+      const maxIid = INQUIRIES.reduce((m, i) => Math.max(m, i.id || 0), 0);
+      nextInquiryId = Math.max(nextInquiryId, maxIid + 1);
+
+      const maxPid = TALENT_POOLS.reduce((m, p) => Math.max(m, p.id || 0), 0);
+      nextTalentPoolId = Math.max(nextTalentPoolId, maxPid + 1);
+
+      const maxSid = SEQUENCES.reduce((m, s) => Math.max(m, s.id || 0), 0);
+      nextSequenceId = Math.max(nextSequenceId, maxSid + 1);
+
+      const maxEnid = SEQUENCE_ENROLLMENTS.reduce((m, e) => Math.max(m, e.id || 0), 0);
+      nextEnrollmentId = Math.max(nextEnrollmentId, maxEnid + 1);
+
+      const maxDripId = DRIP_CAMPAIGNS.reduce((m, d) => Math.max(m, d.id || 0), 0);
+      nextDripCampaignId = Math.max(nextDripCampaignId, maxDripId + 1);
+
+      const maxDripLogId = DRIP_LOGS.reduce((m, d) => Math.max(m, d.id || 0), 0);
+      nextDripLogId = Math.max(nextDripLogId, maxDripLogId + 1);
+
       // If database has no users at all, ensure root admin exists
       if (USERS.length === 0) {
         USERS.push({
@@ -932,6 +1536,14 @@ function initDataPersistence() {
           created_at: new Date().toISOString(),
         });
         saveDatabase();
+      }
+
+      // If Talent Pools or Drip campaigns are empty, enrich with rich HR examples for active organizations
+      if (TALENT_POOLS.length === 0 || DRIP_CAMPAIGNS.length === 0) {
+        const orgIds = Array.from(new Set(USERS.map(u => u.org_id || 1)));
+        for (const oid of orgIds) {
+          seedHRDemoDataForOrg(oid);
+        }
       }
 
       console.log(`[DB Persistence] Successfully loaded ${USERS.length} users, ${JOBS.length} jobs, ${CANDIDATES.length} candidates, ${CANDIDATE_BATCHES.length} batches from ${DB_FILE}`);
@@ -975,6 +1587,13 @@ function saveDatabase() {
       WEBHOOKS,
       AUDIT_LOGS,
       EMAIL_LOGS,
+      EMAIL_TEMPLATES,
+      INQUIRIES,
+      TALENT_POOLS,
+      SEQUENCES,
+      SEQUENCE_ENROLLMENTS,
+      DRIP_CAMPAIGNS,
+      DRIP_LOGS,
       SESSIONS: sessionObj,
       nextCandidateId,
       nextJobId,
@@ -983,6 +1602,12 @@ function saveDatabase() {
       nextWebhookId,
       nextCandidateBatchId,
       nextEmailLogId,
+      nextInquiryId,
+      nextTalentPoolId,
+      nextSequenceId,
+      nextEnrollmentId,
+      nextDripCampaignId,
+      nextDripLogId,
       last_saved_at: new Date().toISOString(),
     };
     const tempFile = `${DB_FILE}.tmp`;
@@ -2610,6 +3235,7 @@ function handleRejectCandidate(req: express.Request, res: express.Response) {
   saveDatabase();
 
   sendAutomatedCandidateEmail('rejection_notice', cand, { sent_by: user.name });
+  triggerDripCampaignsForCandidate('Rejected', cand, { sent_by: user.name });
 
   res.json(cand);
 }
@@ -2627,6 +3253,7 @@ function handleShortlistCandidate(req: express.Request, res: express.Response) {
   saveDatabase();
 
   sendAutomatedCandidateEmail('shortlisted', cand, { sent_by: user.name });
+  triggerDripCampaignsForCandidate('Shortlisted', cand, { sent_by: user.name });
 
   res.json(cand);
 }
@@ -2648,6 +3275,8 @@ app.post('/api/v1/candidates/:id/pipeline-move', requireAuth, (req, res) => {
   if (stage === 'Hired') cand.hired_at = new Date().toISOString();
   if (stage === 'Shortlisted') sendAutomatedCandidateEmail('shortlisted', cand, { sent_by: user.name });
   if (stage === 'Rejected') sendAutomatedCandidateEmail('rejection_notice', cand, { sent_by: user.name });
+  
+  triggerDripCampaignsForCandidate(stage, cand, { notes, sent_by: user.name });
   saveDatabase();
 
   // Auto-sync to Notion when moved to important stages
@@ -2678,6 +3307,12 @@ app.post('/api/v1/candidates/:id/schedule-interview', requireAuth, (req, res) =>
     sent_by: user.name,
   });
 
+  triggerDripCampaignsForCandidate('Interview Scheduled', cand, {
+    interview_date: req.body.scheduled_at,
+    interview_link: cand.interview_link,
+    sent_by: user.name,
+  });
+
   res.json(cand);
 });
 
@@ -2695,6 +3330,13 @@ app.post('/api/v1/candidates/:id/send-offer', requireAuth, (req, res) => {
   saveDatabase();
 
   sendAutomatedCandidateEmail('offer_letter', cand, {
+    offer_amount: cand.offer_amount,
+    offer_currency: cand.offer_currency,
+    offer_deadline: cand.offer_deadline,
+    sent_by: user.name,
+  });
+
+  triggerDripCampaignsForCandidate('Offer Sent', cand, {
     offer_amount: cand.offer_amount,
     offer_currency: cand.offer_currency,
     offer_deadline: cand.offer_deadline,
@@ -2859,31 +3501,107 @@ app.get('/api/v1/emails/templates', requireAuth, (req, res) => {
 });
 
 app.post('/api/v1/emails/templates', requireAuth, (req, res) => {
-  const { id, event, name, subject, body, is_active } = req.body;
-  const existingIndex = EMAIL_TEMPLATES.findIndex(t => t.id === id || t.event === event);
+  const { id, event, category, name, subject, body, is_active, description } = req.body;
+  const existingIndex = id ? EMAIL_TEMPLATES.findIndex(t => t.id === id) : -1;
+
   if (existingIndex !== -1) {
     EMAIL_TEMPLATES[existingIndex] = {
       ...EMAIL_TEMPLATES[existingIndex],
-      subject: subject || EMAIL_TEMPLATES[existingIndex].subject,
-      body: body || EMAIL_TEMPLATES[existingIndex].body,
-      is_active: is_active !== undefined ? Boolean(is_active) : EMAIL_TEMPLATES[existingIndex].is_active,
+      event: event || EMAIL_TEMPLATES[existingIndex].event,
+      category: category || EMAIL_TEMPLATES[existingIndex].category,
       name: name || EMAIL_TEMPLATES[existingIndex].name,
+      subject: subject !== undefined ? subject : EMAIL_TEMPLATES[existingIndex].subject,
+      body: body !== undefined ? body : EMAIL_TEMPLATES[existingIndex].body,
+      is_active: is_active !== undefined ? Boolean(is_active) : EMAIL_TEMPLATES[existingIndex].is_active,
+      description: description !== undefined ? description : EMAIL_TEMPLATES[existingIndex].description,
+      updated_at: new Date().toISOString(),
     };
     saveDatabase();
     return res.json(EMAIL_TEMPLATES[existingIndex]);
   }
 
   const newTpl: DBEmailTemplate = {
-    id: id || `tpl_${Date.now()}`,
-    event: event || 'custom_event',
-    name: name || 'Custom Notification',
-    subject: subject || 'Subject',
-    body: body || 'Body template',
+    id: id || `tpl_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    event: event || 'custom',
+    category: category || (event === 'rejection_notice' ? 'rejection' : event === 'interview_scheduled' ? 'interview' : event === 'offer_letter' ? 'offer' : 'custom'),
+    name: name || 'Custom Notification Template',
+    subject: subject || 'Update regarding your application',
+    body: body || 'Dear {{candidate_name}},\n\nThank you for connecting with {{company_name}}.\n\nBest regards,\nTalent Team',
     is_active: is_active !== undefined ? Boolean(is_active) : true,
+    description: description || '',
+    updated_at: new Date().toISOString(),
   };
   EMAIL_TEMPLATES.push(newTpl);
   saveDatabase();
   res.status(201).json(newTpl);
+});
+
+app.delete('/api/v1/emails/templates/:id', requireAuth, (req, res) => {
+  const { id } = req.params;
+  const idx = EMAIL_TEMPLATES.findIndex(t => t.id === id);
+  if (idx !== -1) {
+    const removed = EMAIL_TEMPLATES.splice(idx, 1)[0];
+    saveDatabase();
+    return res.json({ success: true, removed });
+  }
+  res.status(404).json({ detail: 'Template not found' });
+});
+
+app.post('/api/v1/emails/templates/reset', requireAuth, (req, res) => {
+  EMAIL_TEMPLATES.splice(0, EMAIL_TEMPLATES.length, ...JSON.parse(JSON.stringify(DEFAULT_EMAIL_TEMPLATES)));
+  saveDatabase();
+  res.json(EMAIL_TEMPLATES);
+});
+
+app.post('/api/v1/emails/templates/test-send', requireAuth, (req, res) => {
+  const user = (req as any).user as DBUser;
+  const { template_id, recipient_email } = req.body;
+  const tpl = EMAIL_TEMPLATES.find(t => t.id === template_id) || EMAIL_TEMPLATES[0];
+  const targetEmail = recipient_email || user.email || 'hr@calliq.ai';
+
+  const sampleCandidateName = 'Karim Abdelrahman (Sample)';
+  const sampleJobTitle = 'Senior Full Stack Engineer';
+  const sampleCompany = user.org_name || 'CalliQ HR Systems';
+
+  let subject = (tpl.subject || '')
+    .replace(/\{\{candidate_name\}\}/g, sampleCandidateName)
+    .replace(/\{\{job_title\}\}/g, sampleJobTitle)
+    .replace(/\{\{company_name\}\}/g, sampleCompany)
+    .replace(/\{\{recruiter_name\}\}/g, user.name || 'CalliQ Recruiter')
+    .replace(/\{\{interview_date\}\}/g, 'Tomorrow at 3:00 PM (Cairo Time)')
+    .replace(/\{\{interview_link\}\}/g, 'https://meet.google.com/calliq-interview-room')
+    .replace(/\{\{offer_amount\}\}/g, '35,000')
+    .replace(/\{\{offer_currency\}\}/g, 'EGP')
+    .replace(/\{\{offer_deadline\}\}/g, '5 Business Days');
+
+  let body = (tpl.body || '')
+    .replace(/\{\{candidate_name\}\}/g, sampleCandidateName)
+    .replace(/\{\{job_title\}\}/g, sampleJobTitle)
+    .replace(/\{\{company_name\}\}/g, sampleCompany)
+    .replace(/\{\{recruiter_name\}\}/g, user.name || 'CalliQ Recruiter')
+    .replace(/\{\{interview_date\}\}/g, 'Tomorrow at 3:00 PM (Cairo Time)')
+    .replace(/\{\{interview_link\}\}/g, 'https://meet.google.com/calliq-interview-room')
+    .replace(/\{\{offer_amount\}\}/g, '35,000')
+    .replace(/\{\{offer_currency\}\}/g, 'EGP')
+    .replace(/\{\{offer_deadline\}\}/g, '5 Business Days');
+
+  const log: DBEmailLog = {
+    id: nextEmailLogId++,
+    org_id: user.org_id,
+    candidate_id: 1,
+    candidate_name: sampleCandidateName,
+    candidate_email: targetEmail,
+    subject,
+    body,
+    trigger_event: tpl.event || 'test_send',
+    status: 'Sent',
+    sent_by: `${user.name} (Test Send)`,
+    sent_at: new Date().toISOString(),
+  };
+
+  EMAIL_LOGS.unshift(log);
+  saveDatabase();
+  res.json({ success: true, message: `Test email dispatched to ${targetEmail}`, log });
 });
 
 
@@ -3166,6 +3884,8 @@ app.patch('/api/v1/candidates/:id/status', requireAuth, (req, res) => {
     target: `${cand.full_name} (ID: ${cand.id})`,
     timestamp: new Date().toISOString(),
   });
+
+  triggerDripCampaignsForCandidate(newStatus, cand, { notes, sent_by: user.name });
 
   saveDatabase();
   res.json(cand);
@@ -3495,6 +4215,28 @@ app.patch(['/api/v1/users/:id', '/api/v1/users/:id/'], requireAdmin, (req, res) 
     }
   }
   if (req.body.org_name) targetUser.org_name = String(req.body.org_name).trim();
+  if (req.body.company_logo !== undefined) targetUser.company_logo = String(req.body.company_logo);
+  if (req.body.company_tagline !== undefined) targetUser.company_tagline = String(req.body.company_tagline).trim();
+  if (req.body.company_website !== undefined) targetUser.company_website = String(req.body.company_website).trim();
+  if (req.body.primary_color !== undefined) targetUser.primary_color = String(req.body.primary_color).trim();
+
+  // Sync all users in the same org
+  for (const u of USERS) {
+    if (u.org_id === targetUser.org_id) {
+      if (req.body.org_name !== undefined) u.org_name = targetUser.org_name;
+      if (req.body.company_logo !== undefined) u.company_logo = targetUser.company_logo;
+      if (req.body.company_tagline !== undefined) u.company_tagline = targetUser.company_tagline;
+      if (req.body.company_website !== undefined) u.company_website = targetUser.company_website;
+      if (req.body.primary_color !== undefined) u.primary_color = targetUser.primary_color;
+    }
+  }
+
+  // Sync all jobs in the same org
+  for (const j of JOBS) {
+    if (j.org_id === targetUser.org_id) {
+      if (req.body.org_name !== undefined) j.company = targetUser.org_name;
+    }
+  }
 
   saveDatabase();
 
@@ -3508,6 +4250,50 @@ app.patch(['/api/v1/users/:id', '/api/v1/users/:id/'], requireAdmin, (req, res) 
   saveDatabase();
 
   const { password: _, ...safeUser } = targetUser;
+  res.json(safeUser);
+});
+
+// Dedicated Company Profile update endpoint for current user
+app.patch(['/api/v1/users/company-profile', '/api/v1/users/company-profile/'], requireAuth, (req, res) => {
+  const user = (req as any).user as DBUser;
+  if (!user) return res.status(401).json({ detail: 'Unauthenticated' });
+
+  if (req.body.org_name !== undefined) user.org_name = String(req.body.org_name).trim();
+  if (req.body.company_logo !== undefined) user.company_logo = String(req.body.company_logo);
+  if (req.body.company_tagline !== undefined) user.company_tagline = String(req.body.company_tagline).trim();
+  if (req.body.company_website !== undefined) user.company_website = String(req.body.company_website).trim();
+  if (req.body.primary_color !== undefined) user.primary_color = String(req.body.primary_color).trim();
+
+  // Also update all users sharing the same org_id if org logo or name changes
+  for (const u of USERS) {
+    if (u.org_id === user.org_id) {
+      if (req.body.org_name !== undefined) u.org_name = user.org_name;
+      if (req.body.company_logo !== undefined) u.company_logo = user.company_logo;
+      if (req.body.company_tagline !== undefined) u.company_tagline = user.company_tagline;
+      if (req.body.company_website !== undefined) u.company_website = user.company_website;
+      if (req.body.primary_color !== undefined) u.primary_color = user.primary_color;
+    }
+  }
+
+  // Sync all jobs in the same org
+  for (const j of JOBS) {
+    if (j.org_id === user.org_id) {
+      if (req.body.org_name !== undefined) j.company = user.org_name;
+    }
+  }
+
+  saveDatabase();
+
+  AUDIT_LOGS.unshift({
+    id: AUDIT_LOGS.length + 1,
+    action: 'Company Profile Updated',
+    user: user.name,
+    target: user.org_name || 'Organization',
+    timestamp: new Date().toISOString(),
+  });
+  saveDatabase();
+
+  const { password: _, ...safeUser } = user;
   res.json(safeUser);
 });
 
@@ -3563,11 +4349,21 @@ const handleGetPublicJob = (req: express.Request, res: express.Response) => {
   if (!job) {
     return res.status(404).json({ detail: 'Job position not found or no longer accepting applications.' });
   }
+
+  const orgUser = USERS.find(u => u.org_id === job.org_id);
+  const companyName = orgUser?.org_name || job.company || 'CalliQ';
+  const companyLogo = orgUser?.company_logo || '';
+  const companyTagline = orgUser?.company_tagline || '';
+  const companyWebsite = orgUser?.company_website || '';
+
   // Return ONLY public job details (data isolation: no recruiter details or internal stats)
   res.json({
     id: job.id,
     title: job.title,
-    company: job.company,
+    company: companyName,
+    company_logo: companyLogo,
+    company_tagline: companyTagline,
+    company_website: companyWebsite,
     description: job.description,
     required_skills: job.required_skills || [],
     nice_to_have: job.nice_to_have || [],
@@ -3606,6 +4402,50 @@ const handlePostPublicApply = async (req: express.Request, res: express.Response
     const applicantName = req.body.full_name ? String(req.body.full_name).trim() : '';
     const applicantEmail = req.body.email ? String(req.body.email).trim() : '';
     const applicantPhone = req.body.phone ? String(req.body.phone).trim() : '';
+    const expectedSalaryRaw = req.body.expected_salary ? String(req.body.expected_salary).trim() : '';
+    const noticePeriodRaw = req.body.notice_period ? String(req.body.notice_period).trim() : '';
+    const yearsExpRaw = req.body.years_experience != null ? String(req.body.years_experience).trim() : '';
+    const keyHighlightsRaw = req.body.key_highlights ? String(req.body.key_highlights).trim() : '';
+
+    // Parse numeric salary expectation if possible
+    let salaryExpectationNum: number | undefined = undefined;
+    if (expectedSalaryRaw) {
+      const cleanSalary = expectedSalaryRaw.toLowerCase().replace(/,/g, '');
+      if (cleanSalary.includes('k')) {
+        const num = parseFloat(cleanSalary.replace(/k/g, ''));
+        if (!isNaN(num)) salaryExpectationNum = num * 1000;
+      } else {
+        const match = cleanSalary.match(/\d+/);
+        if (match) {
+          const num = parseInt(match[0], 10);
+          if (!isNaN(num)) salaryExpectationNum = num;
+        }
+      }
+    }
+
+    // Parse notice period days if possible
+    let noticePeriodDays: number | undefined = undefined;
+    if (noticePeriodRaw) {
+      if (noticePeriodRaw.includes('14') || noticePeriodRaw.includes('أسبوعين')) noticePeriodDays = 14;
+      else if (noticePeriodRaw.includes('30') || noticePeriodRaw.includes('شهر')) noticePeriodDays = 30;
+      else if (noticePeriodRaw.includes('فوراً') || noticePeriodRaw.includes('0')) noticePeriodDays = 0;
+      else noticePeriodDays = 30;
+    }
+
+    // Embed direct application details prominently into the CV text representation for HR & AI view
+    const applicationSummaryText = `============================================================
+بيانات التقديم المباشر والأسئلة التمهيدية (Candidate Application Details):
+------------------------------------------------------------
+• الاسم الكامل: ${applicantName || 'غير مخصص'}
+• البريد الإلكتروني: ${applicantEmail || 'غير مخصص'}
+• رقم الهاتف: ${applicantPhone || 'غير مخصص'}
+• الراتب المتوقع (Expected Salary): ${expectedSalaryRaw || (salaryExpectationNum ? `${salaryExpectationNum} EGP` : 'غير مخصص')}
+• فترة الإشعار (Notice Period): ${noticePeriodRaw || (noticePeriodDays != null ? `${noticePeriodDays} يوم` : 'غير محددة')}
+• سنوات الخبرة التمهيدية المصرح بها: ${yearsExpRaw || 'غير محددة'} سنوات
+• أهم المشاريع والإنجازات المرفقة عند التقديم: ${keyHighlightsRaw || 'لم يتم إضافة إنجازات مخصصة'}
+============================================================\n\n`;
+
+    fileContent = applicationSummaryText + (fileContent || '');
 
     let analysis: any = {};
     try {
@@ -3639,6 +4479,16 @@ const handlePostPublicApply = async (req: express.Request, res: express.Response
       ? 'POTENTIAL_MATCH'
       : 'WEAK_MATCH';
 
+    // Build projects array including key highlights submitted
+    const candidateProjects = [
+      ...(keyHighlightsRaw ? [{
+        name: 'أبرز المشاريع والإنجازات المذكورة عند التقديم',
+        description: keyHighlightsRaw,
+        technologies: ['تقديم مباشر من البوابة العامة'],
+      }] : []),
+      ...(analysis.projects || []),
+    ];
+
     const newCand: DBCandidate = {
       id: nextCandidateId++,
       org_id: job.org_id,
@@ -3649,7 +4499,7 @@ const handlePostPublicApply = async (req: express.Request, res: express.Response
       phone: candidatePhone,
       location: req.body.location || analysis.location || 'Remote',
       current_position: analysis.current_position || 'Professional Specialist',
-      years_experience: Number(req.body.years_experience) || analysis.years_experience || 3,
+      years_experience: Number(yearsExpRaw) || analysis.years_experience || 3,
       previous_positions: analysis.previous_positions?.length
         ? analysis.previous_positions
         : [{ title: analysis.current_position || 'Professional', company: analysis.companies?.[0] || 'Previous Organization', duration_months: 24 }],
@@ -3660,8 +4510,8 @@ const handlePostPublicApply = async (req: express.Request, res: express.Response
       technical_skills: normalizeTechnicalSkills(analysis.technical_skills),
       soft_skills: Array.isArray(analysis.soft_skills) ? analysis.soft_skills : ['Communication', 'Problem Solving'],
       languages: analysis.languages?.length ? analysis.languages : [{ language: 'English', level: 'Professional' }],
-      projects: analysis.projects || [],
-      achievements: [],
+      projects: candidateProjects,
+      achievements: keyHighlightsRaw ? [keyHighlightsRaw] : [],
       awards: [],
       match_score: score,
       ats_score: analysis.ats_score || 88,
@@ -3688,6 +4538,11 @@ const handlePostPublicApply = async (req: express.Request, res: express.Response
       pipeline_stage: 'Screening',
       pipeline_history: [{ stage: 'Screening', entered_at: new Date().toISOString(), moved_by: 'AI Scanner', notes: 'Automated career portal CV analysis and scoring completed.' }],
       recruiter_decision: 'NEEDS_REVIEW',
+      salary_expectation: salaryExpectationNum || analysis.salary_expectation,
+      salary_currency: 'EGP',
+      notice_period_days: noticePeriodDays != null ? noticePeriodDays : analysis.notice_period_days,
+      remote_preference: noticePeriodRaw || undefined,
+      decision_notes: keyHighlightsRaw ? `[أبرز المشاريع والإنجازات المذكورة عند التقديم]: ${keyHighlightsRaw}` : undefined,
       applied_at: new Date().toISOString(),
       flagged: false,
       is_knocked_out: false,
@@ -3717,6 +4572,1520 @@ const handlePostPublicApply = async (req: express.Request, res: express.Response
 app.get('/api/v1/apply/:token', handleGetPublicJob);
 app.post('/api/v1/apply/:token', upload.any(), handlePostPublicApply);
 app.post('/apply/:token', upload.any(), handlePostPublicApply);
+
+// ── 6.1 Candidate Inquiries & Interactive AI Assistant Endpoints ─────────────
+
+function ensureSeedInquiriesForOrg(orgId: number) {
+  const existing = INQUIRIES.filter(i => i.org_id === orgId);
+  if (existing.length === 0) {
+    const orgJobs = JOBS.filter(j => j.org_id === orgId);
+    const sampleJob = orgJobs[0] || { id: 101, title: 'أخصائي توظيف وتطوير موارد بشرية (HR Specialist)' };
+
+    INQUIRIES.push(
+      {
+        id: nextInquiryId++,
+        org_id: orgId,
+        job_id: sampleJob.id,
+        job_title: sampleJob.title,
+        candidate_name: 'محمود حسن أحمد',
+        candidate_email: 'mahmoud.hassan.tech@gmail.com',
+        candidate_phone: '+20 101 234 5678',
+        question: 'هل العمل متاح بنظام العمل عن بُعد (Remote) بالكامل أم يتطلب الحضور لمقر الشركة؟ وما هي ساعات العمل الرسمية؟',
+        ai_answer: 'العمل متاح بنظام هجين (Hybrid) مرن يشمل الأونلاين والمقر بالقاهرة، وساعات العمل الرسمية من 9 صباحاً حتى 5 مساءً مع خيارات مرنة.',
+        status: 'PENDING',
+        created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+      },
+      {
+        id: nextInquiryId++,
+        org_id: orgId,
+        job_id: sampleJob.id,
+        job_title: sampleJob.title,
+        candidate_name: 'سارة عبد الرحمن',
+        candidate_email: 'sara.abdelrahman.hr@outlook.com',
+        candidate_phone: '+20 112 987 6543',
+        question: 'ما هي مراحل المقابلات المتوقعة لهذه الوظيفة وكم يستغرق الوقت للرد بعد التقديم؟',
+        ai_answer: 'تتكون خطة المقابلات من 3 مراحل: فحص أولي، مقابلة فنية، ومقابلة نهائية. يتم الرد خلال 3 إلى 5 أيام عمل.',
+        status: 'ANSWERED',
+        hr_reply: 'أهلاً بكِ أستاذة سارة. تم مراجعة سيرتك الذاتية وسيتم التواصل معكِ هاتفياً اليوم لتحديد موعد المقابلة الأولى.',
+        hr_replied_at: new Date(Date.now() - 3600000 * 1).toISOString(),
+        created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
+      },
+      {
+        id: nextInquiryId++,
+        org_id: orgId,
+        job_id: sampleJob.id,
+        job_title: sampleJob.title,
+        candidate_name: 'مهندس / عمر الفاروق',
+        candidate_email: 'omar.elfarouk.cloud@yahoo.com',
+        candidate_phone: '+20 100 555 1234',
+        question: 'هل تشمل الحزمة الوظيفية تأمين صحي عائلي وبونص سنوي على الأداء؟',
+        ai_answer: 'نعم، توفر الشركة حزمة مميزات تشمل تأمين صحي شاملاً للموظف وعائلته بالإضافة إلى بونص أداء سنوي.',
+        status: 'STARRED',
+        created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+      }
+    );
+    saveDatabase();
+  }
+}
+
+// Public: Interactive Candidate Q&A Assistant via Gemini
+app.post('/api/v1/public/job-ask', async (req, res) => {
+  try {
+    const { token, question, candidate_name, candidate_email, candidate_phone } = req.body;
+    if (!question || !question.trim()) {
+      return res.status(400).json({ detail: 'الرجاء كتابة السؤال أو الاستفسار' });
+    }
+    const job = findJobByToken(token);
+    const jobTitle = job ? job.title : 'الوظيفة المعلنة';
+    const companyName = job?.company || 'CalliQ HR';
+    const jobDesc = job ? job.description : '';
+    const jobSkills = job && job.required_skills ? job.required_skills.join(', ') : '';
+
+    let aiAnswer = '';
+    const ai = getAIClient();
+    if (ai) {
+      try {
+        const prompt = `أنت مساعد توظيف ذكي وودود جداً لشركة "${companyName}" للرد على استفسارات المتقدمين حول وظيفة "${jobTitle}".
+تفاصيل الوظيفة:
+${jobDesc}
+المهارات المطلوبة: ${jobSkills}
+
+سؤال المتقدم: "${question}"
+
+أجب على السؤال بأسلوب مهني، واضح، مبسط وودود جداً باللغة العربية. اجعل الإجابة مختصرة ومفيدة (في حدود 2-4 جمل).`;
+
+        const aiRes = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: prompt,
+        });
+        aiAnswer = aiRes.text || 'أهلاً بك! يسعدنا اهتمامك بالتقديم. تفاصيل الوظيفة موضحة في الإعلان ويمكنك تقديم سيرتك الذاتية وسيتواصل معك فريق التوظيف.';
+      } catch (err) {
+        console.error('Gemini error in job-ask:', err);
+        aiAnswer = 'أهلاً بك! شكراً لاستفسارك. يمكنك التقديم مباشرة عبر النموذج وسيقوم فريق الموارد البشرية بمراجعة طلبك والرد عليك في أقرب وقت.';
+      }
+    } else {
+      aiAnswer = 'أهلاً بك! شكراً لاستفسارك. يمكنك التقديم مباشرة عبر النموذج وسيقوم فريق الموارد البشرية بمراجعة طلبك والرد عليك في أقرب وقت.';
+    }
+
+    let inquirySaved = false;
+    let inquiryId: number | null = null;
+
+    if (candidate_email && candidate_email.trim()) {
+      const newInquiry: DBCandidateInquiry = {
+        id: nextInquiryId++,
+        org_id: job ? job.org_id : 1,
+        job_id: job ? job.id : undefined,
+        job_title: jobTitle,
+        candidate_name: candidate_name || 'متقدم لم يحدد اسمه',
+        candidate_email: candidate_email.trim(),
+        candidate_phone: candidate_phone || '',
+        question: question.trim(),
+        ai_answer: aiAnswer,
+        status: 'PENDING',
+        created_at: new Date().toISOString(),
+      };
+      INQUIRIES.unshift(newInquiry);
+      saveDatabase();
+      inquirySaved = true;
+      inquiryId = newInquiry.id;
+    }
+
+    res.json({
+      answer: aiAnswer,
+      inquiry_saved: inquirySaved,
+      inquiry_id: inquiryId,
+    });
+  } catch (err: any) {
+    console.error('Error in job-ask:', err);
+    res.status(500).json({ detail: 'حدث خطأ أثناء معالجة السؤال' });
+  }
+});
+
+// Public: Submit Direct Inquiry to HR
+app.post('/api/v1/public/inquiries', async (req, res) => {
+  try {
+    const { token, candidate_name, candidate_email, candidate_phone, question } = req.body;
+    if (!candidate_name || !candidate_email || !question) {
+      return res.status(400).json({ detail: 'الرجاء إدخال الاسم، البريد الإلكتروني، ونص الاستفسار.' });
+    }
+    const job = findJobByToken(token);
+    const jobTitle = job ? job.title : 'استفسار عام';
+
+    let aiAnswer = '';
+    const ai = getAIClient();
+    if (ai) {
+      try {
+        const prompt = `اكتب اقتراح إجابة مسبقة لمسؤول التوظيف للرد على هذا الاستفسار المقدم من مرشح لوظيفة "${jobTitle}":
+اسم المتقدم: ${candidate_name}
+البريد: ${candidate_email}
+الاستفسار: "${question}"
+
+اكتب الرد المقترح في حدود 2-3 جمل بطريقة مهنية وودودة.`;
+        const aiRes = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: prompt,
+        });
+        aiAnswer = aiRes.text || 'شكراً لتواصلك معنا. تم استلام استفسارك وسيقوم فريق التوظيف بالرد عليك قريباً.';
+      } catch (err) {
+        aiAnswer = 'شكراً لتواصلك معنا. تم استلام استفسارك وسيقوم فريق التوظيف بالرد عليك قريباً.';
+      }
+    } else {
+      aiAnswer = 'شكراً لتواصلك معنا. تم استلام استفسارك وسيقوم فريق التوظيف بالرد عليك قريباً.';
+    }
+
+    const newInquiry: DBCandidateInquiry = {
+      id: nextInquiryId++,
+      org_id: job ? job.org_id : 1,
+      job_id: job ? job.id : undefined,
+      job_title: jobTitle,
+      candidate_name: candidate_name.trim(),
+      candidate_email: candidate_email.trim(),
+      candidate_phone: (candidate_phone || '').trim(),
+      question: question.trim(),
+      ai_answer: aiAnswer,
+      status: 'PENDING',
+      created_at: new Date().toISOString(),
+    };
+
+    INQUIRIES.unshift(newInquiry);
+    saveDatabase();
+
+    res.json({
+      success: true,
+      message: 'تم إرسال استفسارك بنجاح إلى فريق التوظيف! سيتواصل معك أحد أعضاء الفريق في أقرب وقت.',
+      inquiry_id: newInquiry.id,
+    });
+  } catch (err: any) {
+    console.error('Error in public inquiries:', err);
+    res.status(500).json({ detail: 'حدث خطأ أثناء إرسال الاستفسار' });
+  }
+});
+
+// Protected HR Inquiries Endpoints
+app.get('/api/v1/inquiries', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  if (!u) return res.status(401).json({ detail: 'Unauthorized' });
+
+  ensureSeedInquiriesForOrg(u.org_id);
+
+  let list = INQUIRIES.filter(i => i.org_id === u.org_id);
+
+  const status = req.query.status ? String(req.query.status) : '';
+  const search = req.query.search ? String(req.query.search).toLowerCase() : '';
+
+  if (status) {
+    list = list.filter(i => i.status === status);
+  }
+  if (search) {
+    list = list.filter(i =>
+      (i.candidate_name || '').toLowerCase().includes(search) ||
+      (i.candidate_email || '').toLowerCase().includes(search) ||
+      (i.candidate_phone || '').toLowerCase().includes(search) ||
+      (i.job_title || '').toLowerCase().includes(search) ||
+      (i.question || '').toLowerCase().includes(search)
+    );
+  }
+
+  res.json(list);
+});
+
+app.post('/api/v1/inquiries/:id/reply', requireAuth, async (req, res) => {
+  const u = (req as any).user as DBUser;
+  if (!u) return res.status(401).json({ detail: 'Unauthorized' });
+
+  const id = Number(req.params.id);
+  const inquiry = INQUIRIES.find(i => i.id === id && i.org_id === u.org_id);
+  if (!inquiry) return res.status(404).json({ detail: 'Inquiry not found' });
+
+  const { reply_text } = req.body;
+  if (!reply_text || !reply_text.trim()) {
+    return res.status(400).json({ detail: 'الرجاء إدخال نص الرد' });
+  }
+
+  inquiry.hr_reply = reply_text.trim();
+  inquiry.status = 'ANSWERED';
+  inquiry.hr_replied_at = new Date().toISOString();
+
+  // Send email reply log
+  try {
+    EMAIL_LOGS.unshift({
+      id: EMAIL_LOGS.length + 1,
+      org_id: u.org_id,
+      candidate_id: inquiry.job_id || 0,
+      candidate_name: inquiry.candidate_name,
+      candidate_email: inquiry.candidate_email,
+      subject: `رد على استفسارك بشأن وظيفة: ${inquiry.job_title || 'CalliQ Careers'}`,
+      body: reply_text.trim(),
+      trigger_event: 'inquiry_reply',
+      sent_by: u.name || 'HR Recruiter',
+      sent_at: new Date().toISOString(),
+      status: 'Sent',
+    });
+  } catch (emailErr) {
+    console.error('Email sending error in inquiry reply:', emailErr);
+  }
+
+  saveDatabase();
+  res.json(inquiry);
+});
+
+app.patch('/api/v1/inquiries/:id/status', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  if (!u) return res.status(401).json({ detail: 'Unauthorized' });
+
+  const id = Number(req.params.id);
+  const inquiry = INQUIRIES.find(i => i.id === id && i.org_id === u.org_id);
+  if (!inquiry) return res.status(404).json({ detail: 'Inquiry not found' });
+
+  const { status } = req.body;
+  if (['PENDING', 'ANSWERED', 'STARRED'].includes(status)) {
+    inquiry.status = status;
+    saveDatabase();
+  }
+  res.json(inquiry);
+});
+
+app.delete('/api/v1/inquiries/:id', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  if (!u) return res.status(401).json({ detail: 'Unauthorized' });
+
+  const id = Number(req.params.id);
+  const idx = INQUIRIES.findIndex(i => i.id === id && i.org_id === u.org_id);
+  if (idx !== -1) {
+    INQUIRIES.splice(idx, 1);
+    saveDatabase();
+  }
+  res.json({ message: 'Inquiry deleted successfully', id });
+});
+
+// ── Talent Pools Endpoints ──────────────────────────────────────────────────
+app.get('/api/v1/talent-pools', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const pools = TALENT_POOLS.filter(p => p.org_id === u.org_id);
+  res.json(pools);
+});
+
+app.post('/api/v1/talent-pools', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const { name, description, tags, color, candidate_ids } = req.body;
+
+  if (!name || !name.trim()) {
+    return res.status(400).json({ detail: 'اسم بنك المواهب مطلوب' });
+  }
+
+  const newPool: DBTalentPool = {
+    id: nextTalentPoolId++,
+    org_id: u.org_id,
+    name: name.trim(),
+    description: description ? String(description).trim() : '',
+    tags: Array.isArray(tags) ? tags : [],
+    color: color || 'blue',
+    candidate_ids: Array.isArray(candidate_ids) ? candidate_ids.map(Number) : [],
+    created_at: new Date().toISOString(),
+  };
+
+  TALENT_POOLS.push(newPool);
+  saveDatabase();
+  res.status(201).json(newPool);
+});
+
+app.put('/api/v1/talent-pools/:id', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const pool = TALENT_POOLS.find(p => p.id === id && p.org_id === u.org_id);
+
+  if (!pool) return res.status(404).json({ detail: 'بنك المواهب غير موجود' });
+
+  if (req.body.name) pool.name = String(req.body.name).trim();
+  if (req.body.description !== undefined) pool.description = String(req.body.description).trim();
+  if (Array.isArray(req.body.tags)) pool.tags = req.body.tags;
+  if (req.body.color) pool.color = req.body.color;
+  if (Array.isArray(req.body.candidate_ids)) pool.candidate_ids = req.body.candidate_ids.map(Number);
+  pool.updated_at = new Date().toISOString();
+
+  saveDatabase();
+  res.json(pool);
+});
+
+app.delete('/api/v1/talent-pools/:id', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const idx = TALENT_POOLS.findIndex(p => p.id === id && p.org_id === u.org_id);
+
+  if (idx !== -1) {
+    TALENT_POOLS.splice(idx, 1);
+    saveDatabase();
+  }
+  res.json({ message: 'تم حذف بنك المواهب بنجاح', id });
+});
+
+app.post('/api/v1/talent-pools/:id/candidates', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const pool = TALENT_POOLS.find(p => p.id === id && p.org_id === u.org_id);
+
+  if (!pool) return res.status(404).json({ detail: 'بنك المواهب غير موجود' });
+
+  const { candidate_ids } = req.body;
+  if (Array.isArray(candidate_ids)) {
+    for (const cid of candidate_ids) {
+      const numId = Number(cid);
+      if (!pool.candidate_ids.includes(numId)) {
+        pool.candidate_ids.push(numId);
+      }
+    }
+    pool.updated_at = new Date().toISOString();
+    saveDatabase();
+  }
+  res.json(pool);
+});
+
+app.delete('/api/v1/talent-pools/:id/candidates/:candidateId', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const candidateId = Number(req.params.candidateId);
+  const pool = TALENT_POOLS.find(p => p.id === id && p.org_id === u.org_id);
+
+  if (!pool) return res.status(404).json({ detail: 'بنك المواهب غير موجود' });
+
+  pool.candidate_ids = pool.candidate_ids.filter(cid => cid !== candidateId);
+  pool.updated_at = new Date().toISOString();
+  saveDatabase();
+
+  res.json(pool);
+});
+
+// ── Automated Sequences Endpoints ─────────────────────────────────────────
+app.get('/api/v1/sequences', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const seqs = SEQUENCES.filter(s => s.org_id === u.org_id);
+
+  const result = seqs.map(s => {
+    const activeCount = SEQUENCE_ENROLLMENTS.filter(e => e.sequence_id === s.id && e.status === 'ACTIVE').length;
+    return { ...s, active_enrollments_count: activeCount };
+  });
+
+  res.json(result);
+});
+
+app.post('/api/v1/sequences', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const { title, description, trigger_event, steps } = req.body;
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({ detail: 'عنوان السلسلة التلقائية مطلوب' });
+  }
+
+  const formattedSteps: DBSequenceStep[] = Array.isArray(steps) ? steps.map((st, i) => ({
+    id: st.id || i + 1,
+    step_number: i + 1,
+    delay_hours: Number(st.delay_hours || 0),
+    subject: String(st.subject || '').trim(),
+    body_template: String(st.body_template || '').trim(),
+  })) : [];
+
+  const newSeq: DBSequence = {
+    id: nextSequenceId++,
+    org_id: u.org_id,
+    title: title.trim(),
+    description: description ? String(description).trim() : '',
+    trigger_event: trigger_event || 'MANUAL',
+    steps: formattedSteps,
+    created_at: new Date().toISOString(),
+  };
+
+  SEQUENCES.push(newSeq);
+  saveDatabase();
+  res.status(201).json(newSeq);
+});
+
+app.put('/api/v1/sequences/:id', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const seq = SEQUENCES.find(s => s.id === id && s.org_id === u.org_id);
+
+  if (!seq) return res.status(404).json({ detail: 'السلسلة التلقائية غير موجودة' });
+
+  if (req.body.title) seq.title = String(req.body.title).trim();
+  if (req.body.description !== undefined) seq.description = String(req.body.description).trim();
+  if (req.body.trigger_event) seq.trigger_event = req.body.trigger_event;
+
+  if (Array.isArray(req.body.steps)) {
+    seq.steps = req.body.steps.map((st: any, i: number) => ({
+      id: st.id || i + 1,
+      step_number: i + 1,
+      delay_hours: Number(st.delay_hours || 0),
+      subject: String(st.subject || '').trim(),
+      body_template: String(st.body_template || '').trim(),
+    }));
+  }
+
+  saveDatabase();
+  res.json(seq);
+});
+
+app.delete('/api/v1/sequences/:id', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const idx = SEQUENCES.findIndex(s => s.id === id && s.org_id === u.org_id);
+
+  if (idx !== -1) {
+    SEQUENCES.splice(idx, 1);
+    saveDatabase();
+  }
+  res.json({ message: 'تم حذف السلسلة التلقائية بنجاح', id });
+});
+
+app.post('/api/v1/sequences/:id/enroll', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const seq = SEQUENCES.find(s => s.id === id && s.org_id === u.org_id);
+
+  if (!seq) return res.status(404).json({ detail: 'السلسلة التلقائية غير موجودة' });
+
+  const { candidate_ids, pool_id } = req.body;
+  let targetIds: number[] = [];
+
+  if (Array.isArray(candidate_ids)) {
+    targetIds = candidate_ids.map(Number);
+  } else if (pool_id) {
+    const pool = TALENT_POOLS.find(p => p.id === Number(pool_id) && p.org_id === u.org_id);
+    if (pool) targetIds = pool.candidate_ids;
+  }
+
+  const createdEnrollments: DBSequenceEnrollment[] = [];
+
+  for (const cid of targetIds) {
+    const cand = CANDIDATES.find(c => c.id === cid && c.org_id === u.org_id);
+    if (!cand) continue;
+
+    const existing = SEQUENCE_ENROLLMENTS.find(e => e.sequence_id === id && e.candidate_id === cid && e.status === 'ACTIVE');
+    if (existing) continue;
+
+    const firstStep = seq.steps[0];
+    const delayMs = (firstStep?.delay_hours || 0) * 3600 * 1000;
+    const nextSendAt = new Date(Date.now() + delayMs).toISOString();
+
+    const enrollment: DBSequenceEnrollment = {
+      id: nextEnrollmentId++,
+      org_id: u.org_id,
+      sequence_id: id,
+      sequence_title: seq.title,
+      candidate_id: cand.id,
+      candidate_name: cand.full_name,
+      candidate_email: cand.email,
+      current_step: 1,
+      status: 'ACTIVE',
+      enrolled_at: new Date().toISOString(),
+      next_send_at: nextSendAt,
+      history: [],
+    };
+
+    SEQUENCE_ENROLLMENTS.push(enrollment);
+    createdEnrollments.push(enrollment);
+
+    if ((firstStep?.delay_hours || 0) === 0) {
+      sendAutomatedCandidateEmail('sequence_step', cand, {
+        sent_by: `Sequence: ${seq.title}`,
+        subject: firstStep?.subject || seq.title,
+      });
+
+      enrollment.history.push({
+        step_number: 1,
+        subject: firstStep?.subject || seq.title,
+        sent_at: new Date().toISOString(),
+        status: 'SENT',
+      });
+
+      if (seq.steps.length > 1) {
+        enrollment.current_step = 2;
+        const nextDelay = (seq.steps[1].delay_hours || 24) * 3600 * 1000;
+        enrollment.next_send_at = new Date(Date.now() + nextDelay).toISOString();
+      } else {
+        enrollment.status = 'COMPLETED';
+      }
+    }
+  }
+
+  saveDatabase();
+  res.json({ message: `تم تفعيل السلسلة لعدد ${createdEnrollments.length} مرشح`, enrollments: createdEnrollments });
+});
+
+app.get('/api/v1/sequences/:id/enrollments', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const enrollments = SEQUENCE_ENROLLMENTS.filter(e => e.sequence_id === id && e.org_id === u.org_id);
+  res.json(enrollments);
+});
+
+app.post('/api/v1/sequences/generate-ai-steps', requireAuth, async (req, res) => {
+  const { goal } = req.body;
+  if (!goal || !goal.trim()) {
+    return res.status(400).json({ detail: 'الرجاء إدخال هدف الحملة التلقائية' });
+  }
+
+  const ai = getAIClient();
+  if (!ai) {
+    return res.json({
+      steps: [
+        {
+          step_number: 1,
+          delay_hours: 0,
+          subject: 'تأكيد واستكمال طلب التقديم - {{company_name}}',
+          body_template: 'مرحباً {{candidate_name}}،\n\nنود توجيه الشكر لك على اهتمامك بالانضمام لشركتنا {{company_name}}.\n\nنتمنى لك كل التوفيق!\nفريق التوظيف',
+        },
+        {
+          step_number: 2,
+          delay_hours: 48,
+          subject: 'تذكير بالفرص الوظيفية المستقبلية المتاحة',
+          body_template: 'مرحباً {{candidate_name}}،\n\nتذكير بمتابعة حساباتنا للاطلاع على الفرص الوظيفية الجديدة.\n\nمع أطيب التحيات،\n{{company_name}}',
+        }
+      ]
+    });
+  }
+
+  try {
+    const prompt = `أنت خبير تسويق واستقطاب مواهب باللغة العربية.
+قم بإنشاء سلسلة رسائل بريد إلكتروني تتابعية ومحترفة (Sequences) تتكون من خطوتين إلى 3 خطوات لهدف الحملة التالي:
+"${goal.trim()}"
+
+استخدم المتغيرات التالية عند الحاجة:
+{{candidate_name}}, {{job_title}}, {{company_name}}, {{interview_date}}, {{interview_link}}, {{offer_amount}}, {{offer_deadline}}
+
+قم بالرد بتنسيق JSON حصراً على الشكل التالي بدون markdown code blocks:
+{
+  "steps": [
+    {
+      "step_number": 1,
+      "delay_hours": 0,
+      "subject": "عنوان الرسالة الأولى",
+      "body_template": "محتوى الرسالة الأولى"
+    },
+    {
+      "step_number": 2,
+      "delay_hours": 48,
+      "subject": "عنوان الرسالة الثانية",
+      "body_template": "محتوى الرسالة الثانية"
+    }
+  ]
+}`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+
+    const text = response.text || '';
+    const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(cleanJson);
+    res.json(parsed);
+  } catch (err) {
+    console.error('AI step generation failed:', err);
+    res.json({
+      steps: [
+        {
+          step_number: 1,
+          delay_hours: 0,
+          subject: 'تواصل بشأن الفرص الوظيفية لدى {{company_name}}',
+          body_template: 'عزيزي {{candidate_name}}،\n\nسعداء بالتواصل معك بشأن الفرص الوظيفية لدى {{company_name}}.\n\nتحياتنا،\nفريق التوظيف',
+        },
+        {
+          step_number: 2,
+          delay_hours: 48,
+          subject: 'تذكير ومتابعة الفرصة الوظيفية',
+          body_template: 'عزيزي {{candidate_name}}،\n\nنود متابعة تواصلنا السابق واستطلاع مدى جاهزيتك للخطوة القادمة.\n\nأطيب التحيات،\n{{company_name}}',
+        }
+      ]
+    });
+  }
+});
+
+// ── Automated Email Drip Campaigns Endpoints ────────────────────────────────
+app.get('/api/v1/drip-campaigns', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const campaigns = DRIP_CAMPAIGNS.filter(c => c.org_id === u.org_id);
+  res.json(campaigns);
+});
+
+app.get('/api/v1/drip-campaigns/:id', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const camp = DRIP_CAMPAIGNS.find(c => c.id === id && c.org_id === u.org_id);
+  if (!camp) return res.status(404).json({ detail: 'حملة التقطير غير موجودة' });
+  res.json(camp);
+});
+
+app.post('/api/v1/drip-campaigns', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const { title, description, trigger_stage, target_job_id, target_pool_id, is_active, steps } = req.body;
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({ detail: 'عنوان حملة التقطير مطلوب' });
+  }
+  if (!trigger_stage) {
+    return res.status(400).json({ detail: 'مرحلة التفعيل (Trigger Stage) مطلوبة' });
+  }
+
+  const targetJob = target_job_id ? JOBS.find(j => j.id === Number(target_job_id)) : null;
+
+  const formattedSteps: DBDripStep[] = Array.isArray(steps) && steps.length > 0
+    ? steps.map((s: any, idx: number) => {
+        const val = Number(s.delay_value || 0);
+        const unit = (s.delay_unit === 'days' ? 'days' : 'hours') as 'hours' | 'days';
+        const hours = unit === 'days' ? val * 24 : val;
+        return {
+          id: idx + 1,
+          step_number: idx + 1,
+          delay_value: val,
+          delay_unit: unit,
+          delay_hours: hours,
+          subject: s.subject || `رسالة متابعة رقم ${idx + 1}`,
+          body_template: s.body_template || `مرحباً {{candidate_name}}،\n\nنود متابعة طلبك لوظيفة {{job_title}} في شركة {{company_name}}.`,
+          action_type: s.action_type || 'EMAIL',
+        };
+      })
+    : [
+        {
+          id: 1,
+          step_number: 1,
+          delay_value: 0,
+          delay_unit: 'hours',
+          delay_hours: 0,
+          subject: 'استلام طلب التقديم - {{company_name}}',
+          body_template: 'مرحباً {{candidate_name}}،\n\nتم استلام طلبك بنجاح لوظيفة {{job_title}}.\n\nشكراً لك،\nفريق التوظيف - {{company_name}}',
+          action_type: 'EMAIL',
+        }
+      ];
+
+  const newCampaign: DBDripCampaign = {
+    id: nextDripCampaignId++,
+    org_id: u.org_id,
+    title: title.trim(),
+    description: description?.trim() || '',
+    trigger_stage,
+    target_job_id: target_job_id ? Number(target_job_id) : null,
+    target_job_title: targetJob ? targetJob.title : undefined,
+    target_pool_id: target_pool_id ? Number(target_pool_id) : null,
+    is_active: is_active !== undefined ? Boolean(is_active) : true,
+    steps: formattedSteps,
+    enrolled_count: 0,
+    completed_count: 0,
+    created_at: new Date().toISOString(),
+  };
+
+  DRIP_CAMPAIGNS.push(newCampaign);
+
+  AUDIT_LOGS.unshift({
+    id: AUDIT_LOGS.length + 1,
+    action: 'Drip Campaign Created',
+    user: u.name,
+    target: `${newCampaign.title} [Trigger: ${newCampaign.trigger_stage}]`,
+    timestamp: new Date().toISOString(),
+  });
+
+  saveDatabase();
+  res.status(201).json(newCampaign);
+});
+
+app.put('/api/v1/drip-campaigns/:id', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const camp = DRIP_CAMPAIGNS.find(c => c.id === id && c.org_id === u.org_id);
+  if (!camp) return res.status(404).json({ detail: 'حملة التقطير غير موجودة' });
+
+  const { title, description, trigger_stage, target_job_id, target_pool_id, is_active, steps } = req.body;
+
+  if (title !== undefined) camp.title = title.trim();
+  if (description !== undefined) camp.description = description.trim();
+  if (trigger_stage !== undefined) camp.trigger_stage = trigger_stage;
+  if (target_job_id !== undefined) {
+    camp.target_job_id = target_job_id ? Number(target_job_id) : null;
+    const targetJob = camp.target_job_id ? JOBS.find(j => j.id === camp.target_job_id) : null;
+    camp.target_job_title = targetJob ? targetJob.title : undefined;
+  }
+  if (target_pool_id !== undefined) camp.target_pool_id = target_pool_id ? Number(target_pool_id) : null;
+  if (is_active !== undefined) camp.is_active = Boolean(is_active);
+
+  if (Array.isArray(steps)) {
+    camp.steps = steps.map((s: any, idx: number) => {
+      const val = Number(s.delay_value || 0);
+      const unit = (s.delay_unit === 'days' ? 'days' : 'hours') as 'hours' | 'days';
+      const hours = unit === 'days' ? val * 24 : val;
+      return {
+        id: s.id || idx + 1,
+        step_number: idx + 1,
+        delay_value: val,
+        delay_unit: unit,
+        delay_hours: hours,
+        subject: s.subject || `رسالة متابعة رقم ${idx + 1}`,
+        body_template: s.body_template || '',
+        action_type: s.action_type || 'EMAIL',
+      };
+    });
+  }
+
+  camp.updated_at = new Date().toISOString();
+  saveDatabase();
+  res.json(camp);
+});
+
+app.delete('/api/v1/drip-campaigns/:id', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const idx = DRIP_CAMPAIGNS.findIndex(c => c.id === id && c.org_id === u.org_id);
+  if (idx !== -1) {
+    const deleted = DRIP_CAMPAIGNS.splice(idx, 1)[0];
+    AUDIT_LOGS.unshift({
+      id: AUDIT_LOGS.length + 1,
+      action: 'Drip Campaign Deleted',
+      user: u.name,
+      target: deleted.title,
+      timestamp: new Date().toISOString(),
+    });
+    saveDatabase();
+  }
+  res.json({ message: 'تم حذف حملة التقطير التلقائية بنجاح', id });
+});
+
+app.post('/api/v1/drip-campaigns/:id/toggle', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const camp = DRIP_CAMPAIGNS.find(c => c.id === id && c.org_id === u.org_id);
+  if (!camp) return res.status(404).json({ detail: 'حملة التقطير غير موجودة' });
+
+  camp.is_active = !camp.is_active;
+  camp.updated_at = new Date().toISOString();
+  saveDatabase();
+
+  res.json({
+    message: camp.is_active ? 'تم تفعيل الحملة بنجاح' : 'تم إيقاف الحملة مؤقتاً',
+    campaign: camp,
+  });
+});
+
+app.post('/api/v1/drip-campaigns/:id/test-trigger', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const camp = DRIP_CAMPAIGNS.find(c => c.id === id && c.org_id === u.org_id);
+  if (!camp) return res.status(404).json({ detail: 'حملة التقطير غير موجودة' });
+
+  const { candidate_id } = req.body;
+  const cand = CANDIDATES.find(c => c.id === Number(candidate_id) && c.org_id === u.org_id);
+  if (!cand) return res.status(404).json({ detail: 'المرشح غير موجود' });
+
+  const firstStep = camp.steps[0] || {
+    id: 1,
+    step_number: 1,
+    delay_value: 0,
+    delay_unit: 'hours',
+    delay_hours: 0,
+    subject: camp.title,
+    body_template: 'مرحباً {{candidate_name}}، رسالة اختبار لحملة التقطير.'
+  };
+
+  const targetJob = cand.job_id ? JOBS.find(j => j.id === cand.job_id) : JOBS[0];
+  const companyName = targetJob?.company || 'CalliQ';
+  const jobTitle = targetJob?.title || cand.current_position || 'Open Position';
+
+  const replacePlaceholders = (text: string) => {
+    return (text || '')
+      .replace(/\{\{candidate_name\}\}/g, cand.full_name || 'Candidate')
+      .replace(/\{\{job_title\}\}/g, jobTitle)
+      .replace(/\{\{company_name\}\}/g, companyName)
+      .replace(/\{\{interview_date\}\}/g, cand.interview_scheduled || 'الموعد المحدد')
+      .replace(/\{\{interview_link\}\}/g, cand.interview_link || 'https://meet.google.com/calliq-interview')
+      .replace(/\{\{offer_amount\}\}/g, String(cand.offer_amount || '120,000'))
+      .replace(/\{\{offer_currency\}\}/g, String(cand.offer_currency || 'USD'))
+      .replace(/\{\{offer_deadline\}\}/g, String(cand.offer_deadline || '7 Days'));
+  };
+
+  const subject = replacePlaceholders(firstStep.subject);
+  const body = replacePlaceholders(firstStep.body_template);
+
+  const log: DBDripExecutionLog = {
+    id: nextDripLogId++,
+    org_id: u.org_id,
+    campaign_id: camp.id,
+    campaign_title: camp.title,
+    trigger_stage: camp.trigger_stage,
+    candidate_id: cand.id,
+    candidate_name: cand.full_name,
+    candidate_email: cand.email,
+    step_number: 1,
+    total_steps: camp.steps.length,
+    subject,
+    body_rendered: body,
+    status: 'SENT',
+    scheduled_for: new Date().toISOString(),
+    executed_at: new Date().toISOString(),
+  };
+
+  DRIP_LOGS.unshift(log);
+
+  EMAIL_LOGS.unshift({
+    id: nextEmailLogId++,
+    org_id: u.org_id,
+    candidate_id: cand.id,
+    candidate_name: cand.full_name,
+    candidate_email: cand.email,
+    subject: `[اختبار] ${subject}`,
+    body,
+    trigger_event: `test_drip_${camp.trigger_stage.toLowerCase().replace(/\s+/g, '_')}`,
+    status: 'Sent',
+    sent_by: `Test Drip: ${u.name}`,
+    sent_at: new Date().toISOString(),
+  });
+
+  camp.enrolled_count = (camp.enrolled_count || 0) + 1;
+  saveDatabase();
+
+  res.json({
+    message: `تم إرسال اختبار الحملة بنجاح إلى ${cand.full_name} (${cand.email})`,
+    log,
+  });
+});
+
+app.get('/api/v1/drip-campaigns-logs', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const logs = DRIP_LOGS.filter(l => l.org_id === u.org_id);
+  res.json(logs);
+});
+
+app.delete('/api/v1/drip-campaigns-logs/:id', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  const id = Number(req.params.id);
+  const idx = DRIP_LOGS.findIndex(l => l.id === id && l.org_id === u.org_id);
+  if (idx !== -1) {
+    DRIP_LOGS.splice(idx, 1);
+    saveDatabase();
+  }
+  res.json({ message: 'تم حذف سجل التنفيذ بنجاح', id });
+});
+
+app.delete('/api/v1/drip-campaigns-logs', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  let deletedCount = 0;
+  for (let i = DRIP_LOGS.length - 1; i >= 0; i--) {
+    if (DRIP_LOGS[i].org_id === u.org_id) {
+      DRIP_LOGS.splice(i, 1);
+      deletedCount++;
+    }
+  }
+  saveDatabase();
+  res.json({ message: `تم مسح ${deletedCount} من سجلات حملات التقطير بنجاح`, deleted_count: deletedCount });
+});
+
+// Helper: Seed or enrich rich HR demo CRM data for an organization
+function seedHRDemoDataForOrg(orgId: number) {
+  const orgCandidates = CANDIDATES.filter(c => c.org_id === orgId);
+  
+  // Find candidate IDs matching specialties
+  const techCandIds = orgCandidates.filter(c => {
+    const role = (c.current_position || '').toLowerCase();
+    const skills = Object.values(c.technical_skills || {}).flat().join(' ').toLowerCase();
+    return role.includes('developer') || role.includes('engineer') || role.includes('lead') || role.includes('stack') || skills.includes('react') || skills.includes('node') || skills.includes('python');
+  }).map(c => c.id);
+
+  const aiCandIds = orgCandidates.filter(c => {
+    const role = (c.current_position || '').toLowerCase();
+    const skills = Object.values(c.technical_skills || {}).flat().join(' ').toLowerCase();
+    return role.includes('ai') || role.includes('machine learning') || skills.includes('python') || skills.includes('pytorch') || skills.includes('llm');
+  }).map(c => c.id);
+
+  const salesCandIds = orgCandidates.filter(c => {
+    const role = (c.current_position || '').toLowerCase();
+    return role.includes('sales') || role.includes('broker') || role.includes('property') || role.includes('telesales') || role.includes('commercial');
+  }).map(c => c.id);
+
+  const hrCandIds = orgCandidates.filter(c => {
+    const role = (c.current_position || '').toLowerCase();
+    return role.includes('hr') || role.includes('talent') || role.includes('recruiter') || role.includes('acquisition');
+  }).map(c => c.id);
+
+  const financeCandIds = orgCandidates.filter(c => {
+    const role = (c.current_position || '').toLowerCase();
+    return role.includes('accountant') || role.includes('financial') || role.includes('controller') || role.includes('audit') || role.includes('محاسب');
+  }).map(c => c.id);
+
+  const topScorerIds = orgCandidates.filter(c => (c.match_score || 0) >= 80).map(c => c.id);
+
+  // 1. Enrich Talent Pools if none or user requests
+  const existingPools = TALENT_POOLS.filter(p => p.org_id === orgId);
+  const demoPoolsToCreate: Array<Omit<DBTalentPool, 'id' | 'org_id' | 'created_at'>> = [
+    {
+      name: 'نخبة مهندسي الفول ستاك والواجهات (Senior Full Stack & Frontend Leads)',
+      description: 'مرشحون ذوو خبرة هندسية عالية في بناء النظم الموزعة وتقنيات React, Node.js و TypeScript.',
+      tags: ['React', 'Node.js', 'TypeScript', 'System Architecture', 'Remote'],
+      color: 'blue',
+      candidate_ids: techCandIds.length > 0 ? techCandIds : orgCandidates.slice(0, 2).map(c => c.id),
+    },
+    {
+      name: 'خبراء الذكاء الاصطناعي ومعالجة اللغات (AI, ML & NLP Engineers)',
+      description: 'مهندسون وباحثون في مجالات التعلم العميق ونماذج التوليد الذكي LLMs و Vector Search.',
+      tags: ['Python', 'PyTorch', 'LLMs', 'GenAI', 'LangChain'],
+      color: 'emerald',
+      candidate_ids: aiCandIds.length > 0 ? aiCandIds : orgCandidates.slice(0, 2).map(c => c.id),
+    },
+    {
+      name: 'قادة المبيعات والوساطة العقارية (Real Estate & High-Ticket Sales Stars)',
+      description: 'استشاريو مبيعات محترفون في إغلاق الصفقات العقارية الكبرى والتعامل مع كبار العملاء.',
+      tags: ['Telesales', 'Closing', 'B2B', 'Commercial Real Estate', 'CRM'],
+      color: 'purple',
+      candidate_ids: salesCandIds.length > 0 ? salesCandIds : [],
+    },
+    {
+      name: 'مديرو الموارد البشرية والاستقطاب التنفيذي (HR & Executive Talent Leaders)',
+      description: 'متخصصو استقطاب الكفاءات النادرة وإدارة دورة التوظيف الكاملة وبناء ثقافة العمل.',
+      tags: ['Talent Acquisition', 'Headhunting', 'HRBP', 'Payroll', 'Labor Law'],
+      color: 'amber',
+      candidate_ids: hrCandIds.length > 0 ? hrCandIds : [],
+    },
+    {
+      name: 'المديرون الماليون والمحاسبون القانونيون (Chief Accountants & CFO Track)',
+      description: 'محاسبون قانونيون ومديرون ماليون معتمدون في إعداد القوائم المالية وإدارة الضرائب و IFRS.',
+      tags: ['Financial Controller', 'SOCPA', 'Audit', 'IFRS', 'ERP'],
+      color: 'rose',
+      candidate_ids: financeCandIds.length > 0 ? financeCandIds : [],
+    },
+    {
+      name: 'المتأهلون للمرحلة النهائية وقائمة التميز (Silver Medalists & Fast-Track)',
+      description: 'مرشحون متميزون حققوا تقييمات مطابقة أعلى من 80% وجاهزون للتعيين في الفرص القادمة.',
+      tags: ['Top Tier', 'Runner Up', 'Strong Culture Fit', 'Q3 Hiring Priority'],
+      color: 'indigo',
+      candidate_ids: topScorerIds.length > 0 ? topScorerIds : orgCandidates.slice(0, 3).map(c => c.id),
+    },
+  ];
+
+  for (const dp of demoPoolsToCreate) {
+    if (!existingPools.some(p => p.name === dp.name)) {
+      TALENT_POOLS.push({
+        id: nextTalentPoolId++,
+        org_id: orgId,
+        name: dp.name,
+        description: dp.description,
+        tags: dp.tags,
+        color: dp.color,
+        candidate_ids: dp.candidate_ids,
+        created_at: new Date(Date.now() - Math.floor(Math.random() * 10 + 2) * 86400000).toISOString(),
+      });
+    }
+  }
+
+  // 2. Enrich Email Drip Campaigns
+  const existingDrips = DRIP_CAMPAIGNS.filter(d => d.org_id === orgId);
+  const demoDripsToCreate: Array<Omit<DBDripCampaign, 'id' | 'org_id' | 'created_at'>> = [
+    {
+      title: 'حملة استلام الطلبات والتغذية الراجعة التلقائية (Application Received Nurture)',
+      description: 'تأكيد استلام السيرة الذاتية فورياً + إرسال لمحة عن بيئة العمل بعد يومين + جدول زمني بعد 5 أيام.',
+      trigger_stage: 'Application Received',
+      target_job_id: null,
+      target_pool_id: null,
+      is_active: true,
+      enrolled_count: 5,
+      completed_count: 3,
+      steps: [
+        {
+          id: 1,
+          step_number: 1,
+          delay_value: 0,
+          delay_unit: 'hours',
+          delay_hours: 0,
+          subject: 'تم استلام طلب التقديم لوظيفة {{job_title}} - {{company_name}}',
+          body_template: 'عزيزي/عزيزتي {{candidate_name}}،\n\nنشكرك على اهتمامك بالانضمام إلى فريق {{company_name}} والتقديم على وظيفة {{job_title}}.\n\nتم استلام سيرتك الذاتية وتجري الآن مراجعتها عبر نظام الفرز الذكي. سنقوم بموافاتك بالخطوات القادمة قريباً.\n\nمع أطيب التحيات،\nفريق استقطاب المواهب - {{company_name}}',
+        },
+        {
+          id: 2,
+          step_number: 2,
+          delay_value: 2,
+          delay_unit: 'days',
+          delay_hours: 48,
+          subject: 'تعرف على بيئة العمل وثقافة الابتكار في {{company_name}}',
+          body_template: 'مرحباً {{candidate_name}}،\n\nبينما يواصل فريق التوظيف مراجعة ملفك لوظيفة {{job_title}}، يسعدنا مشاركتك لمحة سريعة عن قيم وثقافة العمل لدينا في {{company_name}}.\n\nيمكنك زيارة موقعنا والاطلاع على مشاريعنا وشهادات الموظفين.\n\nنتمنى لك كل التوفيق!\n{{company_name}}',
+        },
+        {
+          id: 3,
+          step_number: 3,
+          delay_value: 5,
+          delay_unit: 'days',
+          delay_hours: 120,
+          subject: 'تحديث حالة طلب التقديم والجدول الزمني للتقييم - {{company_name}}',
+          body_template: 'مرحباً {{candidate_name}}،\n\nنود إحاطتك علماً بأن مرحلة فرز المرشحين لوظيفة {{job_title}} تشارف على الاكتمال. في حال ترشيحك للمرحلة القادمة، سيتواصل معك أحد مسؤولي التوظيف لتنسيق المقابلة.\n\nشاكرين لك حسن صبرك واهتمامك.\nفريق الموارد البشرية',
+        },
+      ],
+    },
+    {
+      title: 'سلسلة دعوات وتأكيد المقابلات الفنية (Interview Scheduled & Prep Series)',
+      description: 'إرسال رابط وتفاصيل المقابلة فور جدولتها + رسالة تذكيرية وإرشادات قبل 24 ساعة لضمان الحضور.',
+      trigger_stage: 'Interview Scheduled',
+      target_job_id: null,
+      target_pool_id: null,
+      is_active: true,
+      enrolled_count: 4,
+      completed_count: 2,
+      steps: [
+        {
+          id: 1,
+          step_number: 1,
+          delay_value: 0,
+          delay_unit: 'hours',
+          delay_hours: 0,
+          subject: 'تأكيد موعد المقابلة الوظيفية: {{job_title}} - {{company_name}}',
+          body_template: 'عزيزي {{candidate_name}}،\n\nيسرنا دعوتك لحضور مقابلة تقييمية لوظيفة {{job_title}}.\n\n📅 الموعد: {{interview_date}}\n📍 رابط الاجتماع: {{interview_link}}\n\nيرجى التأكد من تجهيز بيئة هادئة واختبار الكاميرا والصوت قبل الموعد بـ 5 دقائق.\n\nنتطلع للحديث معك،\nفريق التوظيف - {{company_name}}',
+        },
+        {
+          id: 2,
+          step_number: 2,
+          delay_value: 24,
+          delay_unit: 'hours',
+          delay_hours: 24,
+          subject: 'تذكير بموعد مقابلتك القادمة مع فريق {{company_name}}',
+          body_template: 'مرحباً {{candidate_name}}،\n\nتذكير ودي بموعد مقابلتك المحدد لوظيفة {{job_title}}.\n\nالرابط المباشر: {{interview_link}}\n\nإذا واجهتك أي صعوبة تقنية أو رغبت في إعادة الجدولة، يرجى الرد على هذا البريد فوراً.\n\nمع التحية،\n{{company_name}}',
+        },
+      ],
+    },
+    {
+      title: 'سلسلة التقييم الفني واختبار الكفاءة (Technical Assessment Nurture)',
+      description: 'إرسال معايير ومهمة التقييم الفني مع تذكير قبل انتهاء المهلة المحددة للتسليم.',
+      trigger_stage: 'Technical Assessment',
+      target_job_id: null,
+      target_pool_id: null,
+      is_active: true,
+      enrolled_count: 3,
+      completed_count: 2,
+      steps: [
+        {
+          id: 1,
+          step_number: 1,
+          delay_value: 0,
+          delay_unit: 'hours',
+          delay_hours: 0,
+          subject: 'مهمة التقييم الفني لوظيفة {{job_title}} - {{company_name}}',
+          body_template: 'مرحباً {{candidate_name}}،\n\nتهانينا على وصولك لمرحلة التقييم الفني لوظيفة {{job_title}}.\n\nالمهمة المطلوبة تهدف إلى قياس مهاراتك العملية وقدرتك على حل المشكلات التقنية. يرجى مراجعة المتطلبات وإرسال الحل خلال 72 ساعة.\n\nبالتوفيق!\nفريق الهندسة والتقييم الفني',
+        },
+        {
+          id: 2,
+          step_number: 2,
+          delay_value: 48,
+          delay_unit: 'hours',
+          delay_hours: 48,
+          subject: 'تذكير: تبقى 24 ساعة على موعد تسليم التقييم الفني',
+          body_template: 'عزيزي {{candidate_name}}،\n\nنود التذكير باقتراب الموعد النهائي لتسليم مهمة التقييم الفني لوظيفة {{job_title}}.\n\nإذا كنت بحاجة إلى أي توضيح، يسعدنا مساعدتك بالرد على هذا البريد.\n\nتحياتنا،\n{{company_name}}',
+        },
+      ],
+    },
+    {
+      title: 'حملة تقديم ومتابعة العرض الوظيفي الرسمي (Job Offer Acceleration & Negotiation)',
+      description: 'إرسال العرض المالي مع متابعة حثيثة بعد 3 أيام للإجابة على التساؤلات وضمان قبول المرشح.',
+      trigger_stage: 'Offer Sent',
+      target_job_id: null,
+      target_pool_id: null,
+      is_active: true,
+      enrolled_count: 2,
+      completed_count: 1,
+      steps: [
+        {
+          id: 1,
+          step_number: 1,
+          delay_value: 0,
+          delay_unit: 'hours',
+          delay_hours: 0,
+          subject: 'عرض العمل الرسمي: {{job_title}} لدى شركة {{company_name}} 🚀',
+          body_template: 'عزيزي {{candidate_name}}،\n\nيسر إدارة {{company_name}} أن تتقدم إليك رسمياً بعرض عمل لوظيفة {{job_title}}.\n\n💰 الراتب الإجمالي: {{offer_amount}} {{offer_currency}}\n📅 آخر موعد لتأكيد القبول: {{offer_deadline}}\n\nلقد أثبتت تميزك طوال مراحل التقييم، ونحن متحمسون جداً لانضمامك إلينا لصناعة النجاح معاً.\n\nأطيب التحيات،\nالإدارة التنفيذية - {{company_name}}',
+        },
+        {
+          id: 2,
+          step_number: 2,
+          delay_value: 3,
+          delay_unit: 'days',
+          delay_hours: 72,
+          subject: 'متابعة بخصوص العرض الوظيفي والمزايا التنافسية - {{company_name}}',
+          body_template: 'مرحباً {{candidate_name}}،\n\nنأمل أنك حظيت بفرصة مراجعة تفاصيل العرض الوظيفي لوظيفة {{job_title}}.\n\nنود التأكيد على استعدادنا التام للإجابة على أي استفسارات تخص حزمة المزايا أو بيئة العمل وتاريخ المباشرة.\n\nنتطلع لتأكيد انضمامك!\nفريق الموارد البشرية',
+        },
+        {
+          id: 3,
+          step_number: 3,
+          delay_value: 6,
+          delay_unit: 'days',
+          delay_hours: 144,
+          subject: 'تذكير أخير: الموعد النهائي للعرض الوظيفي - {{company_name}}',
+          body_template: 'عزيزي {{candidate_name}}،\n\nتذكير بأن العرض الوظيفي المتاح ينتهي في {{offer_deadline}}.\n\nيرجى توقيع الخطاب وإعادة إرساله لإتمام إجراءات التعيين الرسمية.\n\nمع فائق الاحترام،\n{{company_name}}',
+        },
+      ],
+    },
+    {
+      title: 'سلسلة الترحيب والتهيئة للموظف الجديد (Pre-Onboarding & Welcome Pack)',
+      description: 'رسائل تجهيز الموظف الجديد فور قبوله وتزويده بالمستندات المطلوبة وجدول اليوم الأول.',
+      trigger_stage: 'Hired',
+      target_job_id: null,
+      target_pool_id: null,
+      is_active: true,
+      enrolled_count: 2,
+      completed_count: 2,
+      steps: [
+        {
+          id: 1,
+          step_number: 1,
+          delay_value: 0,
+          delay_unit: 'hours',
+          delay_hours: 0,
+          subject: 'أهلاً بك في عائلة {{company_name}}! 🎉 دليل الانضمام والتهيئة',
+          body_template: 'مرحباً {{candidate_name}}،\n\nأهلاً وسهلاً بك كعضو جديد في فريق {{company_name}} لوظيفة {{job_title}}!\n\nنحن في غاية السعادة بانضمامك. تجد مرفقاً دليل الموظف الجديد وقائمة بالوثائق المطلوبة لمسوغات التعيين.\n\nفريق People Operations',
+        },
+        {
+          id: 2,
+          step_number: 2,
+          delay_value: 3,
+          delay_unit: 'days',
+          delay_hours: 72,
+          subject: 'تجهيز المعدات وجدول اليوم الأول من العمل في {{company_name}}',
+          body_template: 'مرحباً {{candidate_name}}،\n\nنود إعلامك بأنه تم تجهيز بريدك المؤسسي وحسابات الأنظمة، بالإضافة إلى جدولة جلسات التوجيه الأولي مع فريقك.\n\nسيبدأ يومك الأول بجلسة ترحيبية في تمام الساعة 10:00 صباحاً.\n\nنتمنى لك بداية ملهمة وموفقة!',
+        },
+      ],
+    },
+    {
+      title: 'شبكة المواهب للمرشحين الواعدين (Silver Medalist Talent Community)',
+      description: 'رسالة اعتذار احترافية مع ضم المرشح الواعد لبنك المواهب ومتابعته بالفرص الجديدة.',
+      trigger_stage: 'Rejected',
+      target_job_id: null,
+      target_pool_id: null,
+      is_active: true,
+      enrolled_count: 4,
+      completed_count: 3,
+      steps: [
+        {
+          id: 1,
+          step_number: 1,
+          delay_value: 0,
+          delay_unit: 'hours',
+          delay_hours: 0,
+          subject: 'تحديث بشأن طلب التقديم لوظيفة {{job_title}} - {{company_name}}',
+          body_template: 'عزيزي {{candidate_name}}،\n\nنشكرك بصدق على الوقت والجهد اللذين بذلتهما طوال مرحلة التقديم والمقابلات لوظيفة {{job_title}}.\n\nعلى الرغم من كفاءتك العالية، فقد قررنا المضي قدماً مع مرشح تتطابق خبراته الدقيقة مع الاحتياج الراهن.\n\nنظراً لتميز ملفك، يسعدنا حفظ بياناتك ضمن "بنك مواهب النخبة" للتواصل معك بأولوية مطلقة فور توفر شواغر مستقبلية تناسبك.\n\nنتمنى لك دوام التوفيق والنجاح،\nفريق التوظيف - {{company_name}}',
+        },
+      ],
+    },
+  ];
+
+  for (const dd of demoDripsToCreate) {
+    if (!existingDrips.some(d => d.title === dd.title)) {
+      DRIP_CAMPAIGNS.push({
+        id: nextDripCampaignId++,
+        org_id: orgId,
+        title: dd.title,
+        description: dd.description,
+        trigger_stage: dd.trigger_stage,
+        target_job_id: dd.target_job_id,
+        target_pool_id: dd.target_pool_id,
+        is_active: dd.is_active,
+        enrolled_count: dd.enrolled_count,
+        completed_count: dd.completed_count,
+        steps: dd.steps,
+        created_at: new Date(Date.now() - Math.floor(Math.random() * 12 + 3) * 86400000).toISOString(),
+      });
+    }
+  }
+
+  // 3. Enrich Sequences
+  const existingSeqs = SEQUENCES.filter(s => s.org_id === orgId);
+  const demoSeqsToCreate: Array<Omit<DBSequence, 'id' | 'org_id' | 'created_at'>> = [
+    {
+      title: 'سلسلة الاستقطاب المباشر للمناصب القيادية (Executive Cold Headhunting Outreach)',
+      description: 'سلسلة تواصل احترافية سرية موجهة للقيادات والكفاءات النادرة في السوق مع 3 رسائل متابعة مدروسة.',
+      trigger_event: 'MANUAL',
+      steps: [
+        {
+          id: 1,
+          step_number: 1,
+          delay_hours: 0,
+          subject: 'فرصة قيادية مميزة وتحدٍ مهني جديد مع {{company_name}} 🎯',
+          body_template: 'مرحباً {{candidate_name}}،\n\nأتابع مسارك المهني وإنجازاتك البارزة في مجال {{job_title}} بإعجاب شديد.\n\nنقوم حالياً بقيادة عملية استقطاب لفرصة استراتيجية رفيعة المستوى في {{company_name}}، وأعتقد أن خبرتك ورؤيتك تتناسبان تماماً مع أهدافنا التوسعية.\n\nهل يناسبك تبادل الحديث لمدة 15 دقيقة لمناقشة التفاصيل بشكل سري وغير ملزم؟\n\nأطيب التحيات،\nمسؤول الاستقطاب التنفيذي',
+        },
+        {
+          id: 2,
+          step_number: 2,
+          delay_hours: 72,
+          subject: 'متابعة سريعة: فرصة {{job_title}} والمشاريع الاستراتيجية القادمة',
+          body_template: 'عزيزي {{candidate_name}}،\n\nأردت التأكد من وصول رسالتي السابقة. نحن في خضم بناء مبادرة رائدة في صناعتنا، ويسعدنا جداً استطلاع رأيك ومعرفة خططك المهنية.\n\nيسعدني مشاركة ملخص تفصيلي عن الدور والمسؤوليات في الوقت الذي يناسبك.\n\nمع التحية،\n{{company_name}}',
+        },
+        {
+          id: 3,
+          step_number: 3,
+          delay_hours: 144,
+          subject: 'الفرصة لا تزال قائمة: دعوة لفنجان قهوة مهني ☕',
+          body_template: 'مرحباً {{candidate_name}}،\n\nأقدر تماماً انشغالك. سأختم هذه السلسلة بالتأكيد على ترحيبنا الدائم بالتواصل معك سواء حالياً أو مستقبلاً عندما تتيح ظروفك.\n\nأتمنى لك دوام التقدم والنجاح!\nفريق القيادة - {{company_name}}',
+        },
+      ],
+    },
+    {
+      title: 'سلسلة إعادة تنشيط الكفاءات السابقة (Passive Talent Re-Engagement)',
+      description: 'إعادة التواصل مع أفضل المرشحين السابقين بعد 6 أشهر لاستكشاف مدى جاهزيتهم للفرص الجديدة.',
+      trigger_event: 'MANUAL',
+      steps: [
+        {
+          id: 1,
+          step_number: 1,
+          delay_hours: 0,
+          subject: 'تحية طيبة من {{company_name}}! فرصة جديدة قد تهمك',
+          body_template: 'عزيزي {{candidate_name}}،\n\nنأمل أن تكون بأفضل حال. نستذكر باعتزاز تواصلنا ومقابلاتنا السابقة معك.\n\nلدينا الآن توسعات كبيرة وشاغر جديد لوظيفة {{job_title}} بمزايا وصلاحيات واسعة، وفكرنا فيك كمرشح مثالي لهذا الدور.\n\nيسرنا معرفة ما إذا كنت منفتحاً لمناقشة هذا التحدي الجديد.\n\nتحياتنا،\nفريق التوظيف',
+        },
+        {
+          id: 2,
+          step_number: 2,
+          delay_hours: 96,
+          subject: 'تحديثات النمو والفرص المتاحة في {{company_name}}',
+          body_template: 'مرحباً {{candidate_name}}،\n\nمتابعة سريعة لمعرفة إن كنت ترغب في الاطلاع على ملف الوظيفة والمزايا التنافسية.\n\nيسعدنا تحديد موعد مكالمة قصيرة متى ما كان ذلك مناسباً لك.\n\nمع التقدير!',
+        },
+      ],
+    },
+    {
+      title: 'حملة مكافآت ترشيح الزملاء والمواهب (Employee & Candidate Referral Drive)',
+      description: 'دعوة المرشحين والموظفين لترشيح زملائهم من الكفاءات مقابل مكافآت ترشيح مجزية.',
+      trigger_event: 'MANUAL',
+      steps: [
+        {
+          id: 1,
+          step_number: 1,
+          delay_hours: 0,
+          subject: 'شارك في برنامج ترشيح المواهب واحصل على مكافأة استقطاب 🎁',
+          body_template: 'مرحباً {{candidate_name}}،\n\nنعلم أن الكفاءات المتميزة تحيط نفسها دائماً بمحترفين استثنائيين. نطلق اليوم برنامج ترشيح المواهب لوظائفنا المفتوحة.\n\nإذا كان لديك زميل أو معارف مؤهلون، رشحهم اليوم واحصل على مكافأة ترشيح عند إتمام التعيين!\n\nفريق استقطاب الكفاءات',
+        },
+      ],
+    },
+    {
+      title: 'سلسلة استكمال مسوغات التعيين وتوقيع العقد (Onboarding Document Completion Sequence)',
+      description: 'متابعة آلية لتذكير المرشحين المقبولين برفع صور الهوية والشهادات وتوقيع العقود.',
+      trigger_event: 'AFTER_OFFER_SENT',
+      steps: [
+        {
+          id: 1,
+          step_number: 1,
+          delay_hours: 24,
+          subject: 'تذكير هام: استكمال مسوغات التعيين - {{company_name}}',
+          body_template: 'عزيزي {{candidate_name}}،\n\nلضمان إصدار العقد النهائي وتجهيز ملف التأمين الاجتماعي والمباشرة في الموعد المحدد، يرجى رفع المستندات المطلوبة عبر البوابة.\n\nشاكرين لك سرعة استجابتك.\nإدارة الموارد البشرية',
+        },
+      ],
+    },
+  ];
+
+  for (const ds of demoSeqsToCreate) {
+    if (!existingSeqs.some(s => s.title === ds.title)) {
+      SEQUENCES.push({
+        id: nextSequenceId++,
+        org_id: orgId,
+        title: ds.title,
+        description: ds.description,
+        trigger_event: ds.trigger_event,
+        steps: ds.steps,
+        created_at: new Date(Date.now() - Math.floor(Math.random() * 15 + 4) * 86400000).toISOString(),
+      });
+    }
+  }
+
+  // 4. Enrich Realistic Logs
+  const existingLogs = DRIP_LOGS.filter(l => l.org_id === orgId);
+  if (existingLogs.length < 5 && orgCandidates.length > 0) {
+    const demoLogsData = [
+      {
+        camp_title: 'حملة استلام الطلبات والتغذية الراجعة التلقائية (Application Received Nurture)',
+        stage: 'Application Received',
+        step: 1,
+        total: 3,
+        cand: orgCandidates[0],
+        subj: `تم استلام طلب التقديم لوظيفة ${orgCandidates[0].current_position || 'Senior Engineer'} - CalliQ`,
+        status: 'SENT' as const,
+        daysAgo: 5,
+      },
+      {
+        camp_title: 'حملة استلام الطلبات والتغذية الراجعة التلقائية (Application Received Nurture)',
+        stage: 'Application Received',
+        step: 2,
+        total: 3,
+        cand: orgCandidates[0],
+        subj: `تعرف على بيئة العمل وثقافة الابتكار في CalliQ`,
+        status: 'SENT' as const,
+        daysAgo: 3,
+      },
+      {
+        camp_title: 'سلسلة دعوات وتأكيد المقابلات الفنية (Interview Scheduled & Prep Series)',
+        stage: 'Interview Scheduled',
+        step: 1,
+        total: 2,
+        cand: orgCandidates[1] || orgCandidates[0],
+        subj: `تأكيد موعد المقابلة الوظيفية لوظيفة ${(orgCandidates[1] || orgCandidates[0]).current_position || 'Technical Specialist'} - CalliQ`,
+        status: 'SENT' as const,
+        daysAgo: 2,
+      },
+      {
+        camp_title: 'حملة تقديم ومتابعة العرض الوظيفي الرسمي (Job Offer Acceleration & Negotiation)',
+        stage: 'Offer Sent',
+        step: 1,
+        total: 3,
+        cand: orgCandidates[2] || orgCandidates[0],
+        subj: `عرض العمل الرسمي لوظيفة ${(orgCandidates[2] || orgCandidates[0]).current_position || 'Manager'} لدى CalliQ 🚀`,
+        status: 'SENT' as const,
+        daysAgo: 1,
+      },
+      {
+        camp_title: 'سلسلة التقييم الفني واختبار الكفاءة (Technical Assessment Nurture)',
+        stage: 'Technical Assessment',
+        step: 1,
+        total: 2,
+        cand: orgCandidates[3] || orgCandidates[0],
+        subj: `مهمة التقييم الفني المتقدمة - CalliQ Engineering Team`,
+        status: 'SENT' as const,
+        daysAgo: 4,
+      },
+    ];
+
+    for (const dl of demoLogsData) {
+      DRIP_LOGS.push({
+        id: nextDripLogId++,
+        org_id: orgId,
+        campaign_id: 1,
+        campaign_title: dl.camp_title,
+        trigger_stage: dl.stage,
+        candidate_id: dl.cand.id,
+        candidate_name: dl.cand.full_name,
+        candidate_email: dl.cand.email,
+        step_number: dl.step,
+        total_steps: dl.total,
+        subject: dl.subj,
+        body_rendered: `مرحباً ${dl.cand.full_name}،\n\nنود إحاطتك علماً بآخر التحديثات لوظيفتك في CalliQ.\n\nنتمنى لك كل التوفيق!\nفريق التوظيف`,
+        status: dl.status,
+        scheduled_for: new Date(Date.now() - dl.daysAgo * 86400000).toISOString(),
+        executed_at: new Date(Date.now() - dl.daysAgo * 86400000).toISOString(),
+      });
+    }
+  }
+
+  saveDatabase();
+}
+
+app.post('/api/v1/crm/seed-demo-examples', requireAuth, (req, res) => {
+  const u = (req as any).user as DBUser;
+  seedHRDemoDataForOrg(u.org_id);
+  
+  const orgPools = TALENT_POOLS.filter(p => p.org_id === u.org_id);
+  const orgCampaigns = DRIP_CAMPAIGNS.filter(c => c.org_id === u.org_id);
+  const orgSeqs = SEQUENCES.filter(s => s.org_id === u.org_id);
+  const orgLogs = DRIP_LOGS.filter(l => l.org_id === u.org_id);
+
+  AUDIT_LOGS.unshift({
+    id: AUDIT_LOGS.length + 1,
+    action: 'CRM HR Demo Data Restored / Enriched',
+    user: u.name,
+    target: `${orgPools.length} Pools, ${orgCampaigns.length} Drip Campaigns, ${orgSeqs.length} Sequences`,
+    timestamp: new Date().toISOString(),
+  });
+  saveDatabase();
+
+  res.json({
+    message: 'تمت تعبئة وتحديث بنوك المواهب وحملات التقطير وسلاسل التواصل بأمثلة HR احترافية بنجاح.',
+    pools_count: orgPools.length,
+    campaigns_count: orgCampaigns.length,
+    sequences_count: orgSeqs.length,
+    logs_count: orgLogs.length,
+  });
+});
+
+app.post('/api/v1/drip-campaigns/generate-ai', requireAuth, async (req, res) => {
+  const { trigger_stage, goal, company_name } = req.body;
+  const stage = trigger_stage || 'Application Received';
+  const comp = company_name || 'CalliQ';
+
+  const ai = getAIClient();
+  if (!ai) {
+    return res.json({
+      title: `حملة متابعة مرحلة ${stage}`,
+      description: `سلسلة بريد تقطير ذكية تلقائية لمرحلة ${stage}`,
+      steps: [
+        {
+          step_number: 1,
+          delay_value: 0,
+          delay_unit: 'hours',
+          delay_hours: 0,
+          subject: `إشعار هام بخصوص مرحلة ${stage} - {{company_name}}`,
+          body_template: `مرحباً {{candidate_name}}،\n\nنود إعلامك بتحديث جديد في طلبك لوظيفة {{job_title}} لدى {{company_name}}.\n\nمع التحية،\nفريق التوظيف`
+        },
+        {
+          step_number: 2,
+          delay_value: 2,
+          delay_unit: 'days',
+          delay_hours: 48,
+          subject: `متابعة مرحلة التقييم لوظيفة {{job_title}} - {{company_name}}`,
+          body_template: `عزيزي {{candidate_name}}،\n\nنود الاطمئنان ومتابعة الإجراءات القادمة للفرصة الوظيفية.\n\nنتمنى لك التوفيق!\n{{company_name}}`
+        }
+      ]
+    });
+  }
+
+  try {
+    const prompt = `أنت خبير استقطاب مواهب وتصميم حملات بريد إلكتروني تتابعية وتقطير (Automated Email Drip Campaign) باللغة العربية.
+قم بتوليد حملة بريد إلكتروني تتابعية ذكية تتكون من خطوتين إلى 3 خطوات، تُفعَّل عند دخول المرشح في مرحلة: "${stage}".
+اسم الشركة: "${comp}".
+الهدف الإضافي: "${goal || 'متابعة واحتضان المرشح باحترافية وتوفير تجربة توظيف مميزة'}".
+
+المتغيرات المتاحة للاستخدام في القوالب:
+{{candidate_name}}, {{job_title}}, {{company_name}}, {{interview_date}}, {{interview_link}}, {{offer_amount}}, {{offer_currency}}, {{offer_deadline}}
+
+قم بالرد بصيغة JSON حصراً بدون أي نصوص تمهيدية وبدون markdown code blocks:
+{
+  "title": "عنوان الحملة باللغة العربية",
+  "description": "وصف موجز وواضح للهدف من الحملة",
+  "steps": [
+    {
+      "step_number": 1,
+      "delay_value": 0,
+      "delay_unit": "hours",
+      "delay_hours": 0,
+      "subject": "عنوان البريد الأول",
+      "body_template": "محتوى البريد الأول"
+    },
+    {
+      "step_number": 2,
+      "delay_value": 48,
+      "delay_unit": "hours",
+      "delay_hours": 48,
+      "subject": "عنوان البريد الثاني التذكيري",
+      "body_template": "محتوى البريد الثاني"
+    }
+  ]
+}`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+
+    const text = response.text || '';
+    const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(cleanJson);
+    res.json(parsed);
+  } catch (err) {
+    console.error('AI Drip generation failed:', err);
+    res.json({
+      title: `حملة تقطير مرحلة ${stage}`,
+      description: `سلسلة بريدية مخصصة لمرحلة ${stage}`,
+      steps: [
+        {
+          step_number: 1,
+          delay_value: 0,
+          delay_unit: 'hours',
+          delay_hours: 0,
+          subject: `تحديث طلب التقديم لوظيفة {{job_title}} - {{company_name}}`,
+          body_template: `عزيزي {{candidate_name}}،\n\nنود إحاطتك علماً بوصولك لمرحلة ${stage} لوظيفة {{job_title}} لدى {{company_name}}.\n\nأطيب التحيات،\nفريق التوظيف`
+        },
+        {
+          step_number: 2,
+          delay_value: 2,
+          delay_unit: 'days',
+          delay_hours: 48,
+          subject: `تذكير ومتابعة مرحلة التقييم - {{company_name}}`,
+          body_template: `مرحباً {{candidate_name}}،\n\nنود المتابعة معك بشأن الخطوات القادمة.\n\nنتمنى لك كل التوفيق،\n{{company_name}}`
+        }
+      ]
+    });
+  }
+});
 
 // 7. Webhooks Endpoints
 app.get('/api/v1/webhooks/endpoints', (req, res) => {

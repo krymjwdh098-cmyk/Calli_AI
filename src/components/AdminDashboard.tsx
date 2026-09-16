@@ -41,9 +41,17 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
   const [timePeriod, setTimePeriod] = useState<'7d' | '30d' | '90d'>('30d');
 
   // Modals state
+  const { updateUser: updateAuthUser } = useAuthStore();
   const [editingUser, setEditingUser] = useState<TeamUser | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [deletingUser, setDeletingUser] = useState<TeamUser | null>(null);
+  const [editingCompanyUser, setEditingCompanyUser] = useState<TeamUser | null>(null);
+  const [companyFormData, setCompanyFormData] = useState({
+    org_name: '',
+    company_logo: '',
+    company_tagline: '',
+    company_website: '',
+  });
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [newUserData, setNewUserData] = useState({
     name: '',
@@ -120,6 +128,33 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
     },
     onError: (err: any) => {
       toast(err?.response?.data?.detail || 'فشل تحديث كلمة المرور', 'error');
+    }
+  });
+
+  const updateCompanyProfileMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: typeof companyFormData }) => usersApi.update(id, data),
+    onSuccess: (updatedUser) => {
+      qc.invalidateQueries({ queryKey: ['admin-users-list'] });
+      qc.invalidateQueries({ queryKey: ['team'] });
+      qc.invalidateQueries({ queryKey: ['jobs'] });
+      qc.invalidateQueries({ queryKey: ['admin-jobs-list'] });
+      qc.invalidateQueries({ queryKey: ['apply-job'] });
+      qc.invalidateQueries({ queryKey: ['dashboard-stats'] });
+
+      if (currentUser?.id === updatedUser.id || currentUser?.org_id === updatedUser.org_id) {
+        updateAuthUser({
+          org_name: updatedUser.org_name,
+          company_logo: updatedUser.company_logo,
+          company_tagline: updatedUser.company_tagline,
+          company_website: updatedUser.company_website,
+        });
+      }
+
+      setEditingCompanyUser(null);
+      toast('تم حفظ وتحديث الهوية والشعار للشركة وتطبيق التغييرات فورياً!', 'success');
+    },
+    onError: (err: any) => {
+      toast(err?.response?.data?.detail || 'فشل تحديث بيانات الشركة', 'error');
     }
   });
 
@@ -202,24 +237,23 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
   return (
     <div className="space-y-6">
       {/* Admin Dashboard Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-white rounded-2xl p-6 text-slate-900 shadow-sm border border-slate-200/90 relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="flex items-center gap-2.5 mb-1.5">
-              <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-md">
-                <ShieldCheck size={14} className="text-indigo-400" />
+            <div className="flex items-center gap-2.5 mb-2">
+              <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+                <ShieldCheck size={14} className="text-indigo-600" />
                 System Administration
               </span>
-              <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Live Telemetry
               </span>
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-white">
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-slate-900">
               Platform Admin Dashboard
             </h1>
-            <p className="text-slate-300 text-sm mt-1 max-w-2xl">
+            <p className="text-slate-500 text-sm mt-1 max-w-2xl">
               Overview of registered platform users, active recruitment job postings, and real-time candidate pipeline metrics.
             </p>
           </div>
@@ -227,14 +261,14 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
           <div className="flex items-center gap-3">
             <button
               onClick={handleRefreshAll}
-              className="px-3.5 py-2 bg-slate-800/80 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-medium text-slate-200 flex items-center gap-2 transition-all"
+              className="px-3.5 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 flex items-center gap-2 transition-all cursor-pointer shadow-2xs"
             >
               <RefreshCw size={14} className={(loadingUsers || loadingStats) ? 'animate-spin' : ''} />
               Refresh Data
             </button>
             <Link
               to="/settings"
-              className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold text-xs rounded-xl shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-xs flex items-center gap-2 transition-all"
             >
               <UserPlus size={14} />
               Manage Users
@@ -243,41 +277,41 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
         </div>
 
         {/* AI System Status Strip */}
-        <div className="mt-6 pt-4 border-t border-slate-800/80 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+        <div className="mt-6 pt-4 border-t border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center font-bold">
               <Cpu size={16} />
             </div>
             <div>
               <p className="text-slate-400 text-[11px]">Primary AI Engine</p>
-              <p className="font-semibold text-white">{aiConfig?.primary_model || 'Gemini 3.6 Flash'}</p>
+              <p className="font-semibold text-slate-800">{aiConfig?.primary_model || 'Gemini 3.6 Flash'}</p>
             </div>
           </div>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center font-bold">
               <Activity size={16} />
             </div>
             <div>
               <p className="text-slate-400 text-[11px]">Engine Status</p>
-              <p className="font-semibold text-emerald-400">{aiConfig?.status || 'Operational (Sub-second)'}</p>
+              <p className="font-semibold text-emerald-600">{aiConfig?.status || 'Operational (Sub-second)'}</p>
             </div>
           </div>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center font-bold">
               <Sparkles size={16} />
             </div>
             <div>
               <p className="text-slate-400 text-[11px]">Matching Algorithm</p>
-              <p className="font-semibold text-white">Hybrid Multimodal Vector</p>
+              <p className="font-semibold text-slate-800">Hybrid Multimodal Vector</p>
             </div>
           </div>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-300 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center font-bold">
               <Shield size={16} />
             </div>
             <div>
               <p className="text-slate-400 text-[11px]">Current Admin</p>
-              <p className="font-semibold text-white truncate max-w-[130px]">{currentUser?.email || 'System Admin'}</p>
+              <p className="font-semibold text-slate-800 truncate max-w-[130px]">{currentUser?.email || 'System Admin'}</p>
             </div>
           </div>
         </div>
@@ -380,10 +414,10 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
 
           <div className="flex items-center gap-2">
             <Link
-              to="/reports"
+              to="/candidates"
               className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 hover:underline"
             >
-              Detailed Pipeline Analytics <ChevronRight size={14} />
+              Detailed Pipeline <ChevronRight size={14} />
             </Link>
           </div>
         </div>
@@ -569,6 +603,23 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
                             title="تعديل كلمة المرور"
                           >
                             <KeyRound size={13} />
+                          </button>
+
+                          {/* Edit Company Logo & Branding */}
+                          <button
+                            onClick={() => {
+                              setEditingCompanyUser(u);
+                              setCompanyFormData({
+                                org_name: u.org_name || '',
+                                company_logo: u.company_logo || '',
+                                company_tagline: u.company_tagline || '',
+                                company_website: u.company_website || '',
+                              });
+                            }}
+                            className="p-1.5 rounded-lg border border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 text-xs transition-all cursor-pointer"
+                            title="تعديل الشعار واسم الشركة"
+                          >
+                            <Building2 size={13} />
                           </button>
 
                           {/* Delete User Button */}
@@ -869,6 +920,133 @@ export function AdminDashboard({ onNavigateToUsers, onNavigateToJobs, onNavigate
                   className="px-4 py-2 text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all shadow-sm disabled:opacity-50 cursor-pointer"
                 >
                   {createUserMutation.isPending ? 'جاري الإنشاء...' : 'إنشاء الحساب الآن'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: EDIT COMPANY BRANDING & LOGO FOR USER */}
+      {editingCompanyUser && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-indigo-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2 text-indigo-600 font-bold">
+                <Building2 size={20} />
+                <h3 className="text-base text-slate-900">تعديل الشعار واسم الشركة للحساب</h3>
+              </div>
+              <button
+                onClick={() => setEditingCompanyUser(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 mb-4 bg-indigo-50/70 p-3 rounded-xl border border-indigo-100">
+              تعديل بيانات الهوية والشعار لحساب <strong className="text-slate-900">{editingCompanyUser.name}</strong> ({editingCompanyUser.email}).
+              تأثير الفعالية فورية على لوحة التحكم العامة والوظائف والإيميلات.
+            </p>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                updateCompanyProfileMutation.mutate({
+                  id: editingCompanyUser.id,
+                  data: companyFormData,
+                });
+              }}
+              className="space-y-4 text-right dir-rtl"
+            >
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">اسم الشركة (Organization Name)</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="مثال: Apex Global"
+                  value={companyFormData.org_name}
+                  onChange={(e) => setCompanyFormData({ ...companyFormData, org_name: e.target.value })}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">الشعار الحالي (Company Logo URL / Data URI)</label>
+                <div className="flex items-center gap-3 mb-2">
+                  {companyFormData.company_logo ? (
+                    <img src={companyFormData.company_logo} alt="Logo" className="w-12 h-12 rounded-xl object-contain bg-white p-1 border border-slate-200 shadow-xs" />
+                  ) : (
+                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 border border-slate-200 text-xs font-bold">
+                      لا يوجد
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    placeholder="رابط الصورة أو Data URI"
+                    value={companyFormData.company_logo}
+                    onChange={(e) => setCompanyFormData({ ...companyFormData, company_logo: e.target.value })}
+                    className="flex-1 px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-slate-600"
+                  />
+                </div>
+
+                {/* Local Upload */}
+                <div className="mb-3">
+                  <label className="block text-[11px] font-semibold text-slate-500 mb-1">أو ارفع شعار من جهازك:</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setCompanyFormData({ ...companyFormData, company_logo: reader.result as string });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">الوصف المختصر (Tagline)</label>
+                <input
+                  type="text"
+                  placeholder="مثال: AI-powered recruitment solution"
+                  value={companyFormData.company_tagline}
+                  onChange={(e) => setCompanyFormData({ ...companyFormData, company_tagline: e.target.value })}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">الموقع الإلكتروني (Website)</label>
+                <input
+                  type="text"
+                  placeholder="https://example.com"
+                  value={companyFormData.company_website}
+                  onChange={(e) => setCompanyFormData({ ...companyFormData, company_website: e.target.value })}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingCompanyUser(null)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateCompanyProfileMutation.isPending}
+                  className="px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all shadow-sm disabled:opacity-50 cursor-pointer"
+                >
+                  {updateCompanyProfileMutation.isPending ? 'جاري الحفظ...' : 'حفظ وتطبيق التغييرات'}
                 </button>
               </div>
             </form>

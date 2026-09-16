@@ -140,3 +140,79 @@ export function formatSalary(amount?: number, currency = 'EGP'): string {
 export function truncate(str: string, n = 60): string {
   return str.length > n ? str.slice(0, n) + '…' : str;
 }
+
+export function exportCandidatesToCSV(candidates: any[], filename = 'candidates_export.csv') {
+  if (!candidates || candidates.length === 0) return;
+
+  const headers = [
+    'ID',
+    'Full Name',
+    'Email',
+    'Phone',
+    'Location',
+    'Current Position',
+    'Years Experience',
+    'Match Score',
+    'ATS Score',
+    'Category',
+    'Status',
+    'Job ID',
+    'Applied Date',
+    'Technical Skills',
+    'Education',
+    'Recommendation',
+  ];
+
+  const escapeCell = (val: any): string => {
+    if (val === null || val === undefined) return '""';
+    const str = String(val).replace(/"/g, '""');
+    return `"${str}"`;
+  };
+
+  const rows = candidates.map(c => {
+    let skillsStr = '';
+    if (c.technical_skills && typeof c.technical_skills === 'object') {
+      skillsStr = Array.isArray(c.technical_skills)
+        ? c.technical_skills.join(', ')
+        : Object.values(c.technical_skills).flat().join(', ');
+    }
+
+    let eduStr = '';
+    if (Array.isArray(c.education)) {
+      eduStr = c.education
+        .map((e: any) => `${e.degree || ''} ${e.field || ''} (${e.institution || ''})`.trim())
+        .filter(Boolean)
+        .join('; ');
+    }
+
+    return [
+      escapeCell(c.id),
+      escapeCell(c.full_name || ''),
+      escapeCell(c.email || ''),
+      escapeCell(c.phone || c.whatsapp_phone || ''),
+      escapeCell(c.location || ''),
+      escapeCell(c.current_position || ''),
+      escapeCell(c.years_experience ?? 0),
+      escapeCell(c.match_score ?? 0),
+      escapeCell(c.ats_score ?? 0),
+      escapeCell(c.category || ''),
+      escapeCell(c.status || ''),
+      escapeCell(c.job_id || ''),
+      escapeCell(c.applied_at || c.created_at || ''),
+      escapeCell(skillsStr),
+      escapeCell(eduStr),
+      escapeCell(c.recommendation || ''),
+    ].join(',');
+  });
+
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}

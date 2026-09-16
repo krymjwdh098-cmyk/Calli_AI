@@ -17,10 +17,14 @@
       "email": "cillkareem@gmail.com",
       "role": "recruiter",
       "org_id": 7,
-      "org_name": "CalliQ HR Workspace",
+      "org_name": "Kareem",
       "password": "pass123",
       "is_active": true,
-      "created_at": "2026-08-25T10:19:46.531Z"
+      "created_at": "2026-08-25T10:19:46.531Z",
+      "company_logo": "data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" fill=\"none\"><rect width=\"100\" height=\"100\" rx=\"24\" fill=\"%237c3aed\"/><circle cx=\"50\" cy=\"50\" r=\"28\" stroke=\"white\" stroke-width=\"8\"/><circle cx=\"50\" cy=\"50\" r=\"12\" fill=\"%23c084fc\"/></svg>",
+      "company_tagline": "",
+      "company_website": "",
+      "primary_color": "#4f46e5"
     },
     {
       "id": 24,
@@ -30,74 +34,23 @@
       "org_id": 14,
       "org_name": "CalliQ HR Workspace",
       "password": "hr1234",
-      "is_active": false,
+      "is_active": true,
       "created_at": "2026-08-27T14:50:52.714Z"
     },
     {
-      "id": 29,
-      "email": "hr3@calliq.ai",
-      "name": "HR Lead",
+      "id": 38,
+      "email": "realestate@calliq.ai",
+      "name": "Prime Real Estate HR",
       "role": "recruiter",
-      "org_id": 19,
-      "org_name": "CalliQ HR Workspace",
-      "password": "hr3030",
+      "org_id": 27,
+      "org_name": "Prime Estate Properties (برايم إستيت للتطوير العقاري)",
+      "password": "estate1234",
       "is_active": true,
-      "created_at": "2026-08-28T22:27:14.169Z"
-    },
-    {
-      "id": 31,
-      "email": "hr4@calliq.ai",
-      "name": "HR Specialist",
-      "role": "recruiter",
-      "org_id": 21,
-      "org_name": "CalliQ HR Workspace",
-      "password": "hr4040",
-      "is_active": true,
-      "created_at": "2026-08-29T14:57:25.811Z"
-    },
-    {
-      "id": 32,
-      "email": "hr5@calliq.ai",
-      "name": "HR Consultant",
-      "role": "recruiter",
-      "org_id": 22,
-      "org_name": "CalliQ HR Workspace",
-      "password": "hr5050",
-      "is_active": true,
-      "created_at": "2026-08-29T14:57:25.812Z"
-    },
-    {
-      "id": 34,
-      "email": "hr6@calliq.ai",
-      "name": "HR Executive",
-      "role": "recruiter",
-      "org_id": 23,
-      "org_name": "CalliQ HR Workspace",
-      "password": "hr6060",
-      "is_active": true,
-      "created_at": "2026-09-01T12:11:49.769Z"
-    },
-    {
-      "id": 35,
-      "email": "hr7@calliq.ai",
-      "name": "HR Operations Lead",
-      "role": "recruiter",
-      "org_id": 24,
-      "org_name": "CalliQ HR Workspace",
-      "password": "hr7070",
-      "is_active": true,
-      "created_at": "2026-09-01T12:11:49.783Z"
-    },
-    {
-      "id": 37,
-      "email": "hr2@calliq.ai",
-      "name": "HR Partner (HR 2)",
-      "role": "recruiter",
-      "org_id": 26,
-      "org_name": "CalliQ HR 2 Workspace",
-      "password": "hr2_pass2027",
-      "is_active": true,
-      "created_at": "2026-09-03T06:49:50.428Z"
+      "created_at": "2026-09-15T08:49:46.021Z",
+      "company_logo": "data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" fill=\"none\"><rect width=\"100\" height=\"100\" rx=\"24\" fill=\"%230f766e\"/><path d=\"M20 75L20 45L50 20L80 45L80 75Z\" stroke=\"%23f59e0b\" stroke-width=\"6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><rect x=\"36\" y=\"48\" width=\"10\" height=\"12\" fill=\"%23f59e0b\" rx=\"2\"/><rect x=\"54\" y=\"48\" width=\"10\" height=\"12\" fill=\"%23f59e0b\" rx=\"2\"/><rect x=\"42\" y=\"62\" width=\"16\" height=\"13\" fill=\"white\" rx=\"1\"/></svg>",
+      "company_tagline": "الشركة الرائدة في التطوير العقاري الاستثماري وإدارة المبيعات السكنية والتجارية",
+      "company_website": "https://primeestate-egypt.com",
+      "primary_color": "#0f766e"
     }
   ],
   "JOBS": [
@@ -215,7 +168,7 @@
       "org_id": 7,
       "recruiter_id": 10,
       "title": "Senior Full Stack Engineer",
-      "company": "CalliQ Group",
+      "company": "Kareem",
       "description": "نبحث عن مهندس برمجيات متكامل يتمتع بخبرة واسعة في React, Node.js, TypeScript, وقواعد البيانات لمتابعة تطوير منصات الاتصالات والذكاء الاصطناعي.",
       "required_skills": [
         "React",
@@ -252,7 +205,7 @@
       "org_id": 7,
       "recruiter_id": 10,
       "title": "Senior HR & Talent Acquisition Lead",
-      "company": "CalliQ Group",
+      "company": "Kareem",
       "description": "نبحث عن قائد موارد بشرية متميز لإدارة عمليات استقطاب الكفاءات والتحليل الرقمي لطلبات التوظيف وتطوير بيئة العمل.",
       "required_skills": [
         "Talent Acquisition",
@@ -288,7 +241,7 @@
       "org_id": 7,
       "recruiter_id": 10,
       "title": "Financial & Operations Manager",
-      "company": "CalliQ Group",
+      "company": "Kareem",
       "description": "إدارة المالية العامة والرقابة التخطيطية للعمليات المباشرة وإعداد التقارير المالية الاستراتيجية والميزانيات التقديرية.",
       "required_skills": [
         "Financial Analysis",
@@ -538,658 +491,185 @@
       "public_token": "token_12"
     },
     {
-      "id": 13,
-      "org_id": 19,
-      "recruiter_id": 29,
-      "title": "Senior Full Stack Engineer",
-      "company": "CalliQ Group",
-      "description": "نبحث عن مهندس برمجيات متكامل يتمتع بخبرة واسعة في React, Node.js, TypeScript, وقواعد البيانات لمتابعة تطوير منصات الاتصالات والذكاء الاصطناعي.",
+      "id": 33,
+      "org_id": 27,
+      "recruiter_id": 38,
+      "title": "Senior Real Estate Property Consultant (مستشار مبيعات عقارات فخمة)",
+      "company": "Prime Estate Properties",
+      "description": "نبحث عن مستشار مبيعات عقارية خبير للانضمام إلى فريق المبيعات الفاخرة (Luxury Properties). يتولى مسؤولية إدارة علاقات العملاء ذوي الملاءة المالية العالية، إتمام صفقات الوحدات السكنية والتجارية في التجمع الخامس والشروق والعاصمة الإدارية، وإجراء المعاينات والعروض التفاوضية بنجاح.",
       "required_skills": [
-        "React",
-        "TypeScript",
-        "Node.js",
-        "PostgreSQL",
-        "Docker"
+        "Real Estate Sales",
+        "Property Negotiation",
+        "Client Relationship Management (CRM)",
+        "Closing Deals",
+        "Market Analysis"
       ],
       "nice_to_have": [
-        "AWS",
-        "TailwindCSS",
-        "Redis",
-        "GraphQL"
+        "Luxury Real Estate Experience",
+        "Commercial Property Knowledge",
+        "English Proficiency",
+        "Cold Calling"
       ],
-      "min_experience": 5,
-      "max_experience": 10,
-      "education_req": "بكالوريوس علوم حاسب أو هندسة برمجيات",
-      "location_req": "عن بُعد / هجين",
-      "hr_email": "hr3@calliq.ai",
-      "salary_min": 80000,
-      "salary_max": 130000,
+      "min_experience": 3,
+      "max_experience": 8,
+      "education_req": "مؤهل عالي (مفضل إدارة أعمال أو تسويق)",
+      "location_req": "القاهرة التجمع الخامس - حضور كامل",
+      "hr_email": "realestate@calliq.ai",
+      "salary_min": 15000,
+      "salary_max": 35000,
       "is_active": true,
-      "apply_url": "/apply/job-13",
-      "score_strong_match": 85,
-      "score_potential_match": 65,
+      "apply_url": "/apply/job-33",
+      "score_strong_match": 80,
+      "score_potential_match": 60,
       "score_weak_match": 40,
       "candidate_count": 2,
-      "created_at": "2026-08-29T18:56:02.055Z",
-      "updated_at": "2026-08-29T18:56:02.055Z",
-      "public_token": "token_13"
+      "created_at": "2026-09-15T08:49:46.021Z",
+      "updated_at": "2026-09-15T08:49:46.021Z",
+      "public_token": "token_33"
     },
     {
-      "id": 14,
-      "org_id": 19,
-      "recruiter_id": 29,
-      "title": "Senior HR & Talent Acquisition Lead",
-      "company": "CalliQ Group",
-      "description": "نبحث عن قائد موارد بشرية متميز لإدارة عمليات استقطاب الكفاءات والتحليل الرقمي لطلبات التوظيف وتطوير بيئة العمل.",
+      "id": 34,
+      "org_id": 27,
+      "recruiter_id": 38,
+      "title": "Real Estate Telesales Team Leader (قائد فريق مبيعات هاتفية عقارية)",
+      "company": "Prime Estate Properties",
+      "description": "مسؤول عن توجيه ومتابعة فريق الـ Telesales العقاري لتحقيق التارجت الشهري للمكالمات وتأكيد زيارات المعاينات للعملاء المحتملين (Leads). يتضمن الدور وضع استراتيجيات الاتصال المباشر وتقييم جودة المكالمات البيعية وإعداد التقارير اليومية.",
       "required_skills": [
-        "Talent Acquisition",
-        "HR Strategy",
-        "ATS Systems",
-        "Interviewing",
-        "Performance Management"
+        "Telesales Management",
+        "Lead Conversion",
+        "Call Center Metrics",
+        "Sales Coaching",
+        "KPI Tracking"
       ],
       "nice_to_have": [
-        "People Analytics",
-        "Labor Law",
-        "Payroll"
+        "Salesforce / HubSpot CRM",
+        "Objection Handling",
+        "Real Estate Market Trends"
       ],
       "min_experience": 4,
-      "max_experience": 9,
-      "education_req": "بكالوريوس إدارة أعمال أو موارد بشرية",
-      "location_req": "ميداني / هجين",
-      "hr_email": "hr3@calliq.ai",
-      "salary_min": 65000,
-      "salary_max": 110000,
+      "max_experience": 8,
+      "education_req": "بكالوريوس مناسب",
+      "location_req": "المعادي / الشيخ زايد",
+      "hr_email": "realestate@calliq.ai",
+      "salary_min": 18000,
+      "salary_max": 30000,
       "is_active": true,
-      "apply_url": "/apply/job-14",
-      "score_strong_match": 85,
-      "score_potential_match": 65,
+      "apply_url": "/apply/job-34",
+      "score_strong_match": 80,
+      "score_potential_match": 60,
       "score_weak_match": 40,
-      "candidate_count": 2,
-      "created_at": "2026-08-29T18:56:02.055Z",
-      "updated_at": "2026-08-29T18:56:02.055Z",
-      "public_token": "token_14"
+      "candidate_count": 1,
+      "created_at": "2026-09-15T08:49:46.021Z",
+      "updated_at": "2026-09-15T08:49:46.021Z",
+      "public_token": "token_34"
     },
     {
-      "id": 15,
-      "org_id": 19,
-      "recruiter_id": 29,
-      "title": "Financial & Operations Manager",
-      "company": "CalliQ Group",
-      "description": "إدارة المالية العامة والرقابة التخطيطية للعمليات المباشرة وإعداد التقارير المالية الاستراتيجية والميزانيات التقديرية.",
+      "id": 35,
+      "org_id": 27,
+      "recruiter_id": 38,
+      "title": "Commercial Property Broker / Corporate Sales (وسيط عقارات تجارية وإدارية)",
+      "company": "Prime Estate Properties",
+      "description": "متخصص في بيع وتأجير المقرات الإدارية، المكاتب الذكية، والمحلات التجارية والمستودعات للشركات والمؤسسات الكبرى. يشمل العمل إجراء دراسات الجدوى المكانية والتفاوض على عقود الإيجار طويلة الأجل والعقود الاستثمارية.",
       "required_skills": [
-        "Financial Analysis",
-        "Budgeting",
-        "ERP Systems",
-        "Auditing",
-        "Financial Modeling"
+        "Commercial Real Estate",
+        "B2B Sales",
+        "Lease Negotiation",
+        "Corporate Client Management",
+        "Property Valuation"
       ],
       "nice_to_have": [
-        "CPA / CMA",
-        "Taxation",
-        "Corporate Governance"
+        "Legal Contract Knowledge",
+        "Retail Leasing",
+        "Investment Advisory"
+      ],
+      "min_experience": 5,
+      "max_experience": 10,
+      "education_req": "بكالوريوس تجارة، اقتصاد أو هندسة",
+      "location_req": "العاصمة الإدارية / القاهرة الجديدة",
+      "hr_email": "realestate@calliq.ai",
+      "salary_min": 25000,
+      "salary_max": 50000,
+      "is_active": true,
+      "apply_url": "/apply/job-35",
+      "score_strong_match": 80,
+      "score_potential_match": 60,
+      "score_weak_match": 40,
+      "candidate_count": 1,
+      "created_at": "2026-09-15T08:49:46.021Z",
+      "updated_at": "2026-09-15T08:49:46.021Z",
+      "public_token": "token_35"
+    },
+    {
+      "id": 36,
+      "org_id": 27,
+      "recruiter_id": 38,
+      "title": "Real Estate Digital Marketing Specialist (أخصائي تسويق عقاري رقمي)",
+      "company": "Prime Estate Properties",
+      "description": "مسؤول عن إدارة وإطلاق الحملات الإعلانية المدفوعة على Facebook, Meta, Google Ads & Lead Generation المخصصة للمشروعات العقارية الفاخرة، وتحسين تكلفة جلب العميل المحتمل (CPL) وتحليل أداء المنصات.",
+      "required_skills": [
+        "Meta Ads (Facebook & Instagram)",
+        "Google Lead Gen Ads",
+        "Real Estate Lead Gen",
+        "CPL Optimization",
+        "Google Analytics"
+      ],
+      "nice_to_have": [
+        "SEO for Real Estate",
+        "Content Creation",
+        "Property Photography & Reels"
+      ],
+      "min_experience": 2,
+      "max_experience": 6,
+      "education_req": "مؤهل عالي في التسويق الرقمي أو الإعلام",
+      "location_req": "التجمع الخامس (هجين)",
+      "hr_email": "realestate@calliq.ai",
+      "salary_min": 14000,
+      "salary_max": 24000,
+      "is_active": true,
+      "apply_url": "/apply/job-36",
+      "score_strong_match": 80,
+      "score_potential_match": 60,
+      "score_weak_match": 40,
+      "candidate_count": 1,
+      "created_at": "2026-09-15T08:49:46.021Z",
+      "updated_at": "2026-09-15T08:49:46.021Z",
+      "public_token": "token_36"
+    },
+    {
+      "id": 37,
+      "org_id": 27,
+      "recruiter_id": 38,
+      "title": "Property Operations & Asset Manager (مدير إدارة وتطوير الأصول العقارية)",
+      "company": "Prime Estate Properties",
+      "description": "إدارة وتشغيل المحافظ العقارية والمنتجعات والمجمعات السكنية المغلقة (Compounds). الإشراف على أعمال الصيانة، إدارة عقد الخدمات، تحصيل الإيجارات والإشغال العقاري، وضمان تعظيم العائد على الاستثمار العقاري (ROI).",
+      "required_skills": [
+        "Property Management",
+        "Facility & Operations",
+        "Asset Valuation",
+        "Contract Administration",
+        "Financial Reporting"
+      ],
+      "nice_to_have": [
+        "Property Management Software",
+        "Sustainability & Energy Efficiency",
+        "Vendor Management"
       ],
       "min_experience": 6,
       "max_experience": 12,
-      "education_req": "بكالوريوس تجارة / محاسبة مالية",
-      "location_req": "ميداني",
-      "hr_email": "hr3@calliq.ai",
-      "salary_min": 90000,
-      "salary_max": 140000,
+      "education_req": "بكالوريوس هندسة مدنية/معمارية أو إدارة أعمال",
+      "location_req": "القاهرة الجديدة / السادس من أكتوبر",
+      "hr_email": "realestate@calliq.ai",
+      "salary_min": 30000,
+      "salary_max": 60000,
       "is_active": true,
-      "apply_url": "/apply/job-15",
-      "score_strong_match": 85,
-      "score_potential_match": 65,
+      "apply_url": "/apply/job-37",
+      "score_strong_match": 80,
+      "score_potential_match": 60,
       "score_weak_match": 40,
       "candidate_count": 1,
-      "created_at": "2026-08-29T18:56:02.055Z",
-      "updated_at": "2026-08-29T18:56:02.055Z",
-      "public_token": "token_15"
-    },
-    {
-      "id": 16,
-      "org_id": 21,
-      "recruiter_id": 31,
-      "title": "Senior Full Stack Engineer",
-      "company": "CalliQ Group",
-      "description": "نبحث عن مهندس برمجيات متكامل يتمتع بخبرة واسعة في React, Node.js, TypeScript, وقواعد البيانات لمتابعة تطوير منصات الاتصالات والذكاء الاصطناعي.",
-      "required_skills": [
-        "React",
-        "TypeScript",
-        "Node.js",
-        "PostgreSQL",
-        "Docker"
-      ],
-      "nice_to_have": [
-        "AWS",
-        "TailwindCSS",
-        "Redis",
-        "GraphQL"
-      ],
-      "min_experience": 5,
-      "max_experience": 10,
-      "education_req": "بكالوريوس علوم حاسب أو هندسة برمجيات",
-      "location_req": "عن بُعد / هجين",
-      "hr_email": "hr4@calliq.ai",
-      "salary_min": 80000,
-      "salary_max": 130000,
-      "is_active": true,
-      "apply_url": "/apply/job-16",
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 2,
-      "created_at": "2026-08-29T18:56:02.055Z",
-      "updated_at": "2026-08-29T18:56:02.055Z",
-      "public_token": "token_16"
-    },
-    {
-      "id": 17,
-      "org_id": 21,
-      "recruiter_id": 31,
-      "title": "Senior HR & Talent Acquisition Lead",
-      "company": "CalliQ Group",
-      "description": "نبحث عن قائد موارد بشرية متميز لإدارة عمليات استقطاب الكفاءات والتحليل الرقمي لطلبات التوظيف وتطوير بيئة العمل.",
-      "required_skills": [
-        "Talent Acquisition",
-        "HR Strategy",
-        "ATS Systems",
-        "Interviewing",
-        "Performance Management"
-      ],
-      "nice_to_have": [
-        "People Analytics",
-        "Labor Law",
-        "Payroll"
-      ],
-      "min_experience": 4,
-      "max_experience": 9,
-      "education_req": "بكالوريوس إدارة أعمال أو موارد بشرية",
-      "location_req": "ميداني / هجين",
-      "hr_email": "hr4@calliq.ai",
-      "salary_min": 65000,
-      "salary_max": 110000,
-      "is_active": true,
-      "apply_url": "/apply/job-17",
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 2,
-      "created_at": "2026-08-29T18:56:02.055Z",
-      "updated_at": "2026-08-29T18:56:02.055Z",
-      "public_token": "token_17"
-    },
-    {
-      "id": 18,
-      "org_id": 21,
-      "recruiter_id": 31,
-      "title": "Financial & Operations Manager",
-      "company": "CalliQ Group",
-      "description": "إدارة المالية العامة والرقابة التخطيطية للعمليات المباشرة وإعداد التقارير المالية الاستراتيجية والميزانيات التقديرية.",
-      "required_skills": [
-        "Financial Analysis",
-        "Budgeting",
-        "ERP Systems",
-        "Auditing",
-        "Financial Modeling"
-      ],
-      "nice_to_have": [
-        "CPA / CMA",
-        "Taxation",
-        "Corporate Governance"
-      ],
-      "min_experience": 6,
-      "max_experience": 12,
-      "education_req": "بكالوريوس تجارة / محاسبة مالية",
-      "location_req": "ميداني",
-      "hr_email": "hr4@calliq.ai",
-      "salary_min": 90000,
-      "salary_max": 140000,
-      "is_active": true,
-      "apply_url": "/apply/job-18",
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 1,
-      "created_at": "2026-08-29T18:56:02.055Z",
-      "updated_at": "2026-08-29T18:56:02.055Z",
-      "public_token": "token_18"
-    },
-    {
-      "id": 19,
-      "org_id": 22,
-      "recruiter_id": 32,
-      "title": "Senior Full Stack Engineer",
-      "company": "CalliQ Group",
-      "description": "نبحث عن مهندس برمجيات متكامل يتمتع بخبرة واسعة في React, Node.js, TypeScript, وقواعد البيانات لمتابعة تطوير منصات الاتصالات والذكاء الاصطناعي.",
-      "required_skills": [
-        "React",
-        "TypeScript",
-        "Node.js",
-        "PostgreSQL",
-        "Docker"
-      ],
-      "nice_to_have": [
-        "AWS",
-        "TailwindCSS",
-        "Redis",
-        "GraphQL"
-      ],
-      "min_experience": 5,
-      "max_experience": 10,
-      "education_req": "بكالوريوس علوم حاسب أو هندسة برمجيات",
-      "location_req": "عن بُعد / هجين",
-      "hr_email": "hr5@calliq.ai",
-      "salary_min": 80000,
-      "salary_max": 130000,
-      "is_active": true,
-      "apply_url": "/apply/job-19",
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 2,
-      "created_at": "2026-08-29T18:56:02.055Z",
-      "updated_at": "2026-08-29T18:56:02.055Z",
-      "public_token": "token_19"
-    },
-    {
-      "id": 20,
-      "org_id": 22,
-      "recruiter_id": 32,
-      "title": "Senior HR & Talent Acquisition Lead",
-      "company": "CalliQ Group",
-      "description": "نبحث عن قائد موارد بشرية متميز لإدارة عمليات استقطاب الكفاءات والتحليل الرقمي لطلبات التوظيف وتطوير بيئة العمل.",
-      "required_skills": [
-        "Talent Acquisition",
-        "HR Strategy",
-        "ATS Systems",
-        "Interviewing",
-        "Performance Management"
-      ],
-      "nice_to_have": [
-        "People Analytics",
-        "Labor Law",
-        "Payroll"
-      ],
-      "min_experience": 4,
-      "max_experience": 9,
-      "education_req": "بكالوريوس إدارة أعمال أو موارد بشرية",
-      "location_req": "ميداني / هجين",
-      "hr_email": "hr5@calliq.ai",
-      "salary_min": 65000,
-      "salary_max": 110000,
-      "is_active": true,
-      "apply_url": "/apply/job-20",
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 2,
-      "created_at": "2026-08-29T18:56:02.055Z",
-      "updated_at": "2026-08-29T18:56:02.055Z",
-      "public_token": "token_20"
-    },
-    {
-      "id": 21,
-      "org_id": 22,
-      "recruiter_id": 32,
-      "title": "Financial & Operations Manager",
-      "company": "CalliQ Group",
-      "description": "إدارة المالية العامة والرقابة التخطيطية للعمليات المباشرة وإعداد التقارير المالية الاستراتيجية والميزانيات التقديرية.",
-      "required_skills": [
-        "Financial Analysis",
-        "Budgeting",
-        "ERP Systems",
-        "Auditing",
-        "Financial Modeling"
-      ],
-      "nice_to_have": [
-        "CPA / CMA",
-        "Taxation",
-        "Corporate Governance"
-      ],
-      "min_experience": 6,
-      "max_experience": 12,
-      "education_req": "بكالوريوس تجارة / محاسبة مالية",
-      "location_req": "ميداني",
-      "hr_email": "hr5@calliq.ai",
-      "salary_min": 90000,
-      "salary_max": 140000,
-      "is_active": true,
-      "apply_url": "/apply/job-21",
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 1,
-      "created_at": "2026-08-29T18:56:02.055Z",
-      "updated_at": "2026-08-29T18:56:02.055Z",
-      "public_token": "token_21"
-    },
-    {
-      "title": "Senior Full Stack Engineer",
-      "company": "CalliQ Group",
-      "description": "نبحث عن مهندس برمجيات متكامل يتمتع بخبرة واسعة في React, Node.js, TypeScript, وقواعد البيانات لمتابعة تطوير منصات الاتصالات والذكاء الاصطناعي.",
-      "required_skills": [
-        "React",
-        "TypeScript",
-        "Node.js",
-        "PostgreSQL",
-        "Docker"
-      ],
-      "nice_to_have": [
-        "AWS",
-        "TailwindCSS",
-        "Redis",
-        "GraphQL"
-      ],
-      "min_experience": 5,
-      "max_experience": 10,
-      "education_req": "بكالوريوس علوم حاسب أو هندسة برمجيات",
-      "location_req": "عن بُعد / هجين",
-      "salary_min": 80000,
-      "salary_max": 130000,
-      "is_active": true,
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 2,
-      "id": 23,
-      "org_id": 23,
-      "recruiter_id": 34,
-      "hr_email": "hr6@calliq.ai",
-      "public_token": "token_job_23_org_23",
-      "apply_url": "/apply/job-23",
-      "created_at": "2026-09-01T12:11:49.769Z",
-      "updated_at": "2026-09-01T12:11:49.769Z"
-    },
-    {
-      "title": "Senior HR & Talent Acquisition Lead",
-      "company": "CalliQ Group",
-      "description": "مسؤول عن قيادة عمليات التوظيف الشاملة واستقطاب الكفاءات القيادية والتقنية، وتطوير استراتيجيات استبقاء المواهب وتقييم الأداء.",
-      "required_skills": [
-        "Talent Acquisition",
-        "HR Strategy",
-        "Technical Recruiting",
-        "Performance Management",
-        "Arabic & English Fluency"
-      ],
-      "nice_to_have": [
-        "Workday / BambooHR",
-        "Employer Branding",
-        "HR Analytics"
-      ],
-      "min_experience": 6,
-      "max_experience": 12,
-      "education_req": "بكالوريوس إدارة أعمال أو موارد بشرية",
-      "location_req": "الرياض / القاهرة",
-      "salary_min": 65000,
-      "salary_max": 95000,
-      "is_active": true,
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 2,
-      "id": 24,
-      "org_id": 23,
-      "recruiter_id": 34,
-      "hr_email": "hr6@calliq.ai",
-      "public_token": "token_job_24_org_23",
-      "apply_url": "/apply/job-24",
-      "created_at": "2026-09-01T12:11:49.769Z",
-      "updated_at": "2026-09-01T12:11:49.769Z"
-    },
-    {
-      "title": "Financial & Operations Manager",
-      "company": "CalliQ Group",
-      "description": "إدارة العمليات المالية والتدفقات النقدية، وإعداد الميزانيات التقديرية والتقارير الرقابية الدورية لدعم التوسع الإقليمي.",
-      "required_skills": [
-        "Financial Analysis",
-        "Budgeting & Forecasting",
-        "IFRS Standards",
-        "ERP Systems",
-        "Cash Flow Management"
-      ],
-      "nice_to_have": [
-        "CPA / CMA",
-        "SAP / Oracle",
-        "Financial Modeling"
-      ],
-      "min_experience": 5,
-      "max_experience": 10,
-      "education_req": "بكالوريوس تجارة / محاسبة ومالية",
-      "location_req": "مكتبي / القاهرة",
-      "salary_min": 70000,
-      "salary_max": 110000,
-      "is_active": true,
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 1,
-      "id": 25,
-      "org_id": 23,
-      "recruiter_id": 34,
-      "hr_email": "hr6@calliq.ai",
-      "public_token": "token_job_25_org_23",
-      "apply_url": "/apply/job-25",
-      "created_at": "2026-09-01T12:11:49.769Z",
-      "updated_at": "2026-09-01T12:11:49.769Z"
-    },
-    {
-      "title": "Senior Full Stack Engineer",
-      "company": "CalliQ Group",
-      "description": "نبحث عن مهندس برمجيات متكامل يتمتع بخبرة واسعة في React, Node.js, TypeScript, وقواعد البيانات لمتابعة تطوير منصات الاتصالات والذكاء الاصطناعي.",
-      "required_skills": [
-        "React",
-        "TypeScript",
-        "Node.js",
-        "PostgreSQL",
-        "Docker"
-      ],
-      "nice_to_have": [
-        "AWS",
-        "TailwindCSS",
-        "Redis",
-        "GraphQL"
-      ],
-      "min_experience": 5,
-      "max_experience": 10,
-      "education_req": "بكالوريوس علوم حاسب أو هندسة برمجيات",
-      "location_req": "عن بُعد / هجين",
-      "salary_min": 80000,
-      "salary_max": 130000,
-      "is_active": true,
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 2,
-      "id": 26,
-      "org_id": 24,
-      "recruiter_id": 35,
-      "hr_email": "hr7@calliq.ai",
-      "public_token": "token_job_26_org_24",
-      "apply_url": "/apply/job-26",
-      "created_at": "2026-09-01T12:11:49.783Z",
-      "updated_at": "2026-09-01T12:11:49.783Z"
-    },
-    {
-      "title": "Senior HR & Talent Acquisition Lead",
-      "company": "CalliQ Group",
-      "description": "مسؤول عن قيادة عمليات التوظيف الشاملة واستقطاب الكفاءات القيادية والتقنية، وتطوير استراتيجيات استبقاء المواهب وتقييم الأداء.",
-      "required_skills": [
-        "Talent Acquisition",
-        "HR Strategy",
-        "Technical Recruiting",
-        "Performance Management",
-        "Arabic & English Fluency"
-      ],
-      "nice_to_have": [
-        "Workday / BambooHR",
-        "Employer Branding",
-        "HR Analytics"
-      ],
-      "min_experience": 6,
-      "max_experience": 12,
-      "education_req": "بكالوريوس إدارة أعمال أو موارد بشرية",
-      "location_req": "الرياض / القاهرة",
-      "salary_min": 65000,
-      "salary_max": 95000,
-      "is_active": true,
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 2,
-      "id": 27,
-      "org_id": 24,
-      "recruiter_id": 35,
-      "hr_email": "hr7@calliq.ai",
-      "public_token": "token_job_27_org_24",
-      "apply_url": "/apply/job-27",
-      "created_at": "2026-09-01T12:11:49.783Z",
-      "updated_at": "2026-09-01T12:11:49.783Z"
-    },
-    {
-      "title": "Financial & Operations Manager",
-      "company": "CalliQ Group",
-      "description": "إدارة العمليات المالية والتدفقات النقدية، وإعداد الميزانيات التقديرية والتقارير الرقابية الدورية لدعم التوسع الإقليمي.",
-      "required_skills": [
-        "Financial Analysis",
-        "Budgeting & Forecasting",
-        "IFRS Standards",
-        "ERP Systems",
-        "Cash Flow Management"
-      ],
-      "nice_to_have": [
-        "CPA / CMA",
-        "SAP / Oracle",
-        "Financial Modeling"
-      ],
-      "min_experience": 5,
-      "max_experience": 10,
-      "education_req": "بكالوريوس تجارة / محاسبة ومالية",
-      "location_req": "مكتبي / القاهرة",
-      "salary_min": 70000,
-      "salary_max": 110000,
-      "is_active": true,
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 1,
-      "id": 28,
-      "org_id": 24,
-      "recruiter_id": 35,
-      "hr_email": "hr7@calliq.ai",
-      "public_token": "token_job_28_org_24",
-      "apply_url": "/apply/job-28",
-      "created_at": "2026-09-01T12:11:49.783Z",
-      "updated_at": "2026-09-01T12:11:49.783Z"
-    },
-    {
-      "title": "Senior Full Stack Engineer",
-      "company": "CalliQ Group",
-      "description": "نبحث عن مهندس برمجيات متكامل يتمتع بخبرة واسعة في React, Node.js, TypeScript, وقواعد البيانات لمتابعة تطوير منصات الاتصالات والذكاء الاصطناعي.",
-      "required_skills": [
-        "React",
-        "TypeScript",
-        "Node.js",
-        "PostgreSQL",
-        "Docker"
-      ],
-      "nice_to_have": [
-        "AWS",
-        "TailwindCSS",
-        "Redis",
-        "GraphQL"
-      ],
-      "min_experience": 5,
-      "max_experience": 10,
-      "education_req": "بكالوريوس علوم حاسب أو هندسة برمجيات",
-      "location_req": "عن بُعد / هجين",
-      "salary_min": 80000,
-      "salary_max": 130000,
-      "is_active": true,
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 2,
-      "id": 30,
-      "org_id": 26,
-      "recruiter_id": 37,
-      "hr_email": "hr2@calliq.ai",
-      "public_token": "token_job_30_org_26",
-      "apply_url": "/apply/job-30",
-      "created_at": "2026-09-03T06:49:50.428Z",
-      "updated_at": "2026-09-03T06:49:50.428Z"
-    },
-    {
-      "title": "Senior HR & Talent Acquisition Lead",
-      "company": "CalliQ Group",
-      "description": "مسؤول عن قيادة عمليات التوظيف الشاملة واستقطاب الكفاءات القيادية والتقنية، وتطوير استراتيجيات استبقاء المواهب وتقييم الأداء.",
-      "required_skills": [
-        "Talent Acquisition",
-        "HR Strategy",
-        "Technical Recruiting",
-        "Performance Management",
-        "Arabic & English Fluency"
-      ],
-      "nice_to_have": [
-        "Workday / BambooHR",
-        "Employer Branding",
-        "HR Analytics"
-      ],
-      "min_experience": 6,
-      "max_experience": 12,
-      "education_req": "بكالوريوس إدارة أعمال أو موارد بشرية",
-      "location_req": "الرياض / القاهرة",
-      "salary_min": 65000,
-      "salary_max": 95000,
-      "is_active": true,
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 2,
-      "id": 31,
-      "org_id": 26,
-      "recruiter_id": 37,
-      "hr_email": "hr2@calliq.ai",
-      "public_token": "token_job_31_org_26",
-      "apply_url": "/apply/job-31",
-      "created_at": "2026-09-03T06:49:50.428Z",
-      "updated_at": "2026-09-03T06:49:50.428Z"
-    },
-    {
-      "title": "Financial & Operations Manager",
-      "company": "CalliQ Group",
-      "description": "إدارة العمليات المالية والتدفقات النقدية، وإعداد الميزانيات التقديرية والتقارير الرقابية الدورية لدعم التوسع الإقليمي.",
-      "required_skills": [
-        "Financial Analysis",
-        "Budgeting & Forecasting",
-        "IFRS Standards",
-        "ERP Systems",
-        "Cash Flow Management"
-      ],
-      "nice_to_have": [
-        "CPA / CMA",
-        "SAP / Oracle",
-        "Financial Modeling"
-      ],
-      "min_experience": 5,
-      "max_experience": 10,
-      "education_req": "بكالوريوس تجارة / محاسبة ومالية",
-      "location_req": "مكتبي / القاهرة",
-      "salary_min": 70000,
-      "salary_max": 110000,
-      "is_active": true,
-      "score_strong_match": 85,
-      "score_potential_match": 65,
-      "score_weak_match": 40,
-      "candidate_count": 1,
-      "id": 32,
-      "org_id": 26,
-      "recruiter_id": 37,
-      "hr_email": "hr2@calliq.ai",
-      "public_token": "token_job_32_org_26",
-      "apply_url": "/apply/job-32",
-      "created_at": "2026-09-03T06:49:50.428Z",
-      "updated_at": "2026-09-03T06:49:50.428Z"
+      "created_at": "2026-09-15T08:49:46.021Z",
+      "updated_at": "2026-09-15T08:49:46.021Z",
+      "public_token": "token_37"
     }
   ],
   "CANDIDATES": [
@@ -3427,86 +2907,81 @@
     },
     {
       "id": 21,
-      "org_id": 19,
-      "job_id": 13,
-      "batch_id": 5,
-      "full_name": "مهندس / كريم أحمد منصور",
-      "email": "kareem.mansour@example.com",
-      "phone": "+20 100 892 4112",
-      "location": "القاهرة / دبي (متاح للعمل عن بُعد)",
-      "current_position": "Senior Full Stack Technical Lead",
-      "years_experience": 7,
+      "org_id": 27,
+      "job_id": 33,
+      "batch_id": 10,
+      "full_name": "أحمد فؤاد الشريف",
+      "email": "ahmed.elshareef.re@gmail.com",
+      "phone": "+20 101 445 9012",
+      "location": "القاهرة / التجمع الخامس",
+      "current_position": "Senior Property Sales Consultant",
+      "years_experience": 6,
       "previous_positions": [
-        "Lead Software Engineer - DevStudio",
-        "Senior React & Node Developer - CloudSys"
+        "Senior Sales Consultant - Emaar Misr",
+        "Property Consultant - Palm Hills Developments"
       ],
       "companies": [
-        "DevStudio",
-        "CloudSys",
-        "GlobalTech"
+        "Emaar Misr",
+        "Palm Hills",
+        "Mountain View"
       ],
       "education": [
-        "بكالوريوس هندسة الحاسبات والأنظمة - جامعة القاهرة (مرتبة الشرف)"
+        "بكالوريوس تجارة وإدارة أعمال - جامعة عين شمس"
       ],
       "certifications": [
-        "AWS Certified Solutions Architect",
-        "Meta Certified Front-End Developer"
+        "Certified Real Estate Broker (CREB)",
+        "Advanced Sales Negotiation Masterclass"
       ],
       "courses": [
-        "Advanced Microservices Architecture",
-        "Docker & Kubernetes Masterclass"
+        "Luxury Real Estate Selling Strategies",
+        "CRM & Salesforce for Real Estate"
       ],
       "technical_skills": {
         "Candidate_Skills": [
-          "React",
-          "TypeScript",
-          "Node.js",
-          "Express",
-          "PostgreSQL",
-          "Docker",
-          "AWS",
-          "Redis",
-          "TailwindCSS"
+          "Real Estate Sales",
+          "Property Negotiation",
+          "Client Relationship Management (CRM)",
+          "Closing Deals",
+          "Market Analysis",
+          "Luxury Real Estate Experience"
         ]
       },
       "soft_skills": [
-        "قيادة الفريق",
-        "حل المشكلات المعقدة",
-        "التفكير الاستراتيجي",
+        "إقناع العميل",
+        "التفاوض المتقدم",
+        "بناء العلاقات الاستراتيجية",
         "التواصل الفعال"
       ],
       "languages": [
         "العربية (اللغة الأم)",
-        "الإنكليزية (متقدم جداً - C1)"
+        "الإنكليزية (ممتاز - C1)"
       ],
       "projects": [
-        "بناء منصة تحليلات سحابية تدعم +500,000 مستخدم نشط",
-        "تطوير محرك معالجة الدفع السريع والبيانات الضخمة"
+        "إغلاق صفقات مبيعات في مشروعات مراسي والعاصمة الإدارية بقيمة تتجاوز 120 مليون جنيه"
       ],
       "achievements": [
-        "رفع كفاءة استجابة النظام بنسبة 45%",
-        "تقليل تكاليف البنية التحتية السحابية بنسبة 30%"
+        "تحقيق 140% من التارجت السنوي للمبيعات في 2024 و2025"
       ],
       "awards": [
-        "أفضل مهندس برمجيات لعام 2024"
+        "Top Sales Performer 2024 - Emaar Misr"
       ],
-      "match_score": 98,
-      "ats_score": 96,
-      "skill_match": 98,
-      "experience_match": 96,
-      "education_match": 100,
+      "match_score": 95,
+      "ats_score": 94,
+      "skill_match": 96,
+      "experience_match": 95,
+      "education_match": 92,
       "seniority_match": 95,
       "location_match": 100,
-      "keyword_match": 96,
-      "salary_match": 95,
-      "ai_confidence": 98,
+      "keyword_match": 94,
+      "salary_match": 90,
+      "ai_confidence": 96,
       "recommendation": "Strong Hire",
-      "recommendation_reason": "مرشح استثنائي يمتلك كافة المهارات التقنية والقيادية المطلوبة للوظيفة وبخبرة تطبيقية ممتازة في المشروعات الضخمة.",
-      "ai_summary": "كريم هو مهندس برمجيات متكامل وخبير تقني ممتاز يمتلك أكثر من 7 سنوات من الخبرة المباشرة في بناء وتطوير الأنظمة السحابية باستخدام React وNode.js وPostgreSQL. أظهر كفاءة عالية جداً في اختبارات الأداء والتصميم البرمجي.",
+      "recommendation_reason": "مرشح استثنائي في مجال مبيعات العقارات الفاخرة ولديه سجل إغلاق صفقات كبرى في كبرى الشركات العقارية بالمصر والخليج.",
+      "ai_summary": "أحمد الشريف يمتلك 6 سنوات من الخبرة المتخصصة في الاستشارات العقارية والمبيعات المباشرة للمشروعات الفاخرة والتجارية. يتفوق في إدارة العملاء المميزين وتحديد الفرص الاستثمارية.",
       "strengths": [
-        "إتقان تام للتقنيات المطلوبة",
-        "خبرة عملية مثبتة في تحسين الأداء ورفع السعة",
-        "مهارات قيادية متميزة"
+        "سجل مبيعات موثق في الشركات القيادية",
+        "شبكة علاقات قوية مع مستثمرين",
+        "مهارات تفاوض عالية"
       ],
       "weaknesses": [],
       "missing_skills": [],
@@ -3515,108 +2990,96 @@
       "ats_suggestions": [],
       "category": "STRONG_MATCH",
       "status": "Interview",
-      "pipeline_stage": "Technical Interview",
+      "pipeline_stage": "Client Presentation & Negotiation",
       "pipeline_history": [
         {
           "stage": "Screening",
-          "entered_at": "2026-08-26T18:56:02.055Z",
+          "entered_at": "2026-09-15T08:49:46.021Z",
           "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Technical Interview",
-          "entered_at": "2026-08-28T18:56:02.055Z",
-          "moved_by": "HR Lead"
         }
       ],
       "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-26T18:56:02.055Z",
+      "applied_at": "2026-09-15T08:49:46.021Z",
       "flagged": false,
       "is_knocked_out": false,
       "knockout_flags": [],
       "source": "مباشر / Portal",
-      "file_name": "CV_Kareem_Mansour_Lead.pdf",
-      "file_content": "Karim Ahmed Mansour - Senior Full Stack Technical Lead...",
+      "file_name": "CV_Ahmed_Elshareef_RealEstate.pdf",
+      "file_content": "Ahmed Fouad El-Shareef - Senior Real Estate Sales Consultant...",
       "processing_attempts": 1,
       "chat_history": [],
       "whatsapp_history": [],
-      "created_at": "2026-08-26T18:56:02.055Z"
+      "created_at": "2026-09-15T08:49:46.021Z"
     },
     {
       "id": 22,
-      "org_id": 19,
-      "job_id": 13,
-      "batch_id": 5,
-      "full_name": "مهندسة / سارة محمود حسن",
-      "email": "sara.hassan@example.com",
-      "phone": "+20 111 502 9931",
-      "location": "الإسكندرية (متاحة للعمل الهجين)",
-      "current_position": "Senior React & Node.js Developer",
-      "years_experience": 6,
+      "org_id": 27,
+      "job_id": 33,
+      "batch_id": 10,
+      "full_name": "مروة مصطفى النجار",
+      "email": "marwa.elnaggar.sales@gmail.com",
+      "phone": "+20 112 890 3341",
+      "location": "الجيزة / الشيخ زايد",
+      "current_position": "Property Consultant",
+      "years_experience": 4,
       "previous_positions": [
-        "Full Stack Developer - CodeFlex",
-        "Frontend Specialist - WebCore"
+        "Real Estate Sales Specialist - SODIC",
+        "Telesales Executive - Coldwell Banker"
       ],
       "companies": [
-        "CodeFlex",
-        "WebCore"
+        "SODIC",
+        "Coldwell Banker"
       ],
       "education": [
-        "بكالوريوس حاسبات ومعلومات - جامعة الإسكندرية"
+        "بكالوريوس إعلام وتسويق - جامعة القاهرة"
       ],
       "certifications": [
-        "Professional Scrum Master (PSM I)",
-        "MongoDB Certified Developer"
+        "Professional Real Estate Sales Certificate"
       ],
       "courses": [
-        "Advanced React Patterns & Performance",
-        "Node.js Microservices"
+        "Customer Behavior in Real Estate",
+        "Digital Lead Follow-up"
       ],
       "technical_skills": {
         "Candidate_Skills": [
-          "React",
-          "TypeScript",
-          "Node.js",
-          "PostgreSQL",
-          "Docker",
-          "GraphQL",
-          "TailwindCSS"
+          "Real Estate Sales",
+          "Property Negotiation",
+          "Client Relationship Management (CRM)",
+          "Market Analysis"
         ]
       },
       "soft_skills": [
-        "العمل الجماعي",
-        "إدارة الوقت",
-        "الدقة والتنظيم"
+        "اللباقة وحسن الاستماع",
+        "المتابعة الدورية للعملاء",
+        "العمل تحت الضغط"
       ],
       "languages": [
         "العربية (اللغة الأم)",
-        "الإنكليزية (ممتاز - C1)"
+        "الإنكليزية (جيد جداً - B2)"
       ],
       "projects": [
-        "تصميم واجهات مستخدم متجاوبة فائقة السرعة للمتاجر الإلكترونية",
-        "تطوير لوحات تحكم البيانات المباشرة"
+        "بيع أكثر من 30 وحدة سكنية وتجارية بمناطق الشيخ زايد والتجمع"
       ],
       "achievements": [
-        "تحسين كفاءة التحميل بـ 50%",
-        "إعادة بناء الهيكلية البرمجية لتطبيق يتسع لمليون متصفح"
+        "الوصول لنسبة رضا عملاء 98% في خدمة ما بعد البيع"
       ],
       "awards": [],
-      "match_score": 95,
-      "ats_score": 94,
-      "skill_match": 96,
-      "experience_match": 94,
-      "education_match": 98,
-      "seniority_match": 92,
+      "match_score": 88,
+      "ats_score": 87,
+      "skill_match": 88,
+      "experience_match": 87,
+      "education_match": 90,
+      "seniority_match": 88,
       "location_match": 95,
-      "keyword_match": 94,
-      "salary_match": 96,
-      "ai_confidence": 96,
+      "keyword_match": 88,
+      "salary_match": 90,
+      "ai_confidence": 90,
       "recommendation": "Strong Hire",
-      "recommendation_reason": "مطابقة عالية جداً للتقنيات الأساسية المطلوبة مع شغف كبير بالتطوير وجودة الكود.",
-      "ai_summary": "سارة مطورة برمجيات متميزة تتمتع بمهارات عالية في تصميم وتطوير واجهات المستخدم والتطبيقات الخلفية المستقرة. تمتلك سجلاً حافلاً بالنجاحات في تطوير الأنظمة السريعة والمتجاوبة.",
+      "recommendation_reason": "مستشارة عقارات نشيطة ومتميزة في متابعة الـ Leads وتحويل مكالمات الاستفسار إلى معاينات ناجحة.",
+      "ai_summary": "مروة النجار تمتلك 4 سنوات خبرة في تسويق المشروعات السكنية والتجارية، وتتميز بأسلوب تواصل ممتاز مع المشتري واستجابة سريعة للعملاء.",
       "strengths": [
-        "تغطية شاملة لـ React وNode.js وPostgreSQL",
-        "كتابة كود نظيف وقابل للصيانة",
-        "مهارات تواصل ممتازة"
+        "الاهتمام بدقائق تفاصيل الاحتياج العقاري للعميل",
+        "مهارات متابعة ممتازة"
       ],
       "weaknesses": [],
       "missing_skills": [],
@@ -3625,111 +3088,100 @@
       "ats_suggestions": [],
       "category": "STRONG_MATCH",
       "status": "Shortlisted",
-      "pipeline_stage": "Shortlisted",
+      "pipeline_stage": "HR Interview",
       "pipeline_history": [
         {
           "stage": "Screening",
-          "entered_at": "2026-08-27T18:56:02.055Z",
+          "entered_at": "2026-09-15T08:49:46.021Z",
           "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Shortlisted",
-          "entered_at": "2026-08-28T18:56:02.055Z",
-          "moved_by": "HR Lead"
         }
       ],
       "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-27T18:56:02.055Z",
+      "applied_at": "2026-09-15T08:49:46.021Z",
       "flagged": false,
       "is_knocked_out": false,
       "knockout_flags": [],
       "source": "مباشر / Portal",
-      "file_name": "CV_Sara_Hassan_SeniorDev.pdf",
-      "file_content": "Sara Mahmoud Hassan - Senior React & Node Developer...",
+      "file_name": "CV_Marwa_Elnaggar_Sales.pdf",
+      "file_content": "Marwa Elnaggar - Property Consultant...",
       "processing_attempts": 1,
       "chat_history": [],
       "whatsapp_history": [],
-      "created_at": "2026-08-27T18:56:02.055Z"
+      "created_at": "2026-09-15T08:49:46.021Z"
     },
     {
       "id": 23,
-      "org_id": 19,
-      "job_id": 14,
-      "batch_id": 5,
-      "full_name": "أستاذة / هدى محمد علي",
-      "email": "huda.ali@example.com",
-      "phone": "+20 102 334 1188",
-      "location": "القاهرة",
-      "current_position": "Talent Acquisition & HR Manager",
-      "years_experience": 8,
+      "org_id": 27,
+      "job_id": 34,
+      "batch_id": 10,
+      "full_name": "حسام الدين محمود",
+      "email": "hossam.telesales@gmail.com",
+      "phone": "+20 100 551 2290",
+      "location": "القاهرة / المعادي",
+      "current_position": "Telesales Team Leader",
+      "years_experience": 5,
       "previous_positions": [
-        "Senior HR Business Partner - TalentFirst",
-        "Recruitment Specialist - HRPlus"
+        "Senior Real Estate Telesales Executive - REMAX Egypt",
+        "Call Center Agent - Vodafone"
       ],
       "companies": [
-        "TalentFirst",
-        "HRPlus",
-        "GlobalRecruitment"
+        "REMAX Egypt",
+        "Vodafone",
+        "City Edge"
       ],
       "education": [
-        "بكالوريوس إدارة أعمال - الجامعة الأمريكية بالقاهرة",
-        "دبلوم الموارد البشرية CIPD Level 5"
+        "بكالوريوس تجارة - جامعة حلوان"
       ],
       "certifications": [
-        "CIPD Level 5",
-        "SHRM Certified Professional (SHRM-CP)"
+        "Call Center Team Leadership",
+        "Sales Call Quality Monitoring"
       ],
       "courses": [
-        "Strategic People Analytics",
-        "Talent Retention Masterclass"
+        "Lead Conversion & Phone Closing Tactics"
       ],
       "technical_skills": {
         "Candidate_Skills": [
-          "Talent Acquisition",
-          "HR Strategy",
-          "ATS Systems",
-          "Interviewing",
-          "Performance Management",
-          "People Analytics"
+          "Telesales Management",
+          "Lead Conversion",
+          "Call Center Metrics",
+          "Sales Coaching",
+          "KPI Tracking"
         ]
       },
       "soft_skills": [
-        "التفاوض والقيادة",
-        "إدارة العلاقات",
-        "الذكاء العاطفي"
+        "تحفيز الفريق",
+        "إدارة جودة الاتصالات",
+        "سرعة البديهة والتعامل مع الاعتراضات"
       ],
       "languages": [
         "العربية (اللغة الأم)",
-        "الإنكليزية (طلاقة تامة - C2)"
+        "الإنكليزية (جيد جداً)"
       ],
       "projects": [
-        "استقطاب وتعيين أكثر من 120 خبيراً تقنياً في عام واحد",
-        "إعادة هيكلة نظام التقييم السنوي للموظفين"
+        "إدارة فريق مكون من 12 موظف مبيعات هاتفية وتأمين أكثر من 450 معاينة ميدانية شهرياً"
       ],
       "achievements": [
-        "خفض معدل دوران الموظفين بنسبة 22%",
-        "تقليص وقت التوظيف من 45 يوماً إلى 18 يوماً"
+        "زيادة معدل تحويل الاتصالات إلى زيارات ميدانية بنسبة 35%"
       ],
       "awards": [
-        "جائزة تميز التوظيف التقني 2023"
+        "Best Telesales Supervisor 2024"
       ],
-      "match_score": 96,
-      "ats_score": 98,
-      "skill_match": 97,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 95,
+      "match_score": 92,
+      "ats_score": 91,
+      "skill_match": 94,
+      "experience_match": 92,
+      "education_match": 90,
+      "seniority_match": 92,
       "location_match": 100,
-      "keyword_match": 97,
-      "salary_match": 95,
-      "ai_confidence": 97,
+      "keyword_match": 91,
+      "salary_match": 90,
+      "ai_confidence": 93,
       "recommendation": "Strong Hire",
-      "recommendation_reason": "خبرة قيادية قوية في الموارد البشرية واستقطاب الكفاءات مع شهادات دولية معتمدة CIPD وSHRM.",
-      "ai_summary": "هدى خبيرة موارد بشرية متميزة تتمتع بخبرة 8 سنوات في تطوير استراتيجيات التوظيف وإدارة الأداء وبناء بيئات العمل الجاذبة للكفاءات. تتميز بأسلوب قيادي واحترافي رفيع المستوى.",
+      "recommendation_reason": "قائد فريق مبيعات هاتفية متمرس ومحترف في إدارة مراكز الاتصال العقارية ومتابعة مؤشرات الأداء.",
+      "ai_summary": "حسام الدين يمتلك خبرة 5 سنوات في قيادة فرق الـ Telesales وتأكيد المعاينات وحجز المواعيد في كبرى المشروعات العقارية.",
       "strengths": [
-        "حاصلة على CIPD وSHRM-CP",
-        "سجل حافل في خفض وقت التوظيف ورفع جودة المرشحين",
-        "مهارات قيادية رفيعة"
+        "قدرة عالية على ضبط الجودة وتحسين السكربت البيعي",
+        "إدارة أهداف الفريق بدقة"
       ],
       "weaknesses": [],
       "missing_skills": [],
@@ -3738,104 +3190,101 @@
       "ats_suggestions": [],
       "category": "STRONG_MATCH",
       "status": "Interview",
-      "pipeline_stage": "HR Interview",
+      "pipeline_stage": "Technical Interview",
       "pipeline_history": [
         {
           "stage": "Screening",
-          "entered_at": "2026-08-25T18:56:02.055Z",
+          "entered_at": "2026-09-15T08:49:46.021Z",
           "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "HR Interview",
-          "entered_at": "2026-08-28T18:56:02.055Z",
-          "moved_by": "HR Lead"
         }
       ],
       "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-25T18:56:02.055Z",
+      "applied_at": "2026-09-15T08:49:46.021Z",
       "flagged": false,
       "is_knocked_out": false,
       "knockout_flags": [],
-      "source": "LinkedIn / Referral",
-      "file_name": "CV_Huda_Ali_HRLead.pdf",
-      "file_content": "Huda Mohamed Ali - Talent Acquisition & HR Manager...",
+      "source": "مباشر / Portal",
+      "file_name": "CV_Hossam_Telesales.pdf",
+      "file_content": "Hossam El-Din Mahmoud - Real Estate Telesales Team Leader...",
       "processing_attempts": 1,
       "chat_history": [],
       "whatsapp_history": [],
-      "created_at": "2026-08-25T18:56:02.055Z"
+      "created_at": "2026-09-15T08:49:46.021Z"
     },
     {
       "id": 24,
-      "org_id": 19,
-      "job_id": 14,
-      "batch_id": 5,
-      "full_name": "أحمد طارق الجابري",
-      "email": "ahmed.eljabry@example.com",
-      "phone": "+20 101 776 5543",
-      "location": "الجيزة / القاهرة",
-      "current_position": "Senior Talent Acquisition Specialist",
-      "years_experience": 5,
+      "org_id": 27,
+      "job_id": 35,
+      "batch_id": 10,
+      "full_name": "شريف عبد العزيز",
+      "email": "sherif.abdelaziz.b2b@gmail.com",
+      "phone": "+20 120 771 0088",
+      "location": "القاهرة الجديدة",
+      "current_position": "Senior Commercial Property Broker",
+      "years_experience": 8,
       "previous_positions": [
-        "Senior Technical Recruiter - HireHub",
-        "HR Coordinator - StaffPro"
+        "Corporate Sales Manager - JLL Egypt",
+        "Commercial Broker - CBRE"
       ],
       "companies": [
-        "HireHub",
-        "StaffPro"
+        "JLL Egypt",
+        "CBRE",
+        "Savills"
       ],
       "education": [
-        "بكالوريوس تجارة وإدارة أعمال - جامعة عين شمس"
+        "بكالوريوس هندسة معمارية - جامعة القاهرة"
       ],
       "certifications": [
-        "Certified Talent Acquisition Specialist"
+        "MRICS - Royal Institution of Chartered Surveyors (Chartered Member)",
+        "Commercial Lease Law"
       ],
       "courses": [
-        "Advanced Boolean Search & Sourcing",
-        "Behavioral Interviewing Techniques"
+        "Financial Modeling for Real Estate",
+        "B2B Sales Negotiation"
       ],
       "technical_skills": {
         "Candidate_Skills": [
-          "Talent Acquisition",
-          "HR Strategy",
-          "ATS Systems",
-          "Interviewing",
-          "Labor Law"
+          "Commercial Real Estate",
+          "B2B Sales",
+          "Lease Negotiation",
+          "Corporate Client Management",
+          "Property Valuation"
         ]
       },
       "soft_skills": [
-        "السرعة في الإنجاز",
-        "التواصل الفعال",
-        "إدارة الوقت"
+        "التفاوض المؤسسي",
+        "قراءة وتصميم المخططات المعمارية",
+        "إعداد العروض الاستثمارية"
       ],
       "languages": [
         "العربية (اللغة الأم)",
-        "الإنكليزية (ممتاز - C1)"
+        "الإنكليزية (طلاقة كاملة - C2)"
       ],
       "projects": [
-        "بناء شبكة العلاقات لاستقطاب الكفاءات النادرة",
-        "تنظيم معارض التوظيف السنوية"
+        "تأجير مقر إداري لشركة عالمية بمساحة 4000 متر مربع في القرية الذكية"
       ],
       "achievements": [
-        "تحقيق هدف التوظيف بنسبة 115% خلال سنتين متتاليتين"
+        "إغلاق عقود استثمارية وتجارية تتجاوز 250 مليون جنيه"
       ],
-      "awards": [],
-      "match_score": 92,
-      "ats_score": 91,
-      "skill_match": 93,
-      "experience_match": 91,
+      "awards": [
+        "Commercial Broker of the Year 2023"
+      ],
+      "match_score": 94,
+      "ats_score": 93,
+      "skill_match": 95,
+      "experience_match": 94,
       "education_match": 95,
-      "seniority_match": 90,
+      "seniority_match": 94,
       "location_match": 100,
-      "keyword_match": 92,
-      "salary_match": 94,
-      "ai_confidence": 94,
+      "keyword_match": 93,
+      "salary_match": 90,
+      "ai_confidence": 95,
       "recommendation": "Strong Hire",
-      "recommendation_reason": "أخصائي توظيف ممتازة يتمتع بنشاط كبير وسرعة عالية في الوصول للمرشحين المناسبين.",
-      "ai_summary": "أحمد متخصص توظيف ذو كفاءة عالية ولديه خبرة 5 سنوات في السورسينغ واستخدام أنظمة ATS المتقدمة. يمتلك قدرة فائقة على جذب الكفاءات التقنية والإدارية.",
+      "recommendation_reason": "وسيط عقارات تجارية وإدارية رفيع المستوى بخبرة هندسية وتجارية واسعة في التعامل مع الشركات والمؤسسات الدولية.",
+      "ai_summary": "شريف عبد العزيز يمتلك 8 سنوات من الخبرة في تسويق وتأجير العقارات الإدارية والتجارية، مع دراية كاملة بجوانب العقود والتقييم العقاري.",
       "strengths": [
-        "مهارات sourcing ممتازة",
-        "إتقان تام لأنظمة ATS",
-        "تواصل دائم واحترافي مع المرشحين"
+        "خلفية هندسية معمارية متميزة",
+        "خبرة في العقود التجارية والمعايير الدولية"
       ],
       "weaknesses": [],
       "missing_skills": [],
@@ -3843,107 +3292,99 @@
       "ats_issues": [],
       "ats_suggestions": [],
       "category": "STRONG_MATCH",
-      "status": "Shortlisted",
-      "pipeline_stage": "Shortlisted",
+      "status": "Screening",
+      "pipeline_stage": "Screening",
       "pipeline_history": [
         {
           "stage": "Screening",
-          "entered_at": "2026-08-27T18:56:02.055Z",
+          "entered_at": "2026-09-15T08:49:46.021Z",
           "moved_by": "AI Scanner"
         }
       ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-27T18:56:02.055Z",
+      "recruiter_decision": "UNDECIDED",
+      "applied_at": "2026-09-15T08:49:46.021Z",
       "flagged": false,
       "is_knocked_out": false,
       "knockout_flags": [],
       "source": "مباشر / Portal",
-      "file_name": "CV_Ahmed_Eljabry_Recruiter.pdf",
-      "file_content": "Ahmed Tarek Eljabry - Senior Talent Acquisition Specialist...",
+      "file_name": "CV_Sherif_Abdelaziz_Commercial.pdf",
+      "file_content": "Sherif Abdelaziz - Commercial Property Broker...",
       "processing_attempts": 1,
       "chat_history": [],
       "whatsapp_history": [],
-      "created_at": "2026-08-27T18:56:02.055Z"
+      "created_at": "2026-09-15T08:49:46.021Z"
     },
     {
       "id": 25,
-      "org_id": 19,
-      "job_id": 15,
-      "batch_id": 5,
-      "full_name": "محاسب قانوني / يوسف إبراهيم السيد",
-      "email": "youssef.elsayed@example.com",
-      "phone": "+20 122 889 0044",
-      "location": "القاهرة (ميداني)",
-      "current_position": "Chief Accountant & Financial Controller",
-      "years_experience": 9,
+      "org_id": 27,
+      "job_id": 36,
+      "batch_id": 10,
+      "full_name": "دينا عصام السيد",
+      "email": "dina.essam.marketing@gmail.com",
+      "phone": "+20 102 334 1199",
+      "location": "القاهرة / التجمع الخامس",
+      "current_position": "Real Estate Growth Marketing Specialist",
+      "years_experience": 4,
       "previous_positions": [
-        "Senior Accountant - FinGroup",
-        "Financial Analyst - AuditCorp"
+        "Performance Marketer - Capital Group Properties",
+        "Digital Marketing Executive - MediaAgency"
       ],
       "companies": [
-        "FinGroup",
-        "AuditCorp",
-        "Deloitte Partner Firm"
+        "Capital Group",
+        "Target Media",
+        "New Avenue Real Estate"
       ],
       "education": [
-        "بكالوريوس تجارة ومحاسبة - جامعة القاهرة",
-        "ماجستير إدارة الأعمال المالي MBA"
+        "بكالوريوس إعلام وتسويق رقمي - الجامعة الأمريكية بالقاهرة"
       ],
       "certifications": [
-        "CMA Certified Management Accountant",
-        "IFRS Certified Specialist"
+        "Meta Certified Digital Marketing Associate",
+        "Google Ads Search & Display Certified"
       ],
       "courses": [
-        "Corporate Financial Strategy",
-        "Advanced SAP ERP Operations"
+        "Advanced Real Estate Lead Gen Tactics",
+        "CPL & CAC Reduction Blueprint"
       ],
       "technical_skills": {
         "Candidate_Skills": [
-          "Financial Analysis",
-          "Budgeting",
-          "ERP Systems",
-          "Auditing",
-          "Financial Modeling",
-          "Taxation",
-          "Corporate Governance"
+          "Meta Ads (Facebook & Instagram)",
+          "Google Lead Gen Ads",
+          "Real Estate Lead Gen",
+          "CPL Optimization",
+          "Google Analytics"
         ]
       },
       "soft_skills": [
-        "التفكير التحليلي",
-        "النزاهة والإنضباط",
-        "القيادة المالية"
+        "تحليل البيانات الإعلانية",
+        "التفكير الإبداعي",
+        "إدارة الميزانيات التسويقية"
       ],
       "languages": [
         "العربية (اللغة الأم)",
-        "الإنكليزية (طلاقة - C1)"
+        "الإنكليزية (ممتاز)"
       ],
       "projects": [
-        "إعداد الميزانيات السنوية لشركة بقيمة 50 مليون دولار",
-        "تطبيق نظام SAP ERP بنجاح بدون أي توقف في العمليات"
+        "إدارة ميزانية إعلانية شهرية تتجاوز 500 ألف جنيه وتوليد أكثر من 3000 Lead عالي الجودة"
       ],
       "achievements": [
-        "اكتشاف ومعالجة الفروق الميزانية وتوفير 12% من المصاريف التشغيلية"
+        "خفض تكلفة الـ Lead المعاين بنسبة 28% في مشروعات الساحل والشروق"
       ],
-      "awards": [
-        "شهادة التميز المحاسبي 2024"
-      ],
-      "match_score": 97,
-      "ats_score": 96,
-      "skill_match": 98,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 96,
+      "awards": [],
+      "match_score": 90,
+      "ats_score": 89,
+      "skill_match": 92,
+      "experience_match": 88,
+      "education_match": 95,
+      "seniority_match": 90,
       "location_match": 100,
-      "keyword_match": 97,
-      "salary_match": 95,
-      "ai_confidence": 98,
+      "keyword_match": 89,
+      "salary_match": 92,
+      "ai_confidence": 91,
       "recommendation": "Strong Hire",
-      "recommendation_reason": "خبير مالي ومحاسب إداري معتمد CMA يمتلك رؤية استراتيجية وخبرة عريضة في التخطيط المالي والميزانيات.",
-      "ai_summary": "يوسف مدير مالي ومحاسب قانوني خبير يملك 9 سنوات في التخطيط والتحليل المالي وتطبيق أنظمة ERP المعقدة. تتميز ملفاته بالدقة البالغة والاحترافية العالية.",
+      "recommendation_reason": "متخصصة تسويق رقمي عقاري بارعة في الحملات الإعلانية المدفوعة وجلب العملاء المهتمين بشراء وتملك العقارات.",
+      "ai_summary": "دينا عصام تتميز بمهارات تحليلية متقدمة في إدارة حملات Meta وGoogle وتحسين استهداف المستثمرين والراغبين في السكن الفاخر.",
       "strengths": [
-        "حاصل على شهادة CMA ومعتمد في IFRS",
-        "خبرة ممتازة في برامج SAP ERP وFinancial Modeling",
-        "رؤية استراتيجية في تقليص التكاليف"
+        "قدرة عالية على تخفيض الـ CPL وتحسين جودة العملاء المحتملين"
       ],
       "weaknesses": [],
       "missing_skills": [],
@@ -3951,901 +3392,101 @@
       "ats_issues": [],
       "ats_suggestions": [],
       "category": "STRONG_MATCH",
-      "status": "Hired",
-      "pipeline_stage": "Offer Accepted / Hired",
+      "status": "Shortlisted",
+      "pipeline_stage": "HR Interview",
       "pipeline_history": [
         {
           "stage": "Screening",
-          "entered_at": "2026-08-24T18:56:02.055Z",
+          "entered_at": "2026-09-15T08:49:46.021Z",
           "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Financial Interview",
-          "entered_at": "2026-08-26T18:56:02.055Z",
-          "moved_by": "HR Lead"
-        },
-        {
-          "stage": "Offer Accepted / Hired",
-          "entered_at": "2026-08-28T18:56:02.055Z",
-          "moved_by": "HR Lead"
         }
       ],
-      "recruiter_decision": "HIRED",
-      "applied_at": "2026-08-24T18:56:02.055Z",
+      "recruiter_decision": "SHORTLISTED",
+      "applied_at": "2026-09-15T08:49:46.021Z",
       "flagged": false,
       "is_knocked_out": false,
       "knockout_flags": [],
-      "source": "Direct Executive Search",
-      "file_name": "CV_Youssef_Elsayed_CMA.pdf",
-      "file_content": "Youssef Ibrahim Elsayed - Chief Accountant & Financial Controller (CMA)...",
+      "source": "مباشر / Portal",
+      "file_name": "CV_Dina_Essam_Marketing.pdf",
+      "file_content": "Dina Essam - Real Estate Marketing Specialist...",
       "processing_attempts": 1,
       "chat_history": [],
       "whatsapp_history": [],
-      "created_at": "2026-08-24T18:56:02.055Z"
+      "created_at": "2026-09-15T08:49:46.021Z"
     },
     {
       "id": 26,
-      "org_id": 21,
-      "job_id": 16,
-      "batch_id": 6,
-      "full_name": "مهندس / كريم أحمد منصور",
-      "email": "kareem.mansour@example.com",
-      "phone": "+20 100 892 4112",
-      "location": "القاهرة / دبي (متاح للعمل عن بُعد)",
-      "current_position": "Senior Full Stack Technical Lead",
-      "years_experience": 7,
-      "previous_positions": [
-        "Lead Software Engineer - DevStudio",
-        "Senior React & Node Developer - CloudSys"
-      ],
-      "companies": [
-        "DevStudio",
-        "CloudSys",
-        "GlobalTech"
-      ],
-      "education": [
-        "بكالوريوس هندسة الحاسبات والأنظمة - جامعة القاهرة (مرتبة الشرف)"
-      ],
-      "certifications": [
-        "AWS Certified Solutions Architect",
-        "Meta Certified Front-End Developer"
-      ],
-      "courses": [
-        "Advanced Microservices Architecture",
-        "Docker & Kubernetes Masterclass"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "React",
-          "TypeScript",
-          "Node.js",
-          "Express",
-          "PostgreSQL",
-          "Docker",
-          "AWS",
-          "Redis",
-          "TailwindCSS"
-        ]
-      },
-      "soft_skills": [
-        "قيادة الفريق",
-        "حل المشكلات المعقدة",
-        "التفكير الاستراتيجي",
-        "التواصل الفعال"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (متقدم جداً - C1)"
-      ],
-      "projects": [
-        "بناء منصة تحليلات سحابية تدعم +500,000 مستخدم نشط",
-        "تطوير محرك معالجة الدفع السريع والبيانات الضخمة"
-      ],
-      "achievements": [
-        "رفع كفاءة استجابة النظام بنسبة 45%",
-        "تقليل تكاليف البنية التحتية السحابية بنسبة 30%"
-      ],
-      "awards": [
-        "أفضل مهندس برمجيات لعام 2024"
-      ],
-      "match_score": 98,
-      "ats_score": 96,
-      "skill_match": 98,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 95,
-      "location_match": 100,
-      "keyword_match": 96,
-      "salary_match": 95,
-      "ai_confidence": 98,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "مرشح استثنائي يمتلك كافة المهارات التقنية والقيادية المطلوبة للوظيفة وبخبرة تطبيقية ممتازة في المشروعات الضخمة.",
-      "ai_summary": "كريم هو مهندس برمجيات متكامل وخبير تقني ممتاز يمتلك أكثر من 7 سنوات من الخبرة المباشرة في بناء وتطوير الأنظمة السحابية باستخدام React وNode.js وPostgreSQL. أظهر كفاءة عالية جداً في اختبارات الأداء والتصميم البرمجي.",
-      "strengths": [
-        "إتقان تام للتقنيات المطلوبة",
-        "خبرة عملية مثبتة في تحسين الأداء ورفع السعة",
-        "مهارات قيادية متميزة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Interview",
-      "pipeline_stage": "Technical Interview",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-26T18:56:02.055Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Technical Interview",
-          "entered_at": "2026-08-28T18:56:02.055Z",
-          "moved_by": "HR Specialist"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-26T18:56:02.055Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Kareem_Mansour_Lead.pdf",
-      "file_content": "Karim Ahmed Mansour - Senior Full Stack Technical Lead...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-08-26T18:56:02.055Z"
-    },
-    {
-      "id": 27,
-      "org_id": 21,
-      "job_id": 16,
-      "batch_id": 6,
-      "full_name": "مهندسة / سارة محمود حسن",
-      "email": "sara.hassan@example.com",
-      "phone": "+20 111 502 9931",
-      "location": "الإسكندرية (متاحة للعمل الهجين)",
-      "current_position": "Senior React & Node.js Developer",
-      "years_experience": 6,
-      "previous_positions": [
-        "Full Stack Developer - CodeFlex",
-        "Frontend Specialist - WebCore"
-      ],
-      "companies": [
-        "CodeFlex",
-        "WebCore"
-      ],
-      "education": [
-        "بكالوريوس حاسبات ومعلومات - جامعة الإسكندرية"
-      ],
-      "certifications": [
-        "Professional Scrum Master (PSM I)",
-        "MongoDB Certified Developer"
-      ],
-      "courses": [
-        "Advanced React Patterns & Performance",
-        "Node.js Microservices"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "React",
-          "TypeScript",
-          "Node.js",
-          "PostgreSQL",
-          "Docker",
-          "GraphQL",
-          "TailwindCSS"
-        ]
-      },
-      "soft_skills": [
-        "العمل الجماعي",
-        "إدارة الوقت",
-        "الدقة والتنظيم"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (ممتاز - C1)"
-      ],
-      "projects": [
-        "تصميم واجهات مستخدم متجاوبة فائقة السرعة للمتاجر الإلكترونية",
-        "تطوير لوحات تحكم البيانات المباشرة"
-      ],
-      "achievements": [
-        "تحسين كفاءة التحميل بـ 50%",
-        "إعادة بناء الهيكلية البرمجية لتطبيق يتسع لمليون متصفح"
-      ],
-      "awards": [],
-      "match_score": 95,
-      "ats_score": 94,
-      "skill_match": 96,
-      "experience_match": 94,
-      "education_match": 98,
-      "seniority_match": 92,
-      "location_match": 95,
-      "keyword_match": 94,
-      "salary_match": 96,
-      "ai_confidence": 96,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "مطابقة عالية جداً للتقنيات الأساسية المطلوبة مع شغف كبير بالتطوير وجودة الكود.",
-      "ai_summary": "سارة مطورة برمجيات متميزة تتمتع بمهارات عالية في تصميم وتطوير واجهات المستخدم والتطبيقات الخلفية المستقرة. تمتلك سجلاً حافلاً بالنجاحات في تطوير الأنظمة السريعة والمتجاوبة.",
-      "strengths": [
-        "تغطية شاملة لـ React وNode.js وPostgreSQL",
-        "كتابة كود نظيف وقابل للصيانة",
-        "مهارات تواصل ممتازة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Shortlisted",
-      "pipeline_stage": "Shortlisted",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-27T18:56:02.055Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Shortlisted",
-          "entered_at": "2026-08-28T18:56:02.055Z",
-          "moved_by": "HR Specialist"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-27T18:56:02.055Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Sara_Hassan_SeniorDev.pdf",
-      "file_content": "Sara Mahmoud Hassan - Senior React & Node Developer...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-08-27T18:56:02.055Z"
-    },
-    {
-      "id": 28,
-      "org_id": 21,
-      "job_id": 17,
-      "batch_id": 6,
-      "full_name": "أستاذة / هدى محمد علي",
-      "email": "huda.ali@example.com",
-      "phone": "+20 102 334 1188",
-      "location": "القاهرة",
-      "current_position": "Talent Acquisition & HR Manager",
-      "years_experience": 8,
-      "previous_positions": [
-        "Senior HR Business Partner - TalentFirst",
-        "Recruitment Specialist - HRPlus"
-      ],
-      "companies": [
-        "TalentFirst",
-        "HRPlus",
-        "GlobalRecruitment"
-      ],
-      "education": [
-        "بكالوريوس إدارة أعمال - الجامعة الأمريكية بالقاهرة",
-        "دبلوم الموارد البشرية CIPD Level 5"
-      ],
-      "certifications": [
-        "CIPD Level 5",
-        "SHRM Certified Professional (SHRM-CP)"
-      ],
-      "courses": [
-        "Strategic People Analytics",
-        "Talent Retention Masterclass"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Talent Acquisition",
-          "HR Strategy",
-          "ATS Systems",
-          "Interviewing",
-          "Performance Management",
-          "People Analytics"
-        ]
-      },
-      "soft_skills": [
-        "التفاوض والقيادة",
-        "إدارة العلاقات",
-        "الذكاء العاطفي"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (طلاقة تامة - C2)"
-      ],
-      "projects": [
-        "استقطاب وتعيين أكثر من 120 خبيراً تقنياً في عام واحد",
-        "إعادة هيكلة نظام التقييم السنوي للموظفين"
-      ],
-      "achievements": [
-        "خفض معدل دوران الموظفين بنسبة 22%",
-        "تقليص وقت التوظيف من 45 يوماً إلى 18 يوماً"
-      ],
-      "awards": [
-        "جائزة تميز التوظيف التقني 2023"
-      ],
-      "match_score": 96,
-      "ats_score": 98,
-      "skill_match": 97,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 95,
-      "location_match": 100,
-      "keyword_match": 97,
-      "salary_match": 95,
-      "ai_confidence": 97,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "خبرة قيادية قوية في الموارد البشرية واستقطاب الكفاءات مع شهادات دولية معتمدة CIPD وSHRM.",
-      "ai_summary": "هدى خبيرة موارد بشرية متميزة تتمتع بخبرة 8 سنوات في تطوير استراتيجيات التوظيف وإدارة الأداء وبناء بيئات العمل الجاذبة للكفاءات. تتميز بأسلوب قيادي واحترافي رفيع المستوى.",
-      "strengths": [
-        "حاصلة على CIPD وSHRM-CP",
-        "سجل حافل في خفض وقت التوظيف ورفع جودة المرشحين",
-        "مهارات قيادية رفيعة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Interview",
-      "pipeline_stage": "HR Interview",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-25T18:56:02.055Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "HR Interview",
-          "entered_at": "2026-08-28T18:56:02.055Z",
-          "moved_by": "HR Specialist"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-25T18:56:02.055Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "LinkedIn / Referral",
-      "file_name": "CV_Huda_Ali_HRLead.pdf",
-      "file_content": "Huda Mohamed Ali - Talent Acquisition & HR Manager...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-08-25T18:56:02.055Z"
-    },
-    {
-      "id": 29,
-      "org_id": 21,
-      "job_id": 17,
-      "batch_id": 6,
-      "full_name": "أحمد طارق الجابري",
-      "email": "ahmed.eljabry@example.com",
-      "phone": "+20 101 776 5543",
-      "location": "الجيزة / القاهرة",
-      "current_position": "Senior Talent Acquisition Specialist",
-      "years_experience": 5,
-      "previous_positions": [
-        "Senior Technical Recruiter - HireHub",
-        "HR Coordinator - StaffPro"
-      ],
-      "companies": [
-        "HireHub",
-        "StaffPro"
-      ],
-      "education": [
-        "بكالوريوس تجارة وإدارة أعمال - جامعة عين شمس"
-      ],
-      "certifications": [
-        "Certified Talent Acquisition Specialist"
-      ],
-      "courses": [
-        "Advanced Boolean Search & Sourcing",
-        "Behavioral Interviewing Techniques"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Talent Acquisition",
-          "HR Strategy",
-          "ATS Systems",
-          "Interviewing",
-          "Labor Law"
-        ]
-      },
-      "soft_skills": [
-        "السرعة في الإنجاز",
-        "التواصل الفعال",
-        "إدارة الوقت"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (ممتاز - C1)"
-      ],
-      "projects": [
-        "بناء شبكة العلاقات لاستقطاب الكفاءات النادرة",
-        "تنظيم معارض التوظيف السنوية"
-      ],
-      "achievements": [
-        "تحقيق هدف التوظيف بنسبة 115% خلال سنتين متتاليتين"
-      ],
-      "awards": [],
-      "match_score": 92,
-      "ats_score": 91,
-      "skill_match": 93,
-      "experience_match": 91,
-      "education_match": 95,
-      "seniority_match": 90,
-      "location_match": 100,
-      "keyword_match": 92,
-      "salary_match": 94,
-      "ai_confidence": 94,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "أخصائي توظيف ممتازة يتمتع بنشاط كبير وسرعة عالية في الوصول للمرشحين المناسبين.",
-      "ai_summary": "أحمد متخصص توظيف ذو كفاءة عالية ولديه خبرة 5 سنوات في السورسينغ واستخدام أنظمة ATS المتقدمة. يمتلك قدرة فائقة على جذب الكفاءات التقنية والإدارية.",
-      "strengths": [
-        "مهارات sourcing ممتازة",
-        "إتقان تام لأنظمة ATS",
-        "تواصل دائم واحترافي مع المرشحين"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Shortlisted",
-      "pipeline_stage": "Shortlisted",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-27T18:56:02.055Z",
-          "moved_by": "AI Scanner"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-27T18:56:02.055Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Ahmed_Eljabry_Recruiter.pdf",
-      "file_content": "Ahmed Tarek Eljabry - Senior Talent Acquisition Specialist...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-08-27T18:56:02.055Z"
-    },
-    {
-      "id": 30,
-      "org_id": 21,
-      "job_id": 18,
-      "batch_id": 6,
-      "full_name": "محاسب قانوني / يوسف إبراهيم السيد",
-      "email": "youssef.elsayed@example.com",
-      "phone": "+20 122 889 0044",
-      "location": "القاهرة (ميداني)",
-      "current_position": "Chief Accountant & Financial Controller",
+      "org_id": 27,
+      "job_id": 37,
+      "batch_id": 10,
+      "full_name": "مهندس / طارق السويدي",
+      "email": "tarek.elsweedy.facility@gmail.com",
+      "phone": "+20 111 602 4477",
+      "location": "القاهرة / 6 أكتوبر",
+      "current_position": "Property Operations & Asset Manager",
       "years_experience": 9,
       "previous_positions": [
-        "Senior Accountant - FinGroup",
-        "Financial Analyst - AuditCorp"
+        "Facility & Operations Manager - Orascom Development",
+        "Property Manager - Hyde Park"
       ],
       "companies": [
-        "FinGroup",
-        "AuditCorp",
-        "Deloitte Partner Firm"
+        "Orascom Development",
+        "Hyde Park",
+        "Dar Al-Handasah"
       ],
       "education": [
-        "بكالوريوس تجارة ومحاسبة - جامعة القاهرة",
-        "ماجستير إدارة الأعمال المالي MBA"
+        "بكالوريوس هندسة مدنية - جامعة عين شمس"
       ],
       "certifications": [
-        "CMA Certified Management Accountant",
-        "IFRS Certified Specialist"
+        "Certified Property Manager (CPM)",
+        "IFMA Certified Facility Manager"
       ],
       "courses": [
-        "Corporate Financial Strategy",
-        "Advanced SAP ERP Operations"
+        "Compound & Community Management",
+        "Vendor & Service Level Agreement (SLA) Auditing"
       ],
       "technical_skills": {
         "Candidate_Skills": [
-          "Financial Analysis",
-          "Budgeting",
-          "ERP Systems",
-          "Auditing",
-          "Financial Modeling",
-          "Taxation",
-          "Corporate Governance"
+          "Property Management",
+          "Facility & Operations",
+          "Asset Valuation",
+          "Contract Administration",
+          "Financial Reporting"
         ]
       },
       "soft_skills": [
-        "التفكير التحليلي",
-        "النزاهة والإنضباط",
-        "القيادة المالية"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (طلاقة - C1)"
-      ],
-      "projects": [
-        "إعداد الميزانيات السنوية لشركة بقيمة 50 مليون دولار",
-        "تطبيق نظام SAP ERP بنجاح بدون أي توقف في العمليات"
-      ],
-      "achievements": [
-        "اكتشاف ومعالجة الفروق الميزانية وتوفير 12% من المصاريف التشغيلية"
-      ],
-      "awards": [
-        "شهادة التميز المحاسبي 2024"
-      ],
-      "match_score": 97,
-      "ats_score": 96,
-      "skill_match": 98,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 96,
-      "location_match": 100,
-      "keyword_match": 97,
-      "salary_match": 95,
-      "ai_confidence": 98,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "خبير مالي ومحاسب إداري معتمد CMA يمتلك رؤية استراتيجية وخبرة عريضة في التخطيط المالي والميزانيات.",
-      "ai_summary": "يوسف مدير مالي ومحاسب قانوني خبير يملك 9 سنوات في التخطيط والتحليل المالي وتطبيق أنظمة ERP المعقدة. تتميز ملفاته بالدقة البالغة والاحترافية العالية.",
-      "strengths": [
-        "حاصل على شهادة CMA ومعتمد في IFRS",
-        "خبرة ممتازة في برامج SAP ERP وFinancial Modeling",
-        "رؤية استراتيجية في تقليص التكاليف"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Hired",
-      "pipeline_stage": "Offer Accepted / Hired",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-24T18:56:02.055Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Financial Interview",
-          "entered_at": "2026-08-26T18:56:02.055Z",
-          "moved_by": "HR Specialist"
-        },
-        {
-          "stage": "Offer Accepted / Hired",
-          "entered_at": "2026-08-28T18:56:02.055Z",
-          "moved_by": "HR Specialist"
-        }
-      ],
-      "recruiter_decision": "HIRED",
-      "applied_at": "2026-08-24T18:56:02.055Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "Direct Executive Search",
-      "file_name": "CV_Youssef_Elsayed_CMA.pdf",
-      "file_content": "Youssef Ibrahim Elsayed - Chief Accountant & Financial Controller (CMA)...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-08-24T18:56:02.055Z"
-    },
-    {
-      "id": 31,
-      "org_id": 22,
-      "job_id": 19,
-      "batch_id": 7,
-      "full_name": "مهندس / كريم أحمد منصور",
-      "email": "kareem.mansour@example.com",
-      "phone": "+20 100 892 4112",
-      "location": "القاهرة / دبي (متاح للعمل عن بُعد)",
-      "current_position": "Senior Full Stack Technical Lead",
-      "years_experience": 7,
-      "previous_positions": [
-        "Lead Software Engineer - DevStudio",
-        "Senior React & Node Developer - CloudSys"
-      ],
-      "companies": [
-        "DevStudio",
-        "CloudSys",
-        "GlobalTech"
-      ],
-      "education": [
-        "بكالوريوس هندسة الحاسبات والأنظمة - جامعة القاهرة (مرتبة الشرف)"
-      ],
-      "certifications": [
-        "AWS Certified Solutions Architect",
-        "Meta Certified Front-End Developer"
-      ],
-      "courses": [
-        "Advanced Microservices Architecture",
-        "Docker & Kubernetes Masterclass"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "React",
-          "TypeScript",
-          "Node.js",
-          "Express",
-          "PostgreSQL",
-          "Docker",
-          "AWS",
-          "Redis",
-          "TailwindCSS"
-        ]
-      },
-      "soft_skills": [
-        "قيادة الفريق",
-        "حل المشكلات المعقدة",
-        "التفكير الاستراتيجي",
-        "التواصل الفعال"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (متقدم جداً - C1)"
-      ],
-      "projects": [
-        "بناء منصة تحليلات سحابية تدعم +500,000 مستخدم نشط",
-        "تطوير محرك معالجة الدفع السريع والبيانات الضخمة"
-      ],
-      "achievements": [
-        "رفع كفاءة استجابة النظام بنسبة 45%",
-        "تقليل تكاليف البنية التحتية السحابية بنسبة 30%"
-      ],
-      "awards": [
-        "أفضل مهندس برمجيات لعام 2024"
-      ],
-      "match_score": 98,
-      "ats_score": 96,
-      "skill_match": 98,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 95,
-      "location_match": 100,
-      "keyword_match": 96,
-      "salary_match": 95,
-      "ai_confidence": 98,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "مرشح استثنائي يمتلك كافة المهارات التقنية والقيادية المطلوبة للوظيفة وبخبرة تطبيقية ممتازة في المشروعات الضخمة.",
-      "ai_summary": "كريم هو مهندس برمجيات متكامل وخبير تقني ممتاز يمتلك أكثر من 7 سنوات من الخبرة المباشرة في بناء وتطوير الأنظمة السحابية باستخدام React وNode.js وPostgreSQL. أظهر كفاءة عالية جداً في اختبارات الأداء والتصميم البرمجي.",
-      "strengths": [
-        "إتقان تام للتقنيات المطلوبة",
-        "خبرة عملية مثبتة في تحسين الأداء ورفع السعة",
-        "مهارات قيادية متميزة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Interview",
-      "pipeline_stage": "Technical Interview",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-26T18:56:02.055Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Technical Interview",
-          "entered_at": "2026-08-28T18:56:02.055Z",
-          "moved_by": "HR Consultant"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-26T18:56:02.055Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Kareem_Mansour_Lead.pdf",
-      "file_content": "Karim Ahmed Mansour - Senior Full Stack Technical Lead...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-08-26T18:56:02.055Z"
-    },
-    {
-      "id": 32,
-      "org_id": 22,
-      "job_id": 19,
-      "batch_id": 7,
-      "full_name": "مهندسة / سارة محمود حسن",
-      "email": "sara.hassan@example.com",
-      "phone": "+20 111 502 9931",
-      "location": "الإسكندرية (متاحة للعمل الهجين)",
-      "current_position": "Senior React & Node.js Developer",
-      "years_experience": 6,
-      "previous_positions": [
-        "Full Stack Developer - CodeFlex",
-        "Frontend Specialist - WebCore"
-      ],
-      "companies": [
-        "CodeFlex",
-        "WebCore"
-      ],
-      "education": [
-        "بكالوريوس حاسبات ومعلومات - جامعة الإسكندرية"
-      ],
-      "certifications": [
-        "Professional Scrum Master (PSM I)",
-        "MongoDB Certified Developer"
-      ],
-      "courses": [
-        "Advanced React Patterns & Performance",
-        "Node.js Microservices"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "React",
-          "TypeScript",
-          "Node.js",
-          "PostgreSQL",
-          "Docker",
-          "GraphQL",
-          "TailwindCSS"
-        ]
-      },
-      "soft_skills": [
-        "العمل الجماعي",
-        "إدارة الوقت",
-        "الدقة والتنظيم"
+        "إدارة المخاطر والسلامة",
+        "التخطيط التشغيلي",
+        "قيادة الأطقم الفنية والخدمية"
       ],
       "languages": [
         "العربية (اللغة الأم)",
         "الإنكليزية (ممتاز - C1)"
       ],
       "projects": [
-        "تصميم واجهات مستخدم متجاوبة فائقة السرعة للمتاجر الإلكترونية",
-        "تطوير لوحات تحكم البيانات المباشرة"
+        "إدارة تشغيل كومباوند سكني متكامل يضم 1200 وحدة سكنية ومول تجاري"
       ],
       "achievements": [
-        "تحسين كفاءة التحميل بـ 50%",
-        "إعادة بناء الهيكلية البرمجية لتطبيق يتسع لمليون متصفح"
-      ],
-      "awards": [],
-      "match_score": 95,
-      "ats_score": 94,
-      "skill_match": 96,
-      "experience_match": 94,
-      "education_match": 98,
-      "seniority_match": 92,
-      "location_match": 95,
-      "keyword_match": 94,
-      "salary_match": 96,
-      "ai_confidence": 96,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "مطابقة عالية جداً للتقنيات الأساسية المطلوبة مع شغف كبير بالتطوير وجودة الكود.",
-      "ai_summary": "سارة مطورة برمجيات متميزة تتمتع بمهارات عالية في تصميم وتطوير واجهات المستخدم والتطبيقات الخلفية المستقرة. تمتلك سجلاً حافلاً بالنجاحات في تطوير الأنظمة السريعة والمتجاوبة.",
-      "strengths": [
-        "تغطية شاملة لـ React وNode.js وPostgreSQL",
-        "كتابة كود نظيف وقابل للصيانة",
-        "مهارات تواصل ممتازة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Shortlisted",
-      "pipeline_stage": "Shortlisted",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-27T18:56:02.056Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Shortlisted",
-          "entered_at": "2026-08-28T18:56:02.056Z",
-          "moved_by": "HR Consultant"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-27T18:56:02.056Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Sara_Hassan_SeniorDev.pdf",
-      "file_content": "Sara Mahmoud Hassan - Senior React & Node Developer...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-08-27T18:56:02.056Z"
-    },
-    {
-      "id": 33,
-      "org_id": 22,
-      "job_id": 20,
-      "batch_id": 7,
-      "full_name": "أستاذة / هدى محمد علي",
-      "email": "huda.ali@example.com",
-      "phone": "+20 102 334 1188",
-      "location": "القاهرة",
-      "current_position": "Talent Acquisition & HR Manager",
-      "years_experience": 8,
-      "previous_positions": [
-        "Senior HR Business Partner - TalentFirst",
-        "Recruitment Specialist - HRPlus"
-      ],
-      "companies": [
-        "TalentFirst",
-        "HRPlus",
-        "GlobalRecruitment"
-      ],
-      "education": [
-        "بكالوريوس إدارة أعمال - الجامعة الأمريكية بالقاهرة",
-        "دبلوم الموارد البشرية CIPD Level 5"
-      ],
-      "certifications": [
-        "CIPD Level 5",
-        "SHRM Certified Professional (SHRM-CP)"
-      ],
-      "courses": [
-        "Strategic People Analytics",
-        "Talent Retention Masterclass"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Talent Acquisition",
-          "HR Strategy",
-          "ATS Systems",
-          "Interviewing",
-          "Performance Management",
-          "People Analytics"
-        ]
-      },
-      "soft_skills": [
-        "التفاوض والقيادة",
-        "إدارة العلاقات",
-        "الذكاء العاطفي"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (طلاقة تامة - C2)"
-      ],
-      "projects": [
-        "استقطاب وتعيين أكثر من 120 خبيراً تقنياً في عام واحد",
-        "إعادة هيكلة نظام التقييم السنوي للموظفين"
-      ],
-      "achievements": [
-        "خفض معدل دوران الموظفين بنسبة 22%",
-        "تقليص وقت التوظيف من 45 يوماً إلى 18 يوماً"
+        "تحقيق نسبة استيفاء صيانة وإشغال 99.2% وتقليل الهدر في موارد التشغيل بنسبة 20%"
       ],
       "awards": [
-        "جائزة تميز التوظيف التقني 2023"
+        "Best Operations Manager 2024"
       ],
       "match_score": 96,
-      "ats_score": 98,
+      "ats_score": 95,
       "skill_match": 97,
       "experience_match": 96,
-      "education_match": 100,
+      "education_match": 96,
       "seniority_match": 95,
       "location_match": 100,
-      "keyword_match": 97,
-      "salary_match": 95,
+      "keyword_match": 95,
+      "salary_match": 92,
       "ai_confidence": 97,
       "recommendation": "Strong Hire",
-      "recommendation_reason": "خبرة قيادية قوية في الموارد البشرية واستقطاب الكفاءات مع شهادات دولية معتمدة CIPD وSHRM.",
-      "ai_summary": "هدى خبيرة موارد بشرية متميزة تتمتع بخبرة 8 سنوات في تطوير استراتيجيات التوظيف وإدارة الأداء وبناء بيئات العمل الجاذبة للكفاءات. تتميز بأسلوب قيادي واحترافي رفيع المستوى.",
+      "recommendation_reason": "مدير تشغيل وإدارة أصول عقارية عالي الكفاءة بخبرة هندسية وتطبيقية واسعة في المجمعات السكنية والتجارية الفاخرة.",
+      "ai_summary": "مهندس طارق السويدي يمتلك 9 سنوات من الخبرة المباشرة في إدارة الأصول والمنشآت العقارية، الإشراف على العقود والخدمات، وتطوير القيمة الاستثمارية للممتلكات.",
       "strengths": [
-        "حاصلة على CIPD وSHRM-CP",
-        "سجل حافل في خفض وقت التوظيف ورفع جودة المرشحين",
-        "مهارات قيادية رفيعة"
+        "إلمام هندسي وإداري كامل بإدارة الكومباوندات والمشروعات الكبرى"
       ],
       "weaknesses": [],
       "missing_skills": [],
@@ -4854,1924 +3495,26 @@
       "ats_suggestions": [],
       "category": "STRONG_MATCH",
       "status": "Interview",
-      "pipeline_stage": "HR Interview",
+      "pipeline_stage": "Executive Interview",
       "pipeline_history": [
         {
           "stage": "Screening",
-          "entered_at": "2026-08-25T18:56:02.056Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "HR Interview",
-          "entered_at": "2026-08-28T18:56:02.056Z",
-          "moved_by": "HR Consultant"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-25T18:56:02.056Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "LinkedIn / Referral",
-      "file_name": "CV_Huda_Ali_HRLead.pdf",
-      "file_content": "Huda Mohamed Ali - Talent Acquisition & HR Manager...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-08-25T18:56:02.056Z"
-    },
-    {
-      "id": 34,
-      "org_id": 22,
-      "job_id": 20,
-      "batch_id": 7,
-      "full_name": "أحمد طارق الجابري",
-      "email": "ahmed.eljabry@example.com",
-      "phone": "+20 101 776 5543",
-      "location": "الجيزة / القاهرة",
-      "current_position": "Senior Talent Acquisition Specialist",
-      "years_experience": 5,
-      "previous_positions": [
-        "Senior Technical Recruiter - HireHub",
-        "HR Coordinator - StaffPro"
-      ],
-      "companies": [
-        "HireHub",
-        "StaffPro"
-      ],
-      "education": [
-        "بكالوريوس تجارة وإدارة أعمال - جامعة عين شمس"
-      ],
-      "certifications": [
-        "Certified Talent Acquisition Specialist"
-      ],
-      "courses": [
-        "Advanced Boolean Search & Sourcing",
-        "Behavioral Interviewing Techniques"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Talent Acquisition",
-          "HR Strategy",
-          "ATS Systems",
-          "Interviewing",
-          "Labor Law"
-        ]
-      },
-      "soft_skills": [
-        "السرعة في الإنجاز",
-        "التواصل الفعال",
-        "إدارة الوقت"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (ممتاز - C1)"
-      ],
-      "projects": [
-        "بناء شبكة العلاقات لاستقطاب الكفاءات النادرة",
-        "تنظيم معارض التوظيف السنوية"
-      ],
-      "achievements": [
-        "تحقيق هدف التوظيف بنسبة 115% خلال سنتين متتاليتين"
-      ],
-      "awards": [],
-      "match_score": 92,
-      "ats_score": 91,
-      "skill_match": 93,
-      "experience_match": 91,
-      "education_match": 95,
-      "seniority_match": 90,
-      "location_match": 100,
-      "keyword_match": 92,
-      "salary_match": 94,
-      "ai_confidence": 94,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "أخصائي توظيف ممتازة يتمتع بنشاط كبير وسرعة عالية في الوصول للمرشحين المناسبين.",
-      "ai_summary": "أحمد متخصص توظيف ذو كفاءة عالية ولديه خبرة 5 سنوات في السورسينغ واستخدام أنظمة ATS المتقدمة. يمتلك قدرة فائقة على جذب الكفاءات التقنية والإدارية.",
-      "strengths": [
-        "مهارات sourcing ممتازة",
-        "إتقان تام لأنظمة ATS",
-        "تواصل دائم واحترافي مع المرشحين"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Shortlisted",
-      "pipeline_stage": "Shortlisted",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-27T18:56:02.056Z",
+          "entered_at": "2026-09-15T08:49:46.021Z",
           "moved_by": "AI Scanner"
         }
       ],
       "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-27T18:56:02.056Z",
+      "applied_at": "2026-09-15T08:49:46.021Z",
       "flagged": false,
       "is_knocked_out": false,
       "knockout_flags": [],
       "source": "مباشر / Portal",
-      "file_name": "CV_Ahmed_Eljabry_Recruiter.pdf",
-      "file_content": "Ahmed Tarek Eljabry - Senior Talent Acquisition Specialist...",
+      "file_name": "CV_Tarek_Elsweedy_Operations.pdf",
+      "file_content": "Tarek Elsweedy - Property Operations & Asset Manager...",
       "processing_attempts": 1,
       "chat_history": [],
       "whatsapp_history": [],
-      "created_at": "2026-08-27T18:56:02.056Z"
-    },
-    {
-      "id": 35,
-      "org_id": 22,
-      "job_id": 21,
-      "batch_id": 7,
-      "full_name": "محاسب قانوني / يوسف إبراهيم السيد",
-      "email": "youssef.elsayed@example.com",
-      "phone": "+20 122 889 0044",
-      "location": "القاهرة (ميداني)",
-      "current_position": "Chief Accountant & Financial Controller",
-      "years_experience": 9,
-      "previous_positions": [
-        "Senior Accountant - FinGroup",
-        "Financial Analyst - AuditCorp"
-      ],
-      "companies": [
-        "FinGroup",
-        "AuditCorp",
-        "Deloitte Partner Firm"
-      ],
-      "education": [
-        "بكالوريوس تجارة ومحاسبة - جامعة القاهرة",
-        "ماجستير إدارة الأعمال المالي MBA"
-      ],
-      "certifications": [
-        "CMA Certified Management Accountant",
-        "IFRS Certified Specialist"
-      ],
-      "courses": [
-        "Corporate Financial Strategy",
-        "Advanced SAP ERP Operations"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Financial Analysis",
-          "Budgeting",
-          "ERP Systems",
-          "Auditing",
-          "Financial Modeling",
-          "Taxation",
-          "Corporate Governance"
-        ]
-      },
-      "soft_skills": [
-        "التفكير التحليلي",
-        "النزاهة والإنضباط",
-        "القيادة المالية"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (طلاقة - C1)"
-      ],
-      "projects": [
-        "إعداد الميزانيات السنوية لشركة بقيمة 50 مليون دولار",
-        "تطبيق نظام SAP ERP بنجاح بدون أي توقف في العمليات"
-      ],
-      "achievements": [
-        "اكتشاف ومعالجة الفروق الميزانية وتوفير 12% من المصاريف التشغيلية"
-      ],
-      "awards": [
-        "شهادة التميز المحاسبي 2024"
-      ],
-      "match_score": 97,
-      "ats_score": 96,
-      "skill_match": 98,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 96,
-      "location_match": 100,
-      "keyword_match": 97,
-      "salary_match": 95,
-      "ai_confidence": 98,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "خبير مالي ومحاسب إداري معتمد CMA يمتلك رؤية استراتيجية وخبرة عريضة في التخطيط المالي والميزانيات.",
-      "ai_summary": "يوسف مدير مالي ومحاسب قانوني خبير يملك 9 سنوات في التخطيط والتحليل المالي وتطبيق أنظمة ERP المعقدة. تتميز ملفاته بالدقة البالغة والاحترافية العالية.",
-      "strengths": [
-        "حاصل على شهادة CMA ومعتمد في IFRS",
-        "خبرة ممتازة في برامج SAP ERP وFinancial Modeling",
-        "رؤية استراتيجية في تقليص التكاليف"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Hired",
-      "pipeline_stage": "Offer Accepted / Hired",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-24T18:56:02.056Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Financial Interview",
-          "entered_at": "2026-08-26T18:56:02.056Z",
-          "moved_by": "HR Consultant"
-        },
-        {
-          "stage": "Offer Accepted / Hired",
-          "entered_at": "2026-08-28T18:56:02.056Z",
-          "moved_by": "HR Consultant"
-        }
-      ],
-      "recruiter_decision": "HIRED",
-      "applied_at": "2026-08-24T18:56:02.056Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "Direct Executive Search",
-      "file_name": "CV_Youssef_Elsayed_CMA.pdf",
-      "file_content": "Youssef Ibrahim Elsayed - Chief Accountant & Financial Controller (CMA)...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-08-24T18:56:02.056Z"
-    },
-    {
-      "id": 37,
-      "org_id": 23,
-      "job_id": 23,
-      "batch_id": 1,
-      "full_name": "مهندس / كريم أحمد منصور",
-      "email": "kareem.mansour@example.com",
-      "phone": "+20 100 892 4112",
-      "location": "القاهرة / دبي (متاح للعمل عن بُعد)",
-      "current_position": "Senior Full Stack Technical Lead",
-      "years_experience": 7,
-      "previous_positions": [
-        "Lead Software Engineer - DevStudio",
-        "Senior React & Node Developer - CloudSys"
-      ],
-      "companies": [
-        "DevStudio",
-        "CloudSys",
-        "GlobalTech"
-      ],
-      "education": [
-        "بكالوريوس هندسة الحاسبات والأنظمة - جامعة القاهرة (مرتبة الشرف)"
-      ],
-      "certifications": [
-        "AWS Certified Solutions Architect",
-        "Meta Certified Front-End Developer"
-      ],
-      "courses": [
-        "Advanced Microservices Architecture",
-        "Docker & Kubernetes Masterclass"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "React",
-          "TypeScript",
-          "Node.js",
-          "Express",
-          "PostgreSQL",
-          "Docker",
-          "AWS",
-          "Redis",
-          "TailwindCSS"
-        ]
-      },
-      "soft_skills": [
-        "قيادة الفريق",
-        "حل المشكلات المعقدة",
-        "التفكير الاستراتيجي",
-        "التواصل الفعال"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (متقدم جداً - C1)"
-      ],
-      "projects": [
-        "بناء منصة تحليلات سحابية تدعم +500,000 مستخدم نشط",
-        "تطوير محرك معالجة الدفع السريع والبيانات الضخمة"
-      ],
-      "achievements": [
-        "رفع كفاءة استجابة النظام بنسبة 45%",
-        "تقليل تكاليف البنية التحتية السحابية بنسبة 30%"
-      ],
-      "awards": [
-        "أفضل مهندس برمجيات لعام 2024"
-      ],
-      "match_score": 98,
-      "ats_score": 96,
-      "skill_match": 98,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 95,
-      "location_match": 100,
-      "keyword_match": 96,
-      "salary_match": 95,
-      "ai_confidence": 98,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "مرشح استثنائي يمتلك كافة المهارات التقنية والقيادية المطلوبة للوظيفة وبخبرة تطبيقية ممتازة في المشروعات الضخمة.",
-      "ai_summary": "كريم هو مهندس برمجيات متكامل وخبير تقني ممتاز يمتلك أكثر من 7 سنوات من الخبرة المباشرة في بناء وتطوير الأنظمة السحابية باستخدام React وNode.js وPostgreSQL. أظهر كفاءة عالية جداً في اختبارات الأداء والتصميم البرمجي.",
-      "strengths": [
-        "إتقان تام للتقنيات المطلوبة",
-        "خبرة عملية مثبتة في تحسين الأداء ورفع السعة",
-        "مهارات قيادية متميزة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Interview",
-      "pipeline_stage": "Technical Interview",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-26T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Technical Interview",
-          "entered_at": "2026-08-28T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-26T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Kareem_Mansour_Lead.pdf",
-      "file_content": "Karim Ahmed Mansour - Senior Full Stack Technical Lead...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-01T12:11:49.769Z"
-    },
-    {
-      "id": 38,
-      "org_id": 23,
-      "job_id": 23,
-      "batch_id": 1,
-      "full_name": "مهندسة / سارة محمود حسن",
-      "email": "sara.hassan@example.com",
-      "phone": "+20 111 502 9931",
-      "location": "الإسكندرية (متاحة للعمل الهجين)",
-      "current_position": "Senior React & Node.js Developer",
-      "years_experience": 6,
-      "previous_positions": [
-        "Full Stack Developer - CodeFlex",
-        "Frontend Specialist - WebCore"
-      ],
-      "companies": [
-        "CodeFlex",
-        "WebCore"
-      ],
-      "education": [
-        "بكالوريوس حاسبات ومعلومات - جامعة الإسكندرية"
-      ],
-      "certifications": [
-        "Professional Scrum Master (PSM I)",
-        "MongoDB Certified Developer"
-      ],
-      "courses": [
-        "Advanced React Patterns & Performance",
-        "Node.js Microservices"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "React",
-          "TypeScript",
-          "Node.js",
-          "PostgreSQL",
-          "Docker",
-          "GraphQL",
-          "TailwindCSS"
-        ]
-      },
-      "soft_skills": [
-        "العمل الجماعي",
-        "إدارة الوقت",
-        "الدقة والتنظيم"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (ممتاز - C1)"
-      ],
-      "projects": [
-        "تصميم واجهات مستخدم متجاوبة فائقة السرعة للمتاجر الإلكترونية",
-        "تطوير لوحات تحكم البيانات المباشرة"
-      ],
-      "achievements": [
-        "تحسين كفاءة التحميل بـ 50%",
-        "إعادة بناء الهيكلية البرمجية لتطبيق يتسع لمليون متصفح"
-      ],
-      "awards": [],
-      "match_score": 95,
-      "ats_score": 94,
-      "skill_match": 96,
-      "experience_match": 94,
-      "education_match": 98,
-      "seniority_match": 92,
-      "location_match": 95,
-      "keyword_match": 94,
-      "salary_match": 96,
-      "ai_confidence": 96,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "مطابقة عالية جداً للتقنيات الأساسية المطلوبة مع شغف كبير بالتطوير وجودة الكود.",
-      "ai_summary": "سارة مطورة برمجيات متميزة تتمتع بمهارات عالية في تصميم وتطوير واجهات المستخدم والتطبيقات الخلفية المستقرة. تمتلك سجلاً حافلاً بالنجاحات في تطوير الأنظمة السريعة والمتجاوبة.",
-      "strengths": [
-        "تغطية شاملة لـ React وNode.js وPostgreSQL",
-        "كتابة كود نظيف وقابل للصيانة",
-        "مهارات تواصل ممتازة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Shortlisted",
-      "pipeline_stage": "Shortlisted",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-27T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Shortlisted",
-          "entered_at": "2026-08-28T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-27T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Sara_Hassan_SeniorDev.pdf",
-      "file_content": "Sara Mahmoud Hassan - Senior React & Node Developer...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-01T12:11:49.769Z"
-    },
-    {
-      "id": 39,
-      "org_id": 23,
-      "job_id": 24,
-      "batch_id": 1,
-      "full_name": "أستاذة / هدى محمد علي",
-      "email": "huda.ali@example.com",
-      "phone": "+20 102 334 1188",
-      "location": "القاهرة",
-      "current_position": "Talent Acquisition & HR Manager",
-      "years_experience": 8,
-      "previous_positions": [
-        "Senior HR Business Partner - TalentFirst",
-        "Recruitment Specialist - HRPlus"
-      ],
-      "companies": [
-        "TalentFirst",
-        "HRPlus",
-        "GlobalRecruitment"
-      ],
-      "education": [
-        "بكالوريوس إدارة أعمال - الجامعة الأمريكية بالقاهرة",
-        "دبلوم الموارد البشرية CIPD Level 5"
-      ],
-      "certifications": [
-        "CIPD Level 5",
-        "SHRM Certified Professional (SHRM-CP)"
-      ],
-      "courses": [
-        "Strategic People Analytics",
-        "Talent Retention Masterclass"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Talent Acquisition",
-          "HR Strategy",
-          "ATS Systems",
-          "Interviewing",
-          "Performance Management",
-          "People Analytics"
-        ]
-      },
-      "soft_skills": [
-        "التفاوض والقيادة",
-        "إدارة العلاقات",
-        "الذكاء العاطفي"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (طلاقة تامة - C2)"
-      ],
-      "projects": [
-        "استقطاب وتعيين أكثر من 120 خبيراً تقنياً في عام واحد",
-        "إعادة هيكلة نظام التقييم السنوي للموظفين"
-      ],
-      "achievements": [
-        "خفض معدل دوران الموظفين بنسبة 22%",
-        "تقليص وقت التوظيف من 45 يوماً إلى 18 يوماً"
-      ],
-      "awards": [
-        "جائزة تميز التوظيف التقني 2023"
-      ],
-      "match_score": 96,
-      "ats_score": 98,
-      "skill_match": 97,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 95,
-      "location_match": 100,
-      "keyword_match": 97,
-      "salary_match": 95,
-      "ai_confidence": 97,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "خبرة قيادية قوية في الموارد البشرية واستقطاب الكفاءات مع شهادات دولية معتمدة CIPD وSHRM.",
-      "ai_summary": "هدى خبيرة موارد بشرية متميزة تتمتع بخبرة 8 سنوات في تطوير استراتيجيات التوظيف وإدارة الأداء وبناء بيئات العمل الجاذبة للكفاءات. تتميز بأسلوب قيادي واحترافي رفيع المستوى.",
-      "strengths": [
-        "حاصلة على CIPD وSHRM-CP",
-        "سجل حافل في خفض وقت التوظيف ورفع جودة المرشحين",
-        "مهارات قيادية رفيعة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Interview",
-      "pipeline_stage": "HR Interview",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-25T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "HR Interview",
-          "entered_at": "2026-08-28T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-25T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "LinkedIn / Referral",
-      "file_name": "CV_Huda_Ali_HRLead.pdf",
-      "file_content": "Huda Mohamed Ali - Talent Acquisition & HR Manager...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-01T12:11:49.769Z"
-    },
-    {
-      "id": 40,
-      "org_id": 23,
-      "job_id": 24,
-      "batch_id": 1,
-      "full_name": "أحمد طارق الجابري",
-      "email": "ahmed.eljabry@example.com",
-      "phone": "+20 101 776 5543",
-      "location": "الجيزة / القاهرة",
-      "current_position": "Senior Talent Acquisition Specialist",
-      "years_experience": 5,
-      "previous_positions": [
-        "Senior Technical Recruiter - HireHub",
-        "HR Coordinator - StaffPro"
-      ],
-      "companies": [
-        "HireHub",
-        "StaffPro"
-      ],
-      "education": [
-        "بكالوريوس تجارة وإدارة أعمال - جامعة عين شمس"
-      ],
-      "certifications": [
-        "Certified Talent Acquisition Specialist"
-      ],
-      "courses": [
-        "Advanced Boolean Search & Sourcing",
-        "Behavioral Interviewing Techniques"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Talent Acquisition",
-          "HR Strategy",
-          "ATS Systems",
-          "Interviewing",
-          "Labor Law"
-        ]
-      },
-      "soft_skills": [
-        "السرعة في الإنجاز",
-        "التواصل الفعال",
-        "إدارة الوقت"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (ممتاز - C1)"
-      ],
-      "projects": [
-        "بناء شبكة العلاقات لاستقطاب الكفاءات النادرة",
-        "تنظيم معارض التوظيف السنوية"
-      ],
-      "achievements": [
-        "تحقيق هدف التوظيف بنسبة 115% خلال سنتين متتاليتين"
-      ],
-      "awards": [],
-      "match_score": 92,
-      "ats_score": 91,
-      "skill_match": 93,
-      "experience_match": 91,
-      "education_match": 95,
-      "seniority_match": 90,
-      "location_match": 100,
-      "keyword_match": 92,
-      "salary_match": 94,
-      "ai_confidence": 94,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "أخصائي توظيف ممتازة يتمتع بنشاط كبير وسرعة عالية في الوصول للمرشحين المناسبين.",
-      "ai_summary": "أحمد متخصص توظيف ذو كفاءة عالية ولديه خبرة 5 سنوات في السورسينغ واستخدام أنظمة ATS المتقدمة. يمتلك قدرة فائقة على جذب الكفاءات التقنية والإدارية.",
-      "strengths": [
-        "مهارات sourcing ممتازة",
-        "إتقان تام لأنظمة ATS",
-        "تواصل دائم واحترافي مع المرشحين"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Shortlisted",
-      "pipeline_stage": "Shortlisted",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-27T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-27T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Ahmed_Eljabry_Recruiter.pdf",
-      "file_content": "Ahmed Tarek Eljabry - Senior Talent Acquisition Specialist...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-01T12:11:49.769Z"
-    },
-    {
-      "id": 41,
-      "org_id": 23,
-      "job_id": 25,
-      "batch_id": 1,
-      "full_name": "محاسب قانوني / يوسف إبراهيم السيد",
-      "email": "youssef.elsayed@example.com",
-      "phone": "+20 122 889 0044",
-      "location": "القاهرة (ميداني)",
-      "current_position": "Chief Accountant & Financial Controller",
-      "years_experience": 9,
-      "previous_positions": [
-        "Senior Accountant - FinGroup",
-        "Financial Analyst - AuditCorp"
-      ],
-      "companies": [
-        "FinGroup",
-        "AuditCorp",
-        "Deloitte Partner Firm"
-      ],
-      "education": [
-        "بكالوريوس تجارة ومحاسبة - جامعة القاهرة",
-        "ماجستير إدارة الأعمال المالي MBA"
-      ],
-      "certifications": [
-        "CMA Certified Management Accountant",
-        "IFRS Certified Specialist"
-      ],
-      "courses": [
-        "Corporate Financial Strategy",
-        "Advanced SAP ERP Operations"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Financial Analysis",
-          "Budgeting",
-          "ERP Systems",
-          "Auditing",
-          "Financial Modeling",
-          "Taxation",
-          "Corporate Governance"
-        ]
-      },
-      "soft_skills": [
-        "التفكير التحليلي",
-        "النزاهة والإنضباط",
-        "القيادة المالية"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (طلاقة - C1)"
-      ],
-      "projects": [
-        "إعداد الميزانيات السنوية لشركة بقيمة 50 مليون دولار",
-        "تطبيق نظام SAP ERP بنجاح بدون أي توقف في العمليات"
-      ],
-      "achievements": [
-        "اكتشاف ومعالجة الفروق الميزانية وتوفير 12% من المصاريف التشغيلية"
-      ],
-      "awards": [
-        "شهادة التميز المحاسبي 2024"
-      ],
-      "match_score": 97,
-      "ats_score": 96,
-      "skill_match": 98,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 96,
-      "location_match": 100,
-      "keyword_match": 97,
-      "salary_match": 95,
-      "ai_confidence": 98,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "خبير مالي ومحاسب إداري معتمد CMA يمتلك رؤية استراتيجية وخبرة عريضة في التخطيط المالي والميزانيات.",
-      "ai_summary": "يوسف مدير مالي ومحاسب قانوني خبير يملك 9 سنوات في التخطيط والتحليل المالي وتطبيق أنظمة ERP المعقدة. تتميز ملفاته بالدقة البالغة والاحترافية العالية.",
-      "strengths": [
-        "حاصل على شهادة CMA ومعتمد في IFRS",
-        "خبرة ممتازة في برامج SAP ERP وFinancial Modeling",
-        "رؤية استراتيجية في تقليص التكاليف"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Hired",
-      "pipeline_stage": "Offer Accepted / Hired",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-24T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Financial Interview",
-          "entered_at": "2026-08-26T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        },
-        {
-          "stage": "Offer Accepted / Hired",
-          "entered_at": "2026-08-28T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        }
-      ],
-      "recruiter_decision": "HIRED",
-      "applied_at": "2026-08-24T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "Direct Executive Search",
-      "file_name": "CV_Youssef_Elsayed_CMA.pdf",
-      "file_content": "Youssef Ibrahim Elsayed - Chief Accountant & Financial Controller (CMA)...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-01T12:11:49.769Z"
-    },
-    {
-      "id": 42,
-      "org_id": 24,
-      "job_id": 26,
-      "batch_id": 1,
-      "full_name": "مهندس / كريم أحمد منصور",
-      "email": "kareem.mansour@example.com",
-      "phone": "+20 100 892 4112",
-      "location": "القاهرة / دبي (متاح للعمل عن بُعد)",
-      "current_position": "Senior Full Stack Technical Lead",
-      "years_experience": 7,
-      "previous_positions": [
-        "Lead Software Engineer - DevStudio",
-        "Senior React & Node Developer - CloudSys"
-      ],
-      "companies": [
-        "DevStudio",
-        "CloudSys",
-        "GlobalTech"
-      ],
-      "education": [
-        "بكالوريوس هندسة الحاسبات والأنظمة - جامعة القاهرة (مرتبة الشرف)"
-      ],
-      "certifications": [
-        "AWS Certified Solutions Architect",
-        "Meta Certified Front-End Developer"
-      ],
-      "courses": [
-        "Advanced Microservices Architecture",
-        "Docker & Kubernetes Masterclass"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "React",
-          "TypeScript",
-          "Node.js",
-          "Express",
-          "PostgreSQL",
-          "Docker",
-          "AWS",
-          "Redis",
-          "TailwindCSS"
-        ]
-      },
-      "soft_skills": [
-        "قيادة الفريق",
-        "حل المشكلات المعقدة",
-        "التفكير الاستراتيجي",
-        "التواصل الفعال"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (متقدم جداً - C1)"
-      ],
-      "projects": [
-        "بناء منصة تحليلات سحابية تدعم +500,000 مستخدم نشط",
-        "تطوير محرك معالجة الدفع السريع والبيانات الضخمة"
-      ],
-      "achievements": [
-        "رفع كفاءة استجابة النظام بنسبة 45%",
-        "تقليل تكاليف البنية التحتية السحابية بنسبة 30%"
-      ],
-      "awards": [
-        "أفضل مهندس برمجيات لعام 2024"
-      ],
-      "match_score": 98,
-      "ats_score": 96,
-      "skill_match": 98,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 95,
-      "location_match": 100,
-      "keyword_match": 96,
-      "salary_match": 95,
-      "ai_confidence": 98,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "مرشح استثنائي يمتلك كافة المهارات التقنية والقيادية المطلوبة للوظيفة وبخبرة تطبيقية ممتازة في المشروعات الضخمة.",
-      "ai_summary": "كريم هو مهندس برمجيات متكامل وخبير تقني ممتاز يمتلك أكثر من 7 سنوات من الخبرة المباشرة في بناء وتطوير الأنظمة السحابية باستخدام React وNode.js وPostgreSQL. أظهر كفاءة عالية جداً في اختبارات الأداء والتصميم البرمجي.",
-      "strengths": [
-        "إتقان تام للتقنيات المطلوبة",
-        "خبرة عملية مثبتة في تحسين الأداء ورفع السعة",
-        "مهارات قيادية متميزة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Interview",
-      "pipeline_stage": "Technical Interview",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-26T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Technical Interview",
-          "entered_at": "2026-08-28T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-26T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Kareem_Mansour_Lead.pdf",
-      "file_content": "Karim Ahmed Mansour - Senior Full Stack Technical Lead...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-01T12:11:49.783Z"
-    },
-    {
-      "id": 43,
-      "org_id": 24,
-      "job_id": 26,
-      "batch_id": 1,
-      "full_name": "مهندسة / سارة محمود حسن",
-      "email": "sara.hassan@example.com",
-      "phone": "+20 111 502 9931",
-      "location": "الإسكندرية (متاحة للعمل الهجين)",
-      "current_position": "Senior React & Node.js Developer",
-      "years_experience": 6,
-      "previous_positions": [
-        "Full Stack Developer - CodeFlex",
-        "Frontend Specialist - WebCore"
-      ],
-      "companies": [
-        "CodeFlex",
-        "WebCore"
-      ],
-      "education": [
-        "بكالوريوس حاسبات ومعلومات - جامعة الإسكندرية"
-      ],
-      "certifications": [
-        "Professional Scrum Master (PSM I)",
-        "MongoDB Certified Developer"
-      ],
-      "courses": [
-        "Advanced React Patterns & Performance",
-        "Node.js Microservices"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "React",
-          "TypeScript",
-          "Node.js",
-          "PostgreSQL",
-          "Docker",
-          "GraphQL",
-          "TailwindCSS"
-        ]
-      },
-      "soft_skills": [
-        "العمل الجماعي",
-        "إدارة الوقت",
-        "الدقة والتنظيم"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (ممتاز - C1)"
-      ],
-      "projects": [
-        "تصميم واجهات مستخدم متجاوبة فائقة السرعة للمتاجر الإلكترونية",
-        "تطوير لوحات تحكم البيانات المباشرة"
-      ],
-      "achievements": [
-        "تحسين كفاءة التحميل بـ 50%",
-        "إعادة بناء الهيكلية البرمجية لتطبيق يتسع لمليون متصفح"
-      ],
-      "awards": [],
-      "match_score": 95,
-      "ats_score": 94,
-      "skill_match": 96,
-      "experience_match": 94,
-      "education_match": 98,
-      "seniority_match": 92,
-      "location_match": 95,
-      "keyword_match": 94,
-      "salary_match": 96,
-      "ai_confidence": 96,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "مطابقة عالية جداً للتقنيات الأساسية المطلوبة مع شغف كبير بالتطوير وجودة الكود.",
-      "ai_summary": "سارة مطورة برمجيات متميزة تتمتع بمهارات عالية في تصميم وتطوير واجهات المستخدم والتطبيقات الخلفية المستقرة. تمتلك سجلاً حافلاً بالنجاحات في تطوير الأنظمة السريعة والمتجاوبة.",
-      "strengths": [
-        "تغطية شاملة لـ React وNode.js وPostgreSQL",
-        "كتابة كود نظيف وقابل للصيانة",
-        "مهارات تواصل ممتازة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Shortlisted",
-      "pipeline_stage": "Shortlisted",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-27T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Shortlisted",
-          "entered_at": "2026-08-28T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-27T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Sara_Hassan_SeniorDev.pdf",
-      "file_content": "Sara Mahmoud Hassan - Senior React & Node Developer...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-01T12:11:49.783Z"
-    },
-    {
-      "id": 44,
-      "org_id": 24,
-      "job_id": 27,
-      "batch_id": 1,
-      "full_name": "أستاذة / هدى محمد علي",
-      "email": "huda.ali@example.com",
-      "phone": "+20 102 334 1188",
-      "location": "القاهرة",
-      "current_position": "Talent Acquisition & HR Manager",
-      "years_experience": 8,
-      "previous_positions": [
-        "Senior HR Business Partner - TalentFirst",
-        "Recruitment Specialist - HRPlus"
-      ],
-      "companies": [
-        "TalentFirst",
-        "HRPlus",
-        "GlobalRecruitment"
-      ],
-      "education": [
-        "بكالوريوس إدارة أعمال - الجامعة الأمريكية بالقاهرة",
-        "دبلوم الموارد البشرية CIPD Level 5"
-      ],
-      "certifications": [
-        "CIPD Level 5",
-        "SHRM Certified Professional (SHRM-CP)"
-      ],
-      "courses": [
-        "Strategic People Analytics",
-        "Talent Retention Masterclass"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Talent Acquisition",
-          "HR Strategy",
-          "ATS Systems",
-          "Interviewing",
-          "Performance Management",
-          "People Analytics"
-        ]
-      },
-      "soft_skills": [
-        "التفاوض والقيادة",
-        "إدارة العلاقات",
-        "الذكاء العاطفي"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (طلاقة تامة - C2)"
-      ],
-      "projects": [
-        "استقطاب وتعيين أكثر من 120 خبيراً تقنياً في عام واحد",
-        "إعادة هيكلة نظام التقييم السنوي للموظفين"
-      ],
-      "achievements": [
-        "خفض معدل دوران الموظفين بنسبة 22%",
-        "تقليص وقت التوظيف من 45 يوماً إلى 18 يوماً"
-      ],
-      "awards": [
-        "جائزة تميز التوظيف التقني 2023"
-      ],
-      "match_score": 96,
-      "ats_score": 98,
-      "skill_match": 97,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 95,
-      "location_match": 100,
-      "keyword_match": 97,
-      "salary_match": 95,
-      "ai_confidence": 97,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "خبرة قيادية قوية في الموارد البشرية واستقطاب الكفاءات مع شهادات دولية معتمدة CIPD وSHRM.",
-      "ai_summary": "هدى خبيرة موارد بشرية متميزة تتمتع بخبرة 8 سنوات في تطوير استراتيجيات التوظيف وإدارة الأداء وبناء بيئات العمل الجاذبة للكفاءات. تتميز بأسلوب قيادي واحترافي رفيع المستوى.",
-      "strengths": [
-        "حاصلة على CIPD وSHRM-CP",
-        "سجل حافل في خفض وقت التوظيف ورفع جودة المرشحين",
-        "مهارات قيادية رفيعة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Interview",
-      "pipeline_stage": "HR Interview",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-25T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "HR Interview",
-          "entered_at": "2026-08-28T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-25T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "LinkedIn / Referral",
-      "file_name": "CV_Huda_Ali_HRLead.pdf",
-      "file_content": "Huda Mohamed Ali - Talent Acquisition & HR Manager...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-01T12:11:49.783Z"
-    },
-    {
-      "id": 45,
-      "org_id": 24,
-      "job_id": 27,
-      "batch_id": 1,
-      "full_name": "أحمد طارق الجابري",
-      "email": "ahmed.eljabry@example.com",
-      "phone": "+20 101 776 5543",
-      "location": "الجيزة / القاهرة",
-      "current_position": "Senior Talent Acquisition Specialist",
-      "years_experience": 5,
-      "previous_positions": [
-        "Senior Technical Recruiter - HireHub",
-        "HR Coordinator - StaffPro"
-      ],
-      "companies": [
-        "HireHub",
-        "StaffPro"
-      ],
-      "education": [
-        "بكالوريوس تجارة وإدارة أعمال - جامعة عين شمس"
-      ],
-      "certifications": [
-        "Certified Talent Acquisition Specialist"
-      ],
-      "courses": [
-        "Advanced Boolean Search & Sourcing",
-        "Behavioral Interviewing Techniques"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Talent Acquisition",
-          "HR Strategy",
-          "ATS Systems",
-          "Interviewing",
-          "Labor Law"
-        ]
-      },
-      "soft_skills": [
-        "السرعة في الإنجاز",
-        "التواصل الفعال",
-        "إدارة الوقت"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (ممتاز - C1)"
-      ],
-      "projects": [
-        "بناء شبكة العلاقات لاستقطاب الكفاءات النادرة",
-        "تنظيم معارض التوظيف السنوية"
-      ],
-      "achievements": [
-        "تحقيق هدف التوظيف بنسبة 115% خلال سنتين متتاليتين"
-      ],
-      "awards": [],
-      "match_score": 92,
-      "ats_score": 91,
-      "skill_match": 93,
-      "experience_match": 91,
-      "education_match": 95,
-      "seniority_match": 90,
-      "location_match": 100,
-      "keyword_match": 92,
-      "salary_match": 94,
-      "ai_confidence": 94,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "أخصائي توظيف ممتازة يتمتع بنشاط كبير وسرعة عالية في الوصول للمرشحين المناسبين.",
-      "ai_summary": "أحمد متخصص توظيف ذو كفاءة عالية ولديه خبرة 5 سنوات في السورسينغ واستخدام أنظمة ATS المتقدمة. يمتلك قدرة فائقة على جذب الكفاءات التقنية والإدارية.",
-      "strengths": [
-        "مهارات sourcing ممتازة",
-        "إتقان تام لأنظمة ATS",
-        "تواصل دائم واحترافي مع المرشحين"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Shortlisted",
-      "pipeline_stage": "Shortlisted",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-27T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-27T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Ahmed_Eljabry_Recruiter.pdf",
-      "file_content": "Ahmed Tarek Eljabry - Senior Talent Acquisition Specialist...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-01T12:11:49.783Z"
-    },
-    {
-      "id": 46,
-      "org_id": 24,
-      "job_id": 28,
-      "batch_id": 1,
-      "full_name": "محاسب قانوني / يوسف إبراهيم السيد",
-      "email": "youssef.elsayed@example.com",
-      "phone": "+20 122 889 0044",
-      "location": "القاهرة (ميداني)",
-      "current_position": "Chief Accountant & Financial Controller",
-      "years_experience": 9,
-      "previous_positions": [
-        "Senior Accountant - FinGroup",
-        "Financial Analyst - AuditCorp"
-      ],
-      "companies": [
-        "FinGroup",
-        "AuditCorp",
-        "Deloitte Partner Firm"
-      ],
-      "education": [
-        "بكالوريوس تجارة ومحاسبة - جامعة القاهرة",
-        "ماجستير إدارة الأعمال المالي MBA"
-      ],
-      "certifications": [
-        "CMA Certified Management Accountant",
-        "IFRS Certified Specialist"
-      ],
-      "courses": [
-        "Corporate Financial Strategy",
-        "Advanced SAP ERP Operations"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Financial Analysis",
-          "Budgeting",
-          "ERP Systems",
-          "Auditing",
-          "Financial Modeling",
-          "Taxation",
-          "Corporate Governance"
-        ]
-      },
-      "soft_skills": [
-        "التفكير التحليلي",
-        "النزاهة والإنضباط",
-        "القيادة المالية"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (طلاقة - C1)"
-      ],
-      "projects": [
-        "إعداد الميزانيات السنوية لشركة بقيمة 50 مليون دولار",
-        "تطبيق نظام SAP ERP بنجاح بدون أي توقف في العمليات"
-      ],
-      "achievements": [
-        "اكتشاف ومعالجة الفروق الميزانية وتوفير 12% من المصاريف التشغيلية"
-      ],
-      "awards": [
-        "شهادة التميز المحاسبي 2024"
-      ],
-      "match_score": 97,
-      "ats_score": 96,
-      "skill_match": 98,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 96,
-      "location_match": 100,
-      "keyword_match": 97,
-      "salary_match": 95,
-      "ai_confidence": 98,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "خبير مالي ومحاسب إداري معتمد CMA يمتلك رؤية استراتيجية وخبرة عريضة في التخطيط المالي والميزانيات.",
-      "ai_summary": "يوسف مدير مالي ومحاسب قانوني خبير يملك 9 سنوات في التخطيط والتحليل المالي وتطبيق أنظمة ERP المعقدة. تتميز ملفاته بالدقة البالغة والاحترافية العالية.",
-      "strengths": [
-        "حاصل على شهادة CMA ومعتمد في IFRS",
-        "خبرة ممتازة في برامج SAP ERP وFinancial Modeling",
-        "رؤية استراتيجية في تقليص التكاليف"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Hired",
-      "pipeline_stage": "Offer Accepted / Hired",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-24T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Financial Interview",
-          "entered_at": "2026-08-26T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        },
-        {
-          "stage": "Offer Accepted / Hired",
-          "entered_at": "2026-08-28T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        }
-      ],
-      "recruiter_decision": "HIRED",
-      "applied_at": "2026-08-24T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "Direct Executive Search",
-      "file_name": "CV_Youssef_Elsayed_CMA.pdf",
-      "file_content": "Youssef Ibrahim Elsayed - Chief Accountant & Financial Controller (CMA)...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-01T12:11:49.783Z"
-    },
-    {
-      "id": 48,
-      "org_id": 26,
-      "job_id": 30,
-      "batch_id": 1,
-      "full_name": "مهندس / كريم أحمد منصور",
-      "email": "kareem.mansour@example.com",
-      "phone": "+20 100 892 4112",
-      "location": "القاهرة / دبي (متاح للعمل عن بُعد)",
-      "current_position": "Senior Full Stack Technical Lead",
-      "years_experience": 7,
-      "previous_positions": [
-        "Lead Software Engineer - DevStudio",
-        "Senior React & Node Developer - CloudSys"
-      ],
-      "companies": [
-        "DevStudio",
-        "CloudSys",
-        "GlobalTech"
-      ],
-      "education": [
-        "بكالوريوس هندسة الحاسبات والأنظمة - جامعة القاهرة (مرتبة الشرف)"
-      ],
-      "certifications": [
-        "AWS Certified Solutions Architect",
-        "Meta Certified Front-End Developer"
-      ],
-      "courses": [
-        "Advanced Microservices Architecture",
-        "Docker & Kubernetes Masterclass"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "React",
-          "TypeScript",
-          "Node.js",
-          "Express",
-          "PostgreSQL",
-          "Docker",
-          "AWS",
-          "Redis",
-          "TailwindCSS"
-        ]
-      },
-      "soft_skills": [
-        "قيادة الفريق",
-        "حل المشكلات المعقدة",
-        "التفكير الاستراتيجي",
-        "التواصل الفعال"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (متقدم جداً - C1)"
-      ],
-      "projects": [
-        "بناء منصة تحليلات سحابية تدعم +500,000 مستخدم نشط",
-        "تطوير محرك معالجة الدفع السريع والبيانات الضخمة"
-      ],
-      "achievements": [
-        "رفع كفاءة استجابة النظام بنسبة 45%",
-        "تقليل تكاليف البنية التحتية السحابية بنسبة 30%"
-      ],
-      "awards": [
-        "أفضل مهندس برمجيات لعام 2024"
-      ],
-      "match_score": 98,
-      "ats_score": 96,
-      "skill_match": 98,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 95,
-      "location_match": 100,
-      "keyword_match": 96,
-      "salary_match": 95,
-      "ai_confidence": 98,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "مرشح استثنائي يمتلك كافة المهارات التقنية والقيادية المطلوبة للوظيفة وبخبرة تطبيقية ممتازة في المشروعات الضخمة.",
-      "ai_summary": "كريم هو مهندس برمجيات متكامل وخبير تقني ممتاز يمتلك أكثر من 7 سنوات من الخبرة المباشرة في بناء وتطوير الأنظمة السحابية باستخدام React وNode.js وPostgreSQL. أظهر كفاءة عالية جداً في اختبارات الأداء والتصميم البرمجي.",
-      "strengths": [
-        "إتقان تام للتقنيات المطلوبة",
-        "خبرة عملية مثبتة في تحسين الأداء ورفع السعة",
-        "مهارات قيادية متميزة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Interview",
-      "pipeline_stage": "Technical Interview",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-26T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Technical Interview",
-          "entered_at": "2026-08-28T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-26T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Kareem_Mansour_Lead.pdf",
-      "file_content": "Karim Ahmed Mansour - Senior Full Stack Technical Lead...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-03T06:49:50.428Z"
-    },
-    {
-      "id": 49,
-      "org_id": 26,
-      "job_id": 30,
-      "batch_id": 1,
-      "full_name": "مهندسة / سارة محمود حسن",
-      "email": "sara.hassan@example.com",
-      "phone": "+20 111 502 9931",
-      "location": "الإسكندرية (متاحة للعمل الهجين)",
-      "current_position": "Senior React & Node.js Developer",
-      "years_experience": 6,
-      "previous_positions": [
-        "Full Stack Developer - CodeFlex",
-        "Frontend Specialist - WebCore"
-      ],
-      "companies": [
-        "CodeFlex",
-        "WebCore"
-      ],
-      "education": [
-        "بكالوريوس حاسبات ومعلومات - جامعة الإسكندرية"
-      ],
-      "certifications": [
-        "Professional Scrum Master (PSM I)",
-        "MongoDB Certified Developer"
-      ],
-      "courses": [
-        "Advanced React Patterns & Performance",
-        "Node.js Microservices"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "React",
-          "TypeScript",
-          "Node.js",
-          "PostgreSQL",
-          "Docker",
-          "GraphQL",
-          "TailwindCSS"
-        ]
-      },
-      "soft_skills": [
-        "العمل الجماعي",
-        "إدارة الوقت",
-        "الدقة والتنظيم"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (ممتاز - C1)"
-      ],
-      "projects": [
-        "تصميم واجهات مستخدم متجاوبة فائقة السرعة للمتاجر الإلكترونية",
-        "تطوير لوحات تحكم البيانات المباشرة"
-      ],
-      "achievements": [
-        "تحسين كفاءة التحميل بـ 50%",
-        "إعادة بناء الهيكلية البرمجية لتطبيق يتسع لمليون متصفح"
-      ],
-      "awards": [],
-      "match_score": 95,
-      "ats_score": 94,
-      "skill_match": 96,
-      "experience_match": 94,
-      "education_match": 98,
-      "seniority_match": 92,
-      "location_match": 95,
-      "keyword_match": 94,
-      "salary_match": 96,
-      "ai_confidence": 96,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "مطابقة عالية جداً للتقنيات الأساسية المطلوبة مع شغف كبير بالتطوير وجودة الكود.",
-      "ai_summary": "سارة مطورة برمجيات متميزة تتمتع بمهارات عالية في تصميم وتطوير واجهات المستخدم والتطبيقات الخلفية المستقرة. تمتلك سجلاً حافلاً بالنجاحات في تطوير الأنظمة السريعة والمتجاوبة.",
-      "strengths": [
-        "تغطية شاملة لـ React وNode.js وPostgreSQL",
-        "كتابة كود نظيف وقابل للصيانة",
-        "مهارات تواصل ممتازة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Shortlisted",
-      "pipeline_stage": "Shortlisted",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-27T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Shortlisted",
-          "entered_at": "2026-08-28T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-27T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Sara_Hassan_SeniorDev.pdf",
-      "file_content": "Sara Mahmoud Hassan - Senior React & Node Developer...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-03T06:49:50.428Z"
-    },
-    {
-      "id": 50,
-      "org_id": 26,
-      "job_id": 31,
-      "batch_id": 1,
-      "full_name": "أستاذة / هدى محمد علي",
-      "email": "huda.ali@example.com",
-      "phone": "+20 102 334 1188",
-      "location": "القاهرة",
-      "current_position": "Talent Acquisition & HR Manager",
-      "years_experience": 8,
-      "previous_positions": [
-        "Senior HR Business Partner - TalentFirst",
-        "Recruitment Specialist - HRPlus"
-      ],
-      "companies": [
-        "TalentFirst",
-        "HRPlus",
-        "GlobalRecruitment"
-      ],
-      "education": [
-        "بكالوريوس إدارة أعمال - الجامعة الأمريكية بالقاهرة",
-        "دبلوم الموارد البشرية CIPD Level 5"
-      ],
-      "certifications": [
-        "CIPD Level 5",
-        "SHRM Certified Professional (SHRM-CP)"
-      ],
-      "courses": [
-        "Strategic People Analytics",
-        "Talent Retention Masterclass"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Talent Acquisition",
-          "HR Strategy",
-          "ATS Systems",
-          "Interviewing",
-          "Performance Management",
-          "People Analytics"
-        ]
-      },
-      "soft_skills": [
-        "التفاوض والقيادة",
-        "إدارة العلاقات",
-        "الذكاء العاطفي"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (طلاقة تامة - C2)"
-      ],
-      "projects": [
-        "استقطاب وتعيين أكثر من 120 خبيراً تقنياً في عام واحد",
-        "إعادة هيكلة نظام التقييم السنوي للموظفين"
-      ],
-      "achievements": [
-        "خفض معدل دوران الموظفين بنسبة 22%",
-        "تقليص وقت التوظيف من 45 يوماً إلى 18 يوماً"
-      ],
-      "awards": [
-        "جائزة تميز التوظيف التقني 2023"
-      ],
-      "match_score": 96,
-      "ats_score": 98,
-      "skill_match": 97,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 95,
-      "location_match": 100,
-      "keyword_match": 97,
-      "salary_match": 95,
-      "ai_confidence": 97,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "خبرة قيادية قوية في الموارد البشرية واستقطاب الكفاءات مع شهادات دولية معتمدة CIPD وSHRM.",
-      "ai_summary": "هدى خبيرة موارد بشرية متميزة تتمتع بخبرة 8 سنوات في تطوير استراتيجيات التوظيف وإدارة الأداء وبناء بيئات العمل الجاذبة للكفاءات. تتميز بأسلوب قيادي واحترافي رفيع المستوى.",
-      "strengths": [
-        "حاصلة على CIPD وSHRM-CP",
-        "سجل حافل في خفض وقت التوظيف ورفع جودة المرشحين",
-        "مهارات قيادية رفيعة"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Interview",
-      "pipeline_stage": "HR Interview",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-25T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "HR Interview",
-          "entered_at": "2026-08-28T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-25T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "LinkedIn / Referral",
-      "file_name": "CV_Huda_Ali_HRLead.pdf",
-      "file_content": "Huda Mohamed Ali - Talent Acquisition & HR Manager...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-03T06:49:50.428Z"
-    },
-    {
-      "id": 51,
-      "org_id": 26,
-      "job_id": 31,
-      "batch_id": 1,
-      "full_name": "أحمد طارق الجابري",
-      "email": "ahmed.eljabry@example.com",
-      "phone": "+20 101 776 5543",
-      "location": "الجيزة / القاهرة",
-      "current_position": "Senior Talent Acquisition Specialist",
-      "years_experience": 5,
-      "previous_positions": [
-        "Senior Technical Recruiter - HireHub",
-        "HR Coordinator - StaffPro"
-      ],
-      "companies": [
-        "HireHub",
-        "StaffPro"
-      ],
-      "education": [
-        "بكالوريوس تجارة وإدارة أعمال - جامعة عين شمس"
-      ],
-      "certifications": [
-        "Certified Talent Acquisition Specialist"
-      ],
-      "courses": [
-        "Advanced Boolean Search & Sourcing",
-        "Behavioral Interviewing Techniques"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Talent Acquisition",
-          "HR Strategy",
-          "ATS Systems",
-          "Interviewing",
-          "Labor Law"
-        ]
-      },
-      "soft_skills": [
-        "السرعة في الإنجاز",
-        "التواصل الفعال",
-        "إدارة الوقت"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (ممتاز - C1)"
-      ],
-      "projects": [
-        "بناء شبكة العلاقات لاستقطاب الكفاءات النادرة",
-        "تنظيم معارض التوظيف السنوية"
-      ],
-      "achievements": [
-        "تحقيق هدف التوظيف بنسبة 115% خلال سنتين متتاليتين"
-      ],
-      "awards": [],
-      "match_score": 92,
-      "ats_score": 91,
-      "skill_match": 93,
-      "experience_match": 91,
-      "education_match": 95,
-      "seniority_match": 90,
-      "location_match": 100,
-      "keyword_match": 92,
-      "salary_match": 94,
-      "ai_confidence": 94,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "أخصائي توظيف ممتازة يتمتع بنشاط كبير وسرعة عالية في الوصول للمرشحين المناسبين.",
-      "ai_summary": "أحمد متخصص توظيف ذو كفاءة عالية ولديه خبرة 5 سنوات في السورسينغ واستخدام أنظمة ATS المتقدمة. يمتلك قدرة فائقة على جذب الكفاءات التقنية والإدارية.",
-      "strengths": [
-        "مهارات sourcing ممتازة",
-        "إتقان تام لأنظمة ATS",
-        "تواصل دائم واحترافي مع المرشحين"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Shortlisted",
-      "pipeline_stage": "Shortlisted",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-27T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        }
-      ],
-      "recruiter_decision": "SHORTLISTED",
-      "applied_at": "2026-08-27T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "مباشر / Portal",
-      "file_name": "CV_Ahmed_Eljabry_Recruiter.pdf",
-      "file_content": "Ahmed Tarek Eljabry - Senior Talent Acquisition Specialist...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-03T06:49:50.428Z"
-    },
-    {
-      "id": 52,
-      "org_id": 26,
-      "job_id": 32,
-      "batch_id": 1,
-      "full_name": "محاسب قانوني / يوسف إبراهيم السيد",
-      "email": "youssef.elsayed@example.com",
-      "phone": "+20 122 889 0044",
-      "location": "القاهرة (ميداني)",
-      "current_position": "Chief Accountant & Financial Controller",
-      "years_experience": 9,
-      "previous_positions": [
-        "Senior Accountant - FinGroup",
-        "Financial Analyst - AuditCorp"
-      ],
-      "companies": [
-        "FinGroup",
-        "AuditCorp",
-        "Deloitte Partner Firm"
-      ],
-      "education": [
-        "بكالوريوس تجارة ومحاسبة - جامعة القاهرة",
-        "ماجستير إدارة الأعمال المالي MBA"
-      ],
-      "certifications": [
-        "CMA Certified Management Accountant",
-        "IFRS Certified Specialist"
-      ],
-      "courses": [
-        "Corporate Financial Strategy",
-        "Advanced SAP ERP Operations"
-      ],
-      "technical_skills": {
-        "Candidate_Skills": [
-          "Financial Analysis",
-          "Budgeting",
-          "ERP Systems",
-          "Auditing",
-          "Financial Modeling",
-          "Taxation",
-          "Corporate Governance"
-        ]
-      },
-      "soft_skills": [
-        "التفكير التحليلي",
-        "النزاهة والإنضباط",
-        "القيادة المالية"
-      ],
-      "languages": [
-        "العربية (اللغة الأم)",
-        "الإنكليزية (طلاقة - C1)"
-      ],
-      "projects": [
-        "إعداد الميزانيات السنوية لشركة بقيمة 50 مليون دولار",
-        "تطبيق نظام SAP ERP بنجاح بدون أي توقف في العمليات"
-      ],
-      "achievements": [
-        "اكتشاف ومعالجة الفروق الميزانية وتوفير 12% من المصاريف التشغيلية"
-      ],
-      "awards": [
-        "شهادة التميز المحاسبي 2024"
-      ],
-      "match_score": 97,
-      "ats_score": 96,
-      "skill_match": 98,
-      "experience_match": 96,
-      "education_match": 100,
-      "seniority_match": 96,
-      "location_match": 100,
-      "keyword_match": 97,
-      "salary_match": 95,
-      "ai_confidence": 98,
-      "recommendation": "Strong Hire",
-      "recommendation_reason": "خبير مالي ومحاسب إداري معتمد CMA يمتلك رؤية استراتيجية وخبرة عريضة في التخطيط المالي والميزانيات.",
-      "ai_summary": "يوسف مدير مالي ومحاسب قانوني خبير يملك 9 سنوات في التخطيط والتحليل المالي وتطبيق أنظمة ERP المعقدة. تتميز ملفاته بالدقة البالغة والاحترافية العالية.",
-      "strengths": [
-        "حاصل على شهادة CMA ومعتمد في IFRS",
-        "خبرة ممتازة في برامج SAP ERP وFinancial Modeling",
-        "رؤية استراتيجية في تقليص التكاليف"
-      ],
-      "weaknesses": [],
-      "missing_skills": [],
-      "missing_certs": [],
-      "ats_issues": [],
-      "ats_suggestions": [],
-      "category": "STRONG_MATCH",
-      "status": "Hired",
-      "pipeline_stage": "Offer Accepted / Hired",
-      "pipeline_history": [
-        {
-          "stage": "Screening",
-          "entered_at": "2026-08-24T18:56:02.053Z",
-          "moved_by": "AI Scanner"
-        },
-        {
-          "stage": "Financial Interview",
-          "entered_at": "2026-08-26T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        },
-        {
-          "stage": "Offer Accepted / Hired",
-          "entered_at": "2026-08-28T18:56:02.053Z",
-          "moved_by": "CalliQ Admin"
-        }
-      ],
-      "recruiter_decision": "HIRED",
-      "applied_at": "2026-08-24T18:56:02.053Z",
-      "flagged": false,
-      "is_knocked_out": false,
-      "knockout_flags": [],
-      "source": "Direct Executive Search",
-      "file_name": "CV_Youssef_Elsayed_CMA.pdf",
-      "file_content": "Youssef Ibrahim Elsayed - Chief Accountant & Financial Controller (CMA)...",
-      "processing_attempts": 1,
-      "chat_history": [],
-      "whatsapp_history": [],
-      "created_at": "2026-09-03T06:49:50.428Z"
+      "created_at": "2026-09-15T08:49:46.021Z"
     }
   ],
   "CANDIDATE_BATCHES": [
@@ -6806,30 +3549,6 @@
       "name": "المجلد الرئيسي - دفعة المتقدمين المميزين",
       "description": "مجلد يحتوي على أفضل السير الذاتية المرشحة والمحللة بالذكاء الاصطناعي",
       "created_at": "2026-08-29T18:56:02.055Z"
-    },
-    {
-      "id": 5,
-      "org_id": 19,
-      "recruiter_id": 29,
-      "name": "المجلد الرئيسي - دفعة المتقدمين المميزين",
-      "description": "مجلد يحتوي على أفضل السير الذاتية المرشحة والمحللة بالذكاء الاصطناعي",
-      "created_at": "2026-08-29T18:56:02.055Z"
-    },
-    {
-      "id": 6,
-      "org_id": 21,
-      "recruiter_id": 31,
-      "name": "المجلد الرئيسي - دفعة المتقدمين المميزين",
-      "description": "مجلد يحتوي على أفضل السير الذاتية المرشحة والمحللة بالذكاء الاصطناعي",
-      "created_at": "2026-08-29T18:56:02.055Z"
-    },
-    {
-      "id": 7,
-      "org_id": 22,
-      "recruiter_id": 32,
-      "name": "المجلد الرئيسي - دفعة المتقدمين المميزين",
-      "description": "مجلد يحتوي على أفضل السير الذاتية المرشحة والمحللة بالذكاء الاصطناعي",
-      "created_at": "2026-08-29T18:56:02.055Z"
     }
   ],
   "WEBHOOKS": [
@@ -6847,6 +3566,48 @@
     }
   ],
   "AUDIT_LOGS": [
+    {
+      "id": 150,
+      "action": "Drip Campaign Created",
+      "user": "CalliQ Admin",
+      "target": "حملة استلام الطلبات والتغذية الراجعة التلقائية [Trigger: Application Received]",
+      "timestamp": "2026-09-16T15:04:50.794Z"
+    },
+    {
+      "id": 149,
+      "action": "User Account Modified",
+      "user": "CalliQ Admin",
+      "target": "HR (hr@calliq.ai)",
+      "timestamp": "2026-09-15T08:45:36.574Z"
+    },
+    {
+      "id": 148,
+      "action": "User Account Modified",
+      "user": "CalliQ Admin",
+      "target": "كريم (cillkareem@gmail.com)",
+      "timestamp": "2026-09-15T08:38:55.093Z"
+    },
+    {
+      "id": 147,
+      "action": "User Account Modified",
+      "user": "CalliQ Admin",
+      "target": "كريم (cillkareem@gmail.com)",
+      "timestamp": "2026-09-15T08:38:50.785Z"
+    },
+    {
+      "id": 146,
+      "action": "User Account Modified",
+      "user": "CalliQ Admin",
+      "target": "كريم (cillkareem@gmail.com)",
+      "timestamp": "2026-09-15T08:37:37.549Z"
+    },
+    {
+      "id": 145,
+      "action": "User Account Modified",
+      "user": "CalliQ Admin",
+      "target": "كريم (cillkareem@gmail.com)",
+      "timestamp": "2026-09-15T08:37:18.234Z"
+    },
     {
       "id": 144,
       "action": "User Account Modified",
@@ -7841,6 +4602,523 @@
       "timestamp": "2026-08-21T07:33:50.980Z"
     }
   ],
+  "EMAIL_LOGS": [
+    {
+      "id": 10,
+      "org_id": 1,
+      "candidate_id": 2,
+      "candidate_name": "مهندسة / سارة محمود حسن",
+      "candidate_email": "sara.hassan@example.com",
+      "subject": "[اختبار] تم استلام طلب التقديم بنجاح - CalliQ Group",
+      "body": "مرحباً مهندسة / سارة محمود حسن، تم استلام طلبك لوظيفة Senior Full Stack Engineer في شركة CalliQ Group.",
+      "trigger_event": "test_drip_application_received",
+      "status": "Sent",
+      "sent_by": "Test Drip: CalliQ Admin",
+      "sent_at": "2026-09-16T15:04:50.802Z"
+    },
+    {
+      "id": 1,
+      "org_id": 1,
+      "candidate_id": 1,
+      "candidate_name": "Karim Abdelrahman",
+      "candidate_email": "cillkareem@gmail.com",
+      "subject": "Application Received - Senior Full Stack Engineer",
+      "body": "Dear Karim Abdelrahman,\n\nThank you for applying for the Senior Full Stack Engineer position at CalliQ. We have received your CV and our AI ATS evaluation engine has processed your application.\n\nBest regards,\nCalliQ Talent Acquisition",
+      "trigger_event": "application_received",
+      "status": "Sent",
+      "sent_by": "System Auto-Trigger",
+      "sent_at": "2026-09-08T08:14:49.667Z"
+    },
+    {
+      "id": 2,
+      "org_id": 1,
+      "candidate_id": 1,
+      "candidate_name": "Karim Abdelrahman",
+      "candidate_email": "cillkareem@gmail.com",
+      "subject": "Interview Invitation - Senior Full Stack Engineer",
+      "body": "Dear Karim Abdelrahman,\n\nWe are pleased to invite you for a Technical Interview for the Senior Full Stack Engineer role.\n\nScheduled Date: Tomorrow 3:00 PM\nMeeting Link: https://meet.google.com/calliq-interview\n\nLooking forward to speaking with you!\nCalliQ Hiring Team",
+      "trigger_event": "interview_scheduled",
+      "status": "Sent",
+      "sent_by": "CalliQ Admin",
+      "sent_at": "2026-09-13T08:14:49.667Z"
+    }
+  ],
+  "EMAIL_TEMPLATES": [
+    {
+      "id": "tpl_rejection_standard",
+      "event": "rejection_notice",
+      "category": "rejection",
+      "name": "Standard Rejection Notice",
+      "description": "Polite, professional rejection for applicants not selected for current opening.",
+      "subject": "Update regarding your application for {{job_title}} at {{company_name}}",
+      "body": "Dear {{candidate_name}},\n\nThank you for taking the time to apply for the {{job_title}} position at {{company_name}}.\n\nAfter careful review of all applications, we have decided to move forward with other candidates whose qualifications more closely align with our current role requirements.\n\nWe genuinely appreciate your interest in {{company_name}} and wish you the best of success in your career journey.\n\nSincerely,\n{{company_name}} Talent Acquisition Team",
+      "is_active": true,
+      "updated_at": "2026-09-16T14:57:41.234Z"
+    },
+    {
+      "id": "tpl_rejection_talent_pool",
+      "event": "rejection_notice",
+      "category": "rejection",
+      "name": "Encouraging Rejection (Talent Pool)",
+      "description": "Warm rejection encouraging candidate to stay connected for future opportunities.",
+      "subject": "Thank you for interviewing with {{company_name}} - {{job_title}}",
+      "body": "Dear {{candidate_name}},\n\nThank you for taking the time to interview with our team for the {{job_title}} position at {{company_name}}.\n\nWhile we were very impressed with your background and qualifications, we have chosen another candidate who possesses specialized experience for this specific role.\n\nWe would love to keep your profile in our active talent pool and reach out when future roles matching your skills become available.\n\nWarm regards,\n{{company_name}} Recruitment Team",
+      "is_active": true,
+      "updated_at": "2026-09-16T14:57:41.234Z"
+    },
+    {
+      "id": "tpl_interview_invite",
+      "event": "interview_scheduled",
+      "category": "interview",
+      "name": "Standard Interview Invitation",
+      "description": "General interview invitation with date, time, and video call link.",
+      "subject": "Interview Invitation: {{job_title}} at {{company_name}}",
+      "body": "Dear {{candidate_name}},\n\nWe are excited to invite you to an interview for the {{job_title}} position at {{company_name}}!\n\n📅 Date & Time: {{interview_date}}\n📍 Location/Link: {{interview_link}}\n👤 Interviewer: {{recruiter_name}}\n\nPlease confirm if this time works for you by replying to this email.\n\nBest regards,\n{{company_name}} Hiring Team",
+      "is_active": true,
+      "updated_at": "2026-09-16T14:57:41.234Z"
+    },
+    {
+      "id": "tpl_interview_tech",
+      "event": "interview_scheduled",
+      "category": "interview",
+      "name": "Technical Assessment & Interview",
+      "description": "Invitation for technical assessment or coding/case study round.",
+      "subject": "Technical Interview Stage: {{job_title}} - {{company_name}}",
+      "body": "Dear {{candidate_name}},\n\nCongratulations on passing the initial screening! We would like to invite you to the Technical Interview stage for the {{job_title}} position at {{company_name}}.\n\n📅 Date & Time: {{interview_date}}\n📍 Meeting Link: {{interview_link}}\n\nIn this round, we will discuss your technical problem-solving approach and past engineering projects.\n\nLooking forward to speaking with you!\n\nWarm regards,\n{{company_name}} Technical Team",
+      "is_active": true,
+      "updated_at": "2026-09-16T14:57:41.234Z"
+    },
+    {
+      "id": "tpl_offer_standard",
+      "event": "offer_letter",
+      "category": "offer",
+      "name": "Official Job Offer Letter",
+      "description": "Formal employment offer letter with salary, benefits, and response deadline.",
+      "subject": "Official Offer of Employment: {{job_title}} at {{company_name}}",
+      "body": "Dear {{candidate_name}},\n\nOn behalf of {{company_name}}, I am thrilled to extend an official offer of employment for the position of {{job_title}}!\n\n💰 Offered Salary: {{offer_amount}} {{offer_currency}}\n📅 Target Start / Response Expiry: {{offer_deadline}}\n\nWe were deeply impressed by your experience and enthusiasm, and we believe you will be a tremendous addition to our team.\n\nPlease review the offer details and let us know if you accept.\n\nWarm regards,\n{{company_name}} Executive Leadership",
+      "is_active": true,
+      "updated_at": "2026-09-16T14:57:41.234Z"
+    },
+    {
+      "id": "tpl_app_received",
+      "event": "application_received",
+      "category": "confirmation",
+      "name": "Application Receipt Confirmation",
+      "description": "Automated receipt acknowledgment sent immediately after applying.",
+      "subject": "Application Received - {{job_title}} at {{company_name}}",
+      "body": "Dear {{candidate_name}},\n\nThank you for applying for the {{job_title}} position at {{company_name}}.\n\nWe have successfully received your CV and application. Our AI-powered recruitment engine is evaluating your qualifications against our benchmarks.\n\nWe will update you on the next steps shortly.\n\nBest regards,\n{{company_name}} Talent Team",
+      "is_active": true,
+      "updated_at": "2026-09-16T14:57:41.234Z"
+    },
+    {
+      "id": "tpl_shortlisted",
+      "event": "shortlisted",
+      "category": "shortlist",
+      "name": "Shortlisted Candidate Notice",
+      "description": "Notification sent when candidate is shortlisted for phone screening.",
+      "subject": "Great news regarding your application for {{job_title}}!",
+      "body": "Dear {{candidate_name}},\n\nCongratulations! Your profile has been shortlisted for the {{job_title}} role at {{company_name}}.\n\nOur recruiters were impressed by your background and experience. A member of our hiring team will reach out soon to coordinate the next interview phase.\n\nBest regards,\n{{company_name}} Recruitment Team",
+      "is_active": true,
+      "updated_at": "2026-09-16T14:57:41.234Z"
+    }
+  ],
+  "INQUIRIES": [
+    {
+      "id": 1,
+      "org_id": 14,
+      "job_id": 7,
+      "job_title": "Senior Full Stack Engineer",
+      "candidate_name": "محمود حسن أحمد",
+      "candidate_email": "mahmoud.hassan.tech@gmail.com",
+      "candidate_phone": "+20 101 234 5678",
+      "question": "هل العمل متاح بنظام العمل عن بُعد (Remote) بالكامل أم يتطلب الحضور لمقر الشركة؟ وما هي ساعات العمل الرسمية؟",
+      "ai_answer": "العمل متاح بنظام هجين (Hybrid) مرن يشمل الأونلاين والمقر بالقاهرة، وساعات العمل الرسمية من 9 صباحاً حتى 5 مساءً مع خيارات مرنة.",
+      "status": "PENDING",
+      "created_at": "2026-09-16T12:59:28.416Z"
+    },
+    {
+      "id": 2,
+      "org_id": 14,
+      "job_id": 7,
+      "job_title": "Senior Full Stack Engineer",
+      "candidate_name": "سارة عبد الرحمن",
+      "candidate_email": "sara.abdelrahman.hr@outlook.com",
+      "candidate_phone": "+20 112 987 6543",
+      "question": "ما هي مراحل المقابلات المتوقعة لهذه الوظيفة وكم يستغرق الوقت للرد بعد التقديم؟",
+      "ai_answer": "تتكون خطة المقابلات من 3 مراحل: فحص أولي، مقابلة فنية، ومقابلة نهائية. يتم الرد خلال 3 إلى 5 أيام عمل.",
+      "status": "ANSWERED",
+      "hr_reply": "أهلاً بكِ أستاذة سارة. تم مراجعة سيرتك الذاتية وسيتم التواصل معكِ هاتفياً اليوم لتحديد موعد المقابلة الأولى.",
+      "hr_replied_at": "2026-09-16T13:59:28.416Z",
+      "created_at": "2026-09-15T14:59:28.416Z"
+    },
+    {
+      "id": 3,
+      "org_id": 14,
+      "job_id": 7,
+      "job_title": "Senior Full Stack Engineer",
+      "candidate_name": "مهندس / عمر الفاروق",
+      "candidate_email": "omar.elfarouk.cloud@yahoo.com",
+      "candidate_phone": "+20 100 555 1234",
+      "question": "هل تشمل الحزمة الوظيفية تأمين صحي عائلي وبونص سنوي على الأداء؟",
+      "ai_answer": "نعم، توفر الشركة حزمة مميزات تشمل تأمين صحي شاملاً للموظف وعائلته بالإضافة إلى بونص أداء سنوي.",
+      "status": "STARRED",
+      "created_at": "2026-09-16T09:59:28.416Z"
+    }
+  ],
+  "TALENT_POOLS": [
+    {
+      "id": 1,
+      "org_id": 1,
+      "name": "قادة React (React Leaders)",
+      "description": "خبراء ومصممو واجهات React و Next.js المتفوقون للمشاريع الكبيرة.",
+      "tags": [
+        "React",
+        "TypeScript",
+        "Frontend"
+      ],
+      "color": "blue",
+      "candidate_ids": [
+        1,
+        3
+      ],
+      "created_at": "2026-09-06T14:57:41.234Z"
+    },
+    {
+      "id": 2,
+      "org_id": 1,
+      "name": "مرشحو المستقبل (Future Candidates)",
+      "description": "مرشحون مميزون ذوو تقييمات عالية للوظائف المستقبلية.",
+      "tags": [
+        "High Score",
+        "Leadership",
+        "Future"
+      ],
+      "color": "emerald",
+      "candidate_ids": [
+        1,
+        2
+      ],
+      "created_at": "2026-09-11T14:57:41.234Z"
+    },
+    {
+      "id": 3,
+      "org_id": 1,
+      "name": "مصممو UI/UX (UI/UX Designers)",
+      "description": "مبدعو تصميم واجهات وتجربة المستخدم.",
+      "tags": [
+        "UI",
+        "UX",
+        "Figma"
+      ],
+      "color": "purple",
+      "candidate_ids": [],
+      "created_at": "2026-09-14T14:57:41.234Z"
+    },
+    {
+      "id": 4,
+      "org_id": 14,
+      "name": "HR",
+      "description": "Over_qalifide",
+      "tags": [
+        "telent"
+      ],
+      "color": "purple",
+      "candidate_ids": [],
+      "created_at": "2026-09-16T15:00:55.599Z",
+      "updated_at": "2026-09-16T15:01:47.511Z"
+    }
+  ],
+  "SEQUENCES": [
+    {
+      "id": 1,
+      "org_id": 1,
+      "title": "سلسلة التذكير بمواعيد المقابلات (Interview Reminder Sequence)",
+      "description": "سلسلة رسائل متابعة تلقائية لتأكيد الموعد والتذكير بعد 48 ساعة.",
+      "trigger_event": "AFTER_INTERVIEW_SCHEDULED",
+      "steps": [
+        {
+          "id": 1,
+          "step_number": 1,
+          "delay_hours": 0,
+          "subject": "تأكيد موعد المقابلة الوظيفية: {{job_title}}",
+          "body_template": "مرحباً {{candidate_name}}،\n\nنود تأكيد موعد مقابلتك المحددة لوظيفة {{job_title}} في شركة {{company_name}}.\n\nموعد المقابلة: {{interview_date}}\nرابط الاجتماع: {{interview_link}}\n\nنتمنى لك كل التوفيق!\nفريق التوظيف"
+        },
+        {
+          "id": 2,
+          "step_number": 2,
+          "delay_hours": 48,
+          "subject": "تذكير: موعد المقابلة القادمة خلال 48 ساعة",
+          "body_template": "مرحباً {{candidate_name}}،\n\nتذكير ودي بموعد مقابلتك القادمة لوظيفة {{job_title}}.\n\nيرجى التأكد من الانضمام عبر الرابط: {{interview_link}}\n\nتحياتنا،\n{{company_name}}"
+        }
+      ],
+      "created_at": "2026-09-09T14:57:41.234Z"
+    },
+    {
+      "id": 2,
+      "org_id": 1,
+      "title": "متابعة العرض الوظيفي (Job Offer Nurturing Sequence)",
+      "description": "سلسلة تذكير تلقائية بالعرض الوظيفي بعد 3 أيام من صدوره.",
+      "trigger_event": "AFTER_OFFER_SENT",
+      "steps": [
+        {
+          "id": 1,
+          "step_number": 1,
+          "delay_hours": 0,
+          "subject": "عرض وظيفي رسمي: {{job_title}} في {{company_name}}",
+          "body_template": "عزيزي {{candidate_name}}،\n\nيسرنا تقديم عرض العمل الرسمي لوظيفة {{job_title}}.\n\nالراتب المقترح: {{offer_amount}} {{offer_currency}}\nالموعد النهائي للرد: {{offer_deadline}}\n\nيسعدنا انضمامك لفريقنا!"
+        },
+        {
+          "id": 2,
+          "step_number": 2,
+          "delay_hours": 72,
+          "subject": "تذكير بالعرض الوظيفي المتاح - {{company_name}}",
+          "body_template": "عزيزي {{candidate_name}}،\n\nنود التذكير بأن عرض العمل لوظيفة {{job_title}} لا يزال بانتظار موافقتك.\n\nينتهي العرض بتاريخ: {{offer_deadline}}.\nفي حال كان لديك أي استفسارات، لا تتردد في التواصل معنا مباشرة.\n\nمع أطيب التحيات،\nفريق التوظيف"
+        }
+      ],
+      "created_at": "2026-09-12T14:57:41.234Z"
+    }
+  ],
+  "SEQUENCE_ENROLLMENTS": [],
+  "DRIP_CAMPAIGNS": [
+    {
+      "id": 1,
+      "org_id": 1,
+      "title": "حملة استلام الطلبات والتأكيد التلقائي (Application Received Drip)",
+      "description": "سلسلة تقطير تبدأ فور تقديم المرشح، تشكر المرشح وتوضح خطوات التقييم والفرز ثم رسالة تعريفية بعد 48 ساعة.",
+      "trigger_stage": "Application Received",
+      "target_job_id": null,
+      "target_pool_id": null,
+      "is_active": true,
+      "enrolled_count": 3,
+      "completed_count": 2,
+      "created_at": "2026-09-02T15:04:36.754Z",
+      "steps": [
+        {
+          "id": 1,
+          "step_number": 1,
+          "delay_value": 0,
+          "delay_unit": "hours",
+          "delay_hours": 0,
+          "subject": "تم استلام طلب التقديم بنجاح - {{job_title}} في {{company_name}}",
+          "body_template": "عزيزي/عزيزتي {{candidate_name}}،\n\nنشكرك على اهتمامك بالانضمام إلى فريق {{company_name}} والتقديم على وظيفة {{job_title}}.\n\nتم استلام سيرتك الذاتية وتجري الآن مراجعتها عبر نظام الفرز الذكي. سنقوم بموافاتك بالخطوات القادمة قريباً.\n\nمع أطيب التحيات،\nفريق استقطاب المواهب - {{company_name}}"
+        },
+        {
+          "id": 2,
+          "step_number": 2,
+          "delay_value": 48,
+          "delay_unit": "hours",
+          "delay_hours": 48,
+          "subject": "تعرف على بيئة العمل وثقافة الابتكار في {{company_name}}",
+          "body_template": "مرحباً {{candidate_name}}،\n\nبينما يواصل فريق التوظيف مراجعة ملفك لوظيفة {{job_title}}، يسعدنا مشاركتك لمحة سريعة عن قيم وثقافة العمل لدينا في {{company_name}}.\n\nيمكنك زيارة موقعنا والاطلاع على مشاريعنا وشهادات الموظفين.\n\nنتمنى لك كل التوفيق!\n{{company_name}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "org_id": 1,
+      "title": "سلسلة التذكير بمواعيد المقابلات (Interview Scheduled Drip)",
+      "description": "ترسل تفاصيل المقابلة فور جدولتها، وتتبعها برسالة تذكيرية قبل 24 ساعة لضمان الحضور.",
+      "trigger_stage": "Interview Scheduled",
+      "target_job_id": null,
+      "target_pool_id": null,
+      "is_active": true,
+      "enrolled_count": 2,
+      "completed_count": 1,
+      "created_at": "2026-09-06T15:04:36.754Z",
+      "steps": [
+        {
+          "id": 1,
+          "step_number": 1,
+          "delay_value": 0,
+          "delay_unit": "hours",
+          "delay_hours": 0,
+          "subject": "دعوة لمقابلة وظيفية: {{job_title}} - {{company_name}}",
+          "body_template": "عزيزي {{candidate_name}}،\n\nيسرنا دعوتك لحضور مقابلة تقييمية لوظيفة {{job_title}}.\n\n📅 الموعد: {{interview_date}}\n📍 رابط الاجتماع: {{interview_link}}\n\nيرجى التأكد من الحضور قبل الموعد بـ 5 دقائق.\n\nتحياتنا،\n{{company_name}}"
+        },
+        {
+          "id": 2,
+          "step_number": 2,
+          "delay_value": 24,
+          "delay_unit": "hours",
+          "delay_hours": 24,
+          "subject": "تذكير بموعد مقابلتك القادمة مع فريق {{company_name}}",
+          "body_template": "مرحباً {{candidate_name}}،\n\nتذكير ودي بموعد مقابلتك المحدد لوظيفة {{job_title}}.\n\nالرابط المباشر: {{interview_link}}\n\nإذا واجهتك أي صعوبة تقنية، يرجى الرد على هذا البريد فوراً.\n\nنتطلع للحديث معك!"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "org_id": 1,
+      "title": "حملة متابعة وقبول العروض الوظيفية (Offer Sent Nurturing)",
+      "description": "إرسال خطاب العرض ومتابعة المرشح بعد 3 أيام للإجابة على الاستفسارات والتأكيد.",
+      "trigger_stage": "Offer Sent",
+      "target_job_id": null,
+      "target_pool_id": null,
+      "is_active": true,
+      "enrolled_count": 1,
+      "completed_count": 1,
+      "created_at": "2026-09-09T15:04:36.754Z",
+      "steps": [
+        {
+          "id": 1,
+          "step_number": 1,
+          "delay_value": 0,
+          "delay_unit": "hours",
+          "delay_hours": 0,
+          "subject": "تهانينا! عرض عمل رسمي لوظيفة {{job_title}} - {{company_name}}",
+          "body_template": "عزيزي {{candidate_name}}،\n\nيسعدنا جداً تقديم عرض التوظيف الرسمي لك لشغل وظيفة {{job_title}} لدى {{company_name}}.\n\nالراتب والمزايا: {{offer_amount}} {{offer_currency}}\nمهلة الرد: {{offer_deadline}}\n\nنتشرف بانضمامك لفريقنا ونتمنى لك مسيرة مهنية مميزة معنا.\n\nمع وافر التقدير،\nإدارة الموارد البشرية"
+        },
+        {
+          "id": 2,
+          "step_number": 2,
+          "delay_value": 3,
+          "delay_unit": "days",
+          "delay_hours": 72,
+          "subject": "متابعة العرض الوظيفي: هل لديك أي استفسارات؟ - {{company_name}}",
+          "body_template": "مرحباً {{candidate_name}}،\n\nنود الاطمئنان على استلامك للعرض الوظيفي الرسمي واستطلاع ما إذا كانت لديك أي استفسارات حول بيئة العمل، المزايا، أو خطوات البدء.\n\nيسعدنا دائماً تقديم أي توضيحات.\n\nأطيب التحيات،\n{{company_name}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "org_id": 1,
+      "title": "تغذية العلاقات ودعوة بنك المواهب (Talent Pool Nurture)",
+      "description": "سلسلة بعد مرحلة الاعتذار لإبقاء المرشحين المتميزين ضمن شبكة المواهب للوظائف المستقبلية.",
+      "trigger_stage": "Rejected",
+      "target_job_id": null,
+      "target_pool_id": null,
+      "is_active": true,
+      "enrolled_count": 2,
+      "completed_count": 2,
+      "created_at": "2026-09-11T15:04:36.754Z",
+      "steps": [
+        {
+          "id": 1,
+          "step_number": 1,
+          "delay_value": 0,
+          "delay_unit": "hours",
+          "delay_hours": 0,
+          "subject": "تحديث بشأن طلب التقديم لوظيفة {{job_title}} - {{company_name}}",
+          "body_template": "عزيزي {{candidate_name}}،\n\nنشكرك على الوقت الذي خصصته لمشاركتنا خبراتك لوظيفة {{job_title}}.\n\nنود إبلاغك بأنه وقع الاختيار على مرشح آخر لهذه الفرصة بالذات، إلا أننا نقدر كفاءتك العالية ورغبتك في الانضمام إلينا.\n\nمع تمنياتنا لك بالتوفيق الدائم.\n{{company_name}}"
+        },
+        {
+          "id": 2,
+          "step_number": 2,
+          "delay_value": 7,
+          "delay_unit": "days",
+          "delay_hours": 168,
+          "subject": "ابقَ على تواصل: ملفك المهني محفوظ في بنك مواهب {{company_name}}",
+          "body_template": "مرحباً {{candidate_name}}،\n\nنود إعلامك بأن سيرتك الذاتية محفوظة ومميزة ضمن بنك المواهب النشط لدينا. عند فتح أي شواغر جديدة تتوافق مع خبراتك، ستكون لك الأولوية في التواصل.\n\nشكراً لثقتك بنا!\n{{company_name}} Talent Network"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "org_id": 1,
+      "title": "حملة استلام الطلبات والتغذية الراجعة التلقائية",
+      "description": "سلسلة تقطير متعددة المراحل للتواصل الآلي مع المتقدمين",
+      "trigger_stage": "Application Received",
+      "target_job_id": null,
+      "target_pool_id": null,
+      "is_active": false,
+      "steps": [
+        {
+          "id": 1,
+          "step_number": 1,
+          "delay_value": 0,
+          "delay_unit": "hours",
+          "delay_hours": 0,
+          "subject": "تم استلام طلب التقديم بنجاح - {{company_name}}",
+          "body_template": "مرحباً {{candidate_name}}، تم استلام طلبك لوظيفة {{job_title}} في شركة {{company_name}}.",
+          "action_type": "EMAIL"
+        },
+        {
+          "id": 2,
+          "step_number": 2,
+          "delay_value": 2,
+          "delay_unit": "days",
+          "delay_hours": 48,
+          "subject": "متابعة طلبك والتحديثات القادمة - {{company_name}}",
+          "body_template": "عزيزي {{candidate_name}}، نود إعلامك بأن ملفك قيد المراجعة الفنية.",
+          "action_type": "EMAIL"
+        }
+      ],
+      "enrolled_count": 1,
+      "completed_count": 0,
+      "created_at": "2026-09-16T15:04:50.794Z",
+      "updated_at": "2026-09-16T15:04:50.811Z"
+    }
+  ],
+  "DRIP_LOGS": [
+    {
+      "id": 4,
+      "org_id": 1,
+      "campaign_id": 5,
+      "campaign_title": "حملة استلام الطلبات والتغذية الراجعة التلقائية",
+      "trigger_stage": "Application Received",
+      "candidate_id": 2,
+      "candidate_name": "مهندسة / سارة محمود حسن",
+      "candidate_email": "sara.hassan@example.com",
+      "step_number": 1,
+      "total_steps": 2,
+      "subject": "تم استلام طلب التقديم بنجاح - CalliQ Group",
+      "body_rendered": "مرحباً مهندسة / سارة محمود حسن، تم استلام طلبك لوظيفة Senior Full Stack Engineer في شركة CalliQ Group.",
+      "status": "SENT",
+      "scheduled_for": "2026-09-16T15:04:50.802Z",
+      "executed_at": "2026-09-16T15:04:50.802Z"
+    },
+    {
+      "id": 1,
+      "org_id": 1,
+      "campaign_id": 1,
+      "campaign_title": "حملة استلام الطلبات والتأكيد التلقائي (Application Received Drip)",
+      "trigger_stage": "Application Received",
+      "candidate_id": 1,
+      "candidate_name": "Karim Abdelrahman",
+      "candidate_email": "cillkareem@gmail.com",
+      "step_number": 1,
+      "total_steps": 2,
+      "subject": "تم استلام طلب التقديم بنجاح - Senior Full Stack Engineer في CalliQ",
+      "body_rendered": "عزيزي كريم، نشكرك على تقديمك لوظيفة Senior Full Stack Engineer. تم استلام السيرة الذاتية بنجاح.",
+      "status": "SENT",
+      "scheduled_for": "2026-09-09T15:04:36.754Z",
+      "executed_at": "2026-09-09T15:04:36.754Z"
+    },
+    {
+      "id": 2,
+      "org_id": 1,
+      "campaign_id": 1,
+      "campaign_title": "حملة استلام الطلبات والتأكيد التلقائي (Application Received Drip)",
+      "trigger_stage": "Application Received",
+      "candidate_id": 1,
+      "candidate_name": "Karim Abdelrahman",
+      "candidate_email": "cillkareem@gmail.com",
+      "step_number": 2,
+      "total_steps": 2,
+      "subject": "تعرف على بيئة العمل وثقافة الابتكار في CalliQ",
+      "body_rendered": "مرحباً كريم، يسعدنا مشاركتك لمحة سريعة عن ثقافة العمل ومشاريعنا في CalliQ.",
+      "status": "SENT",
+      "scheduled_for": "2026-09-11T15:04:36.754Z",
+      "executed_at": "2026-09-11T15:04:36.754Z"
+    },
+    {
+      "id": 3,
+      "org_id": 1,
+      "campaign_id": 2,
+      "campaign_title": "سلسلة التذكير بمواعيد المقابلات (Interview Scheduled Drip)",
+      "trigger_stage": "Interview Scheduled",
+      "candidate_id": 2,
+      "candidate_name": "Dr. Elena Rostova",
+      "candidate_email": "elena.rostova@ailab.org",
+      "step_number": 1,
+      "total_steps": 2,
+      "subject": "دعوة لمقابلة وظيفية: Lead AI Researcher - CalliQ",
+      "body_rendered": "Dear Dr. Elena, We are excited to invite you to a technical interview for the Lead AI Researcher role.",
+      "status": "SENT",
+      "scheduled_for": "2026-09-14T15:04:36.754Z",
+      "executed_at": "2026-09-14T15:04:36.754Z"
+    }
+  ],
   "SESSIONS": {
     "token_calliq_1_1787558340837_vukz1mf": 1,
     "token_calliq_1_1787559233286_9yxdy53": 1,
@@ -7894,33 +5172,42 @@
     "token_calliq_27_1787846626534_3yikyok": 27,
     "token_calliq_27_1787955789605_4zj6pec": 27,
     "token_calliq_24_1787955875782_7vxcyo8": 24,
-    "token_calliq_29_1787956049805_pu6x3gs": 29,
     "token_calliq_1_1788015432446_meejs5y": 1,
-    "token_calliq_31_1788015460011_dvedxyf": 31,
-    "token_calliq_32_1788015460047_4si62cn": 32,
-    "token_calliq_31_1788015554608_ht43y5f": 31,
     "token_calliq_24_1788016378161_yesy452": 24,
     "token_calliq_24_1788016415470_5a6oy9o": 24,
     "token_calliq_24_1788016459632_tu8tdu0": 24,
-    "token_calliq_31_1788016551510_6qecmg4": 31,
-    "token_calliq_31_1788018850014_i47cjf4": 31,
     "token_calliq_1_1788019695472_wpxx0ke": 1,
-    "token_calliq_32_1788019695504_bxns5wt": 32,
-    "token_calliq_31_1788019695521_h075me1": 31,
-    "token_calliq_29_1788019695540_oznkz2v": 29,
     "token_calliq_24_1788019695561_b3kekb4": 24,
     "token_calliq_27_1788019708251_1ahmy4v": 27,
     "token_calliq_10_1788019708272_7kut4ot": 10,
     "token_calliq_1_1788024098282_a3zpshl": 1,
     "token_calliq_1_1788024128338_7euzben": 1,
     "token_calliq_1_1788264596565_pccatcw": 1,
-    "token_calliq_1_1788417750183_3mpjcb6": 1
+    "token_calliq_1_1788417750183_3mpjcb6": 1,
+    "token_calliq_10_1789460355093_e454uzh": 10,
+    "token_calliq_10_1789461358854_indur8s": 10,
+    "token_calliq_1_1789461375134_vefxdx6": 1,
+    "token_calliq_10_1789461464944_csfq8g0": 10,
+    "token_calliq_1_1789461494435_ulbi3o9": 1,
+    "token_calliq_1_1789461825549_oqhd0d1": 1,
+    "token_calliq_1_1789461927812_48eagmv": 1,
+    "token_calliq_24_1789461967560_ecfquyh": 24,
+    "token_calliq_1_1789462050409_zzypgby": 1,
+    "token_calliq_1_1789571085473_m85e1cj": 1,
+    "token_calliq_1_1789571090755_d95izrn": 1
   },
   "nextCandidateId": 53,
-  "nextJobId": 33,
-  "nextUserId": 38,
+  "nextJobId": 38,
+  "nextUserId": 39,
   "nextOrgId": 27,
   "nextWebhookId": 2,
   "nextCandidateBatchId": 8,
-  "last_saved_at": "2026-09-03T06:49:50.428Z"
+  "nextEmailLogId": 11,
+  "nextInquiryId": 4,
+  "nextTalentPoolId": 5,
+  "nextSequenceId": 3,
+  "nextEnrollmentId": 1,
+  "nextDripCampaignId": 6,
+  "nextDripLogId": 5,
+  "last_saved_at": "2026-09-16T15:04:50.811Z"
 }

@@ -12,11 +12,12 @@ import {
   FileText, Zap, Award, Target, Filter, LayoutDashboard,
   UserCheck, FileSearch, Layers, GitMerge, ListOrdered,
   CalendarCheck, PieChart, Inbox, ChevronDown, MoreHorizontal,
-  Brain, Cpu, TrendingDown, RefreshCw, Eye, LogOut, ShieldCheck,
+  Brain, Cpu, TrendingDown, RefreshCw, Eye, LogOut, ShieldCheck, Building2
 } from 'lucide-react';
 import { dashboardApi, candidatesApi, jobsApi } from '../api';
 import { useAuthStore } from '../store/auth';
 import { AdminDashboard } from '../components/AdminDashboard';
+import { Layout } from '../components/layout/Layout';
 
 // ─── Design tokens ──────────────────────────────────────────────────────────
 // Palette: white base, indigo/violet primary, soft purple accents
@@ -64,17 +65,20 @@ function MiniSpark({ data, color = '#6366f1' }: MiniSparkProps) {
 
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
 function KPICard({
-  label, value, change, changeUp, icon, color, sparkData, accent,
+  label, value, change, changeUp, icon, color, sparkData, accent, onClick,
 }: {
   label: string; value: string | number; change?: string; changeUp?: boolean;
-  icon: React.ReactNode; color: string; sparkData?: number[]; accent: string;
+  icon: React.ReactNode; color: string; sparkData?: number[]; accent: string; onClick?: () => void;
 }) {
   return (
-    <div className="ats-kpi-card group">
+    <div
+      onClick={onClick}
+      className="ats-kpi-card group hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer border border-slate-100 hover:border-indigo-200"
+    >
       <div className="flex items-start justify-between mb-3">
-        <div className={`ats-icon-pill ${color}`}>{icon}</div>
+        <div className={`ats-icon-pill ${color} group-hover:scale-110 transition-transform`}>{icon}</div>
         {change && (
-          <span className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${changeUp ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
+          <span className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${changeUp ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-500 border border-red-100'}`}>
             {changeUp ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
             {change}
           </span>
@@ -82,7 +86,7 @@ function KPICard({
       </div>
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-2xl font-bold text-slate-800 leading-none mb-1">{value}</p>
+          <p className="text-2xl font-black text-slate-800 leading-none mb-1 group-hover:text-indigo-600 transition-colors">{value}</p>
           <p className="text-xs text-slate-500 font-medium">{label}</p>
         </div>
         {sparkData && <MiniSpark data={sparkData} color={accent} up={changeUp} />}
@@ -180,23 +184,18 @@ const NAV_ITEMS = [
   { icon: <GitMerge size={18} />, label: 'Matching', to: '/candidates?sort_by=match_score' },
   { icon: <ListOrdered size={18} />, label: 'ATS Ranking', to: '/candidates?sort_by=rank' },
   { icon: <CalendarCheck size={18} />, label: 'Interviews', to: '/candidates?status=Phone+Interview' },
-  { icon: <PieChart size={18} />, label: 'Analytics', to: '/reports' },
   { icon: <Inbox size={18} />, label: 'Email', to: '/settings' },
   { icon: <Settings size={18} />, label: 'Settings', to: '/settings' },
 ];
 
-// ─── Quick Actions ────────────────────────────────────────────────────────────
+// ─── QUICK ACTIONS ────────────────────────────────────────────────────────────
 const QUICK_ACTIONS = [
-  { icon: <Upload size={15} />, label: 'Upload CV', color: 'bg-violet-600 hover:bg-violet-700', to: '/candidates' },
-  { icon: <Plus size={15} />, label: 'Create Job', color: 'bg-indigo-600 hover:bg-indigo-700', to: '/jobs' },
-  { icon: <Cpu size={15} />, label: 'Analyze CVs', color: 'bg-blue-600 hover:bg-blue-700', to: '/candidates' },
-  { icon: <Target size={15} />, label: 'Match', color: 'bg-emerald-600 hover:bg-emerald-700', to: '/candidates' },
-  { icon: <BarChart2 size={15} />, label: 'Reports', color: 'bg-amber-500 hover:bg-amber-600', to: '/reports' },
-  { icon: <Mail size={15} />, label: 'Email', color: 'bg-rose-500 hover:bg-rose-600', to: '/settings' },
+  { icon: <Upload size={18} />, label: 'Upload CV', color: 'bg-purple-600 hover:bg-purple-700', to: '/candidates' },
+  { icon: <Plus size={18} />, label: 'Create Job', color: 'bg-indigo-600 hover:bg-indigo-700', to: '/jobs' },
+  { icon: <Cpu size={18} />, label: 'Analyze CVs', color: 'bg-blue-600 hover:bg-blue-700', to: '/candidates' },
+  { icon: <Target size={18} />, label: 'Match', color: 'bg-emerald-600 hover:bg-emerald-700', to: '/candidates?sort_by=match_score' },
+  { icon: <Mail size={18} />, label: 'Email', color: 'bg-pink-500 hover:bg-pink-600', to: '/settings' },
 ];
-
-// ─── TOP CANDIDATES (mock ranking data with scores) ───────────────────────────
-// Removed mock data - now using real candidates from API
 
 // ─── SKILLS MOCK ──────────────────────────────────────────────────────────────
 const SKILLS_COLORS = ['#6366f1', '#8b5cf6', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
@@ -204,11 +203,24 @@ const SKILLS_COLORS = ['#6366f1', '#8b5cf6', '#3b82f6', '#06b6d4', '#10b981', '#
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export function DashboardPage() {
   const [period, setPeriod] = useState<'today' | 'week' | 'month' | 'custom'>('month');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: '1', title: 'New Application Received', message: 'Sara Ahmed applied for Senior Frontend Developer', time: '10m ago', unread: true },
+    { id: '2', title: 'High ATS Match Found', message: 'Ahmed Hassan matched 96% for Senior Python Developer', time: '1h ago', unread: true },
+    { id: '3', title: 'New Candidate Uploaded', message: 'Mohamed Ali uploaded a new CV for ML Engineer', time: '2h ago', unread: true },
+  ]);
+  const unreadCount = notifications.filter(n => n.unread).length;
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { user, logout } = useAuthStore();
   const isAdmin = user?.role === 'admin' || user?.role === 'owner';
-  const [viewMode, setViewMode] = useState<'recruiter' | 'admin'>(isAdmin ? 'admin' : 'recruiter');
+  const [viewMode, setViewMode] = useState<'recruiter' | 'admin'>('recruiter');
   const userInitials = user?.name ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'HR';
+  const isHR2 = user?.email?.toLowerCase().includes('hr2') || user?.name?.includes('HR 2') || user?.name?.includes('HR2');
+  const currentHour = new Date().getHours();
+  const defaultGreetingTime = currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
+  const greetingTime = isHR2 ? 'Good afternoon' : defaultGreetingTime;
+  const userName = isHR2 ? 'Mohamed' : (user?.name ? user.name.split(' ')[0] : 'Recruiter');
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
@@ -273,263 +285,21 @@ export function DashboardPage() {
     avgScore: Math.round(62 + Math.random() * 30),
   }));
 
-  const recentCandidates = candidates?.items || [];
+  const rawRecent = candidates?.items || [];
+  const recentCandidates = rawRecent.filter(c => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      c.full_name?.toLowerCase().includes(q) ||
+      c.current_position?.toLowerCase().includes(q) ||
+      c.email?.toLowerCase().includes(q)
+    );
+  });
 
   return (
-    <>
-      {/* ── Global styles injected once ──────────────────────────────── */}
+    <Layout>
+      {/* ── Dashboard Content ──────────────────────────────── */}
       <style>{`
-        .ats-root {
-          display: flex;
-          min-height: 100vh;
-          background: #f8f7ff;
-          font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-        }
-
-        /* ── Sidebar ── */
-        .ats-sidebar {
-          width: 240px;
-          min-height: 100vh;
-          background: linear-gradient(160deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%);
-          display: flex;
-          flex-direction: column;
-          padding: 0;
-          flex-shrink: 0;
-          position: relative;
-          transition: width 0.25s ease;
-        }
-        .ats-sidebar-logo {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 22px 20px 18px;
-          border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        .ats-logo-icon {
-          width: 34px; height: 34px;
-          background: rgba(255,255,255,0.15);
-          border-radius: 10px;
-          display: flex; align-items: center; justify-content: center;
-          backdrop-filter: blur(8px);
-        }
-        .ats-logo-text { color: #fff; font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
-        .ats-logo-sub { color: rgba(255,255,255,0.45); font-size: 10px; font-weight: 500; letter-spacing: 0.5px; }
-        .ats-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
-        .ats-nav-label {
-          color: rgba(255,255,255,0.35);
-          font-size: 9.5px;
-          font-weight: 700;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-          padding: 8px 10px 4px;
-        }
-        .ats-nav-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 9px 12px;
-          border-radius: 10px;
-          color: rgba(255,255,255,0.6);
-          font-size: 13px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.15s;
-          text-decoration: none;
-          margin-bottom: 2px;
-        }
-        .ats-nav-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .ats-nav-item.active {
-          background: rgba(255,255,255,0.18);
-          color: #fff;
-          font-weight: 600;
-        }
-        .ats-nav-item.active .ats-nav-dot { opacity: 1; }
-        .ats-nav-dot {
-          width: 5px; height: 5px;
-          background: #a5b4fc;
-          border-radius: 50%;
-          margin-left: auto;
-          opacity: 0;
-        }
-        .ats-sidebar-user {
-          padding: 14px 16px;
-          border-top: 1px solid rgba(255,255,255,0.08);
-          display: flex; align-items: center; gap: 10px;
-          cursor: pointer;
-        }
-        .ats-user-avatar {
-          width: 32px; height: 32px;
-          background: linear-gradient(135deg, #818cf8, #6366f1);
-          border-radius: 8px;
-          display: flex; align-items: center; justify-content: center;
-          color: #fff; font-size: 12px; font-weight: 700;
-          flex-shrink: 0;
-        }
-        .ats-user-name { color: #fff; font-size: 13px; font-weight: 600; }
-        .ats-user-role {
-          color: rgba(255,255,255,0.45);
-          font-size: 10.5px;
-          font-weight: 500;
-          background: rgba(255,255,255,0.1);
-          padding: 1px 6px;
-          border-radius: 4px;
-          display: inline-block;
-        }
-
-        /* ── Main area ── */
-        .ats-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-
-        /* ── Header ── */
-        .ats-header {
-          display: flex; align-items: center; gap: 16px;
-          padding: 14px 24px;
-          background: #fff;
-          border-bottom: 1px solid #e8e6f7;
-          position: sticky; top: 0; z-index: 30;
-        }
-        .ats-search {
-          flex: 1; max-width: 380px;
-          display: flex; align-items: center; gap: 8px;
-          background: #f5f3ff;
-          border: 1.5px solid #e8e6f7;
-          border-radius: 10px;
-          padding: 8px 12px;
-        }
-        .ats-search input {
-          border: none; background: transparent; outline: none;
-          font-size: 13px; color: #374151; flex: 1;
-        }
-        .ats-search input::placeholder { color: #9ca3af; }
-        .ats-period-tabs {
-          display: flex; gap: 2px;
-          background: #f5f3ff;
-          border-radius: 10px;
-          padding: 3px;
-        }
-        .ats-period-tab {
-          padding: 5px 12px;
-          border-radius: 8px;
-          font-size: 12px; font-weight: 500;
-          color: #6b7280; cursor: pointer; border: none; background: transparent;
-          transition: all 0.15s;
-        }
-        .ats-period-tab.active {
-          background: #fff;
-          color: #4f46e5;
-          font-weight: 600;
-          box-shadow: 0 1px 3px rgba(79,70,229,0.12);
-        }
-        .ats-header-icon {
-          width: 36px; height: 36px;
-          border-radius: 10px;
-          background: #f5f3ff;
-          display: flex; align-items: center; justify-content: center;
-          color: #6366f1; cursor: pointer;
-          position: relative;
-          transition: background 0.15s;
-        }
-        .ats-header-icon:hover { background: #ede9fe; }
-        .ats-notif-dot {
-          position: absolute; top: 6px; right: 6px;
-          width: 7px; height: 7px;
-          background: #ef4444;
-          border-radius: 50%;
-          border: 1.5px solid #fff;
-        }
-
-        /* ── Page content ── */
-        .ats-content { flex: 1; padding: 24px; overflow-y: auto; }
-        .ats-page-title { font-size: 20px; font-weight: 700; color: #1e1b4b; letter-spacing: -0.4px; }
-        .ats-page-sub { font-size: 13px; color: #94a3b8; margin-top: 2px; }
-
-        /* ── KPI Cards ── */
-        .ats-kpi-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 16px;
-          margin-bottom: 20px;
-        }
-
-        /* ── Media Queries for Mobile ── */
-        @media (max-width: 768px) {
-          .ats-root { flex-direction: column; }
-          .ats-sidebar { 
-            width: 100%; min-height: auto; padding: 12px; 
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-          }
-          .ats-sidebar-logo { padding: 0 0 12px 0; border: none; }
-          .ats-nav { 
-            display: flex; flex-direction: row; overflow-x: auto; 
-            padding: 0 0 8px 0; border: none;
-            scrollbar-width: none;
-          }
-          .ats-nav::-webkit-scrollbar { display: none; }
-          .ats-nav-label { display: none; }
-          .ats-nav-item { 
-            margin-right: 8px; margin-bottom: 0; white-space: nowrap; 
-            padding: 8px 12px; font-size: 12px;
-          }
-          .ats-sidebar-user { display: none !important; }
-          
-          .ats-header { flex-direction: column; padding: 12px; gap: 12px; position: relative; }
-          .ats-search { max-width: 100%; width: 100%; }
-          .ats-search input { font-size: 16px; }
-          .ats-period-tabs { width: 100%; justify-content: center; margin: 0; }
-          
-          .ats-kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-          .ats-content { padding: 16px; }
-          
-          /* Force charts grid to 1 column on mobile */
-          .ats-chart-grid { grid-template-columns: 1fr !important; }
-          
-          /* Hide complex header items on mobile if needed */
-          .ats-header > div:last-child { align-self: flex-end; }
-        }
-        .ats-kpi-card {
-          background: #fff;
-          border-radius: 16px;
-          padding: 18px 20px;
-          border: 1.5px solid #ede9fe;
-          transition: all 0.2s;
-          cursor: default;
-        }
-        .ats-kpi-card:hover {
-          border-color: #c4b5fd;
-          box-shadow: 0 4px 20px rgba(99,102,241,0.1);
-          transform: translateY(-1px);
-        }
-        .ats-icon-pill {
-          width: 38px; height: 38px;
-          border-radius: 10px;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .icon-violet { background: #ede9fe; color: #7c3aed; }
-        .icon-indigo { background: #e0e7ff; color: #4f46e5; }
-        .icon-blue { background: #dbeafe; color: #2563eb; }
-        .icon-emerald { background: #d1fae5; color: #059669; }
-        .icon-amber { background: #fef3c7; color: #d97706; }
-        .icon-rose { background: #fee2e2; color: #e11d48; }
-
-        /* ── Section cards ── */
-        .ats-card {
-          background: #fff;
-          border-radius: 16px;
-          border: 1.5px solid #ede9fe;
-          overflow: hidden;
-        }
-        .ats-card-header {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 18px 20px 14px;
-        }
-        .ats-card-title { font-size: 14px; font-weight: 700; color: #1e1b4b; }
-        .ats-card-action {
-          font-size: 12px; color: #6366f1; font-weight: 600;
-          cursor: pointer; display: flex; align-items: center; gap-4: 4px;
-          text-decoration: none;
-        }
-        .ats-card-action:hover { color: #4f46e5; }
-        .ats-card-body { padding: 0 20px 20px; }
-
         /* ── Grid layouts ── */
         .ats-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .ats-grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
@@ -542,7 +312,7 @@ export function DashboardPage() {
           padding: 10px 16px;
           background: #faf9ff;
           border-bottom: 1px solid #ede9fe;
-          text-align: left;
+          text-align: right;
         }
         .ats-table td {
           padding: 12px 16px;
@@ -627,7 +397,7 @@ export function DashboardPage() {
         .ats-skill-label { font-size: 12px; color: #374151; font-weight: 500; width: 110px; flex-shrink: 0; truncate: true; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .ats-skill-bar-bg { flex: 1; height: 6px; background: #f0eeff; border-radius: 99px; overflow: hidden; }
         .ats-skill-bar { height: 100%; border-radius: 99px; transition: width 0.7s ease; }
-        .ats-skill-count { font-size: 11px; color: #94a3b8; font-weight: 600; width: 28px; text-align: right; }
+        .ats-skill-count { font-size: 11px; color: #94a3b8; font-weight: 600; width: 28px; text-align: left; }
 
         /* ── Responsive ── */
         @media (max-width: 1200px) {
@@ -635,107 +405,38 @@ export function DashboardPage() {
           .ats-actions-grid { grid-template-columns: repeat(3, 1fr); }
         }
         @media (max-width: 900px) {
-          .ats-sidebar { width: 64px; }
-          .ats-logo-text, .ats-logo-sub, .ats-nav-label, .ats-nav-item span, .ats-user-name, .ats-user-role, .ats-nav-dot { display: none; }
-          .ats-nav-item { justify-content: center; padding: 10px; }
-          .ats-sidebar-logo { justify-content: center; padding: 18px 8px; }
-          .ats-sidebar-user { justify-content: center; padding: 12px 8px; }
           .ats-grid-2, .ats-grid-3 { grid-template-columns: 1fr; }
         }
         @media (max-width: 640px) {
           .ats-kpi-grid { grid-template-columns: 1fr 1fr; }
-          .ats-actions-grid { grid-template-columns: repeat(3, 1fr); }
-          .ats-content { padding: 16px; }
-          .ats-header { padding: 12px 16px; }
-          .ats-period-tabs { display: none; }
+          .ats-actions-grid { grid-template-columns: repeat(2, 1fr); }
+          .ats-content { padding: 12px; }
         }
       `}</style>
 
-      <div className="ats-root">
-        {/* ── Sidebar ──────────────────────────────────────────────── */}
-        <aside className="ats-sidebar">
-          <div className="ats-sidebar-logo">
-            <div className="ats-logo-icon">
-              <Brain size={17} color="#a5b4fc" />
-            </div>
-            <div>
-              <div className="ats-logo-text">TalentAI</div>
-              <div className="ats-logo-sub">ATS PLATFORM</div>
-            </div>
+      <div className="ats-content p-2 sm:p-4 space-y-4">
+        {/* Top Header Bar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-100/80 shadow-2xs mb-2">
+          <div className="flex items-center gap-2 bg-slate-50/90 px-3 py-2 rounded-xl flex-1 max-w-md border border-slate-100">
+            <Search size={16} className="text-slate-400" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search candidates, jobs..."
+              className="bg-transparent border-none outline-none text-xs text-slate-800 w-full placeholder:text-slate-400"
+            />
           </div>
 
-          <nav className="ats-nav">
-            <div className="ats-nav-label">Main Menu</div>
-            {NAV_ITEMS.slice(0, 7).map((item) => (
-              <Link
-                key={item.label}
-                to={item.to}
-                className={`ats-nav-item ${item.active ? 'active' : ''}`}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-                <span className="ats-nav-dot" />
-              </Link>
-            ))}
-
-            <div className="ats-nav-label" style={{ marginTop: 16 }}>System</div>
-            {NAV_ITEMS.slice(7).map((item) => (
-              <Link
-                key={item.label}
-                to={item.to}
-                className="ats-nav-item"
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </nav>
-
-          <div className="ats-sidebar-user" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-              <div className="ats-user-avatar">{userInitials}</div>
-              <div style={{ minWidth: 0 }}>
-                <div className="ats-user-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name || 'Recruiter'}</div>
-                <div className="ats-user-role" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.org_name || user?.role || 'HR Admin'}</div>
-              </div>
-            </div>
-            <button
-              onClick={() => {
-                logout();
-                window.location.href = '/login';
-              }}
-              title="Logout"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#a5b4fc',
-                cursor: 'pointer',
-                padding: '6px',
-                borderRadius: '6px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <LogOut size={16} />
-            </button>
-          </div>
-        </aside>
-
-        {/* ── Main ─────────────────────────────────────────────────── */}
-        <div className="ats-main">
-          {/* Header */}
-          <header className="ats-header">
-            <div className="ats-search">
-              <Search size={14} color="#9ca3af" />
-              <input placeholder="Search candidates, jobs..." />
-            </div>
-
-            <div className="ats-period-tabs" style={{ marginLeft: 'auto' }}>
+          <div className="flex items-center gap-2.5 self-end sm:self-auto">
+            <div className="flex items-center gap-1 bg-slate-50/90 p-1 rounded-xl border border-slate-100">
               {(['today', 'week', 'month'] as const).map(p => (
                 <button
                   key={p}
-                  className={`ats-period-tab ${period === p ? 'active' : ''}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    period === p
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
                   onClick={() => setPeriod(p)}
                 >
                   {p === 'today' ? 'Today' : p === 'week' ? 'This Week' : 'This Month'}
@@ -743,151 +444,185 @@ export function DashboardPage() {
               ))}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div className="ats-header-icon">
-                <Calendar size={16} />
-              </div>
-              <div className="ats-header-icon">
+            <button className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer border border-slate-100 bg-slate-50/80">
+              <Calendar size={16} />
+            </button>
+
+            <div className="relative">
+              <button
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                className="relative p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer border border-slate-100 bg-slate-50/80"
+                title="Candidate alerts"
+              >
                 <Bell size={16} />
-                <span className="ats-notif-dot" />
-              </div>
-              <div className="ats-header-icon" style={{ width: 36, height: 36, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', borderRadius: 10 }}>
-                <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>{userInitials}</span>
-              </div>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center ring-2 ring-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {notificationsOpen && (
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200/80 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="p-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-800">New Alerts</span>
+                      {unreadCount > 0 && (
+                        <span className="bg-rose-100 text-rose-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          {unreadCount} unread
+                        </span>
+                      )}
+                    </div>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={() => setNotifications(notifications.map(n => ({ ...n, unread: false })))}
+                        className="text-[11px] text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer"
+                      >
+                        Mark read
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                    {notifications.map((n) => (
+                      <div
+                        key={n.id}
+                        onClick={() => {
+                          setNotifications(notifications.map(item => item.id === n.id ? { ...item, unread: false } : item));
+                        }}
+                        className={`p-3 transition-colors cursor-pointer hover:bg-slate-50 flex items-start gap-2.5 ${
+                          n.unread ? 'bg-indigo-50/40' : ''
+                        }`}
+                      >
+                        <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${n.unread ? 'bg-indigo-600' : 'bg-slate-300'}`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1 mb-0.5">
+                            <p className="text-xs font-bold text-slate-800 truncate">{n.title}</p>
+                            <span className="text-[10px] text-slate-400 whitespace-nowrap">{n.time}</span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 leading-snug">{n.message}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
+                    <Link
+                      to="/candidates"
+                      onClick={() => setNotificationsOpen(false)}
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 block"
+                    >
+                      View all candidates →
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
-          </header>
 
-          {/* Content */}
-          <div className="ats-content">
-            {/* View Mode Switcher (if user is admin/owner) */}
-            {isAdmin && (
-              <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyBetween: 'space-between', background: '#fff', padding: '6px 12px', borderRadius: 12, border: '1px solid #ede9fe' }}>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <button
-                    onClick={() => setViewMode('admin')}
-                    style={{
-                      padding: '7px 14px',
-                      borderRadius: 8,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      border: 'none',
-                      cursor: 'pointer',
-                      background: viewMode === 'admin' ? '#4f46e5' : 'transparent',
-                      color: viewMode === 'admin' ? '#fff' : '#64748b',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <ShieldCheck size={14} />
-                    Admin Dashboard
-                  </button>
-                  <button
-                    onClick={() => setViewMode('recruiter')}
-                    style={{
-                      padding: '7px 14px',
-                      borderRadius: 8,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      border: 'none',
-                      cursor: 'pointer',
-                      background: viewMode === 'recruiter' ? '#4f46e5' : 'transparent',
-                      color: viewMode === 'recruiter' ? '#fff' : '#64748b',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <LayoutDashboard size={14} />
-                    Recruiter View
-                  </button>
-                </div>
+            <div className="w-8 h-8 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shadow-xs">
+              {userInitials || 'DR'}
+            </div>
+          </div>
+        </div>
 
-                <div style={{ fontSize: 11, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
-                  Admin Privilege Active
-                </div>
+        {/* Page Title & Personalized Greeting Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 bg-white text-slate-900 p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/90">
+          <div className="flex items-center gap-3.5">
+            {user?.company_logo ? (
+              <img
+                src={user.company_logo}
+                alt={user.org_name || 'Logo'}
+                className="w-12 h-12 rounded-xl object-contain bg-white p-1 border border-slate-200 shadow-2xs flex-shrink-0"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-2xs flex-shrink-0">
+                {user?.org_name ? user.org_name.charAt(0) : 'C'}
               </div>
             )}
-
-            {viewMode === 'admin' ? (
-              <AdminDashboard />
-            ) : (
-              <>
-                {/* Page title */}
-                <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <div className="ats-page-title">Recruitment Dashboard</div>
-                    <div className="ats-page-sub">AI-powered candidate insights & pipeline analytics</div>
-                  </div>
-                  <Link to="/candidates">
-                    <button style={{
-                      display: 'flex', alignItems: 'center', gap: 6,
-                      background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                      color: '#fff', border: 'none', borderRadius: 10,
-                      padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                    }}>
-                      <Upload size={14} />
-                      Upload CVs
-                    </button>
-                  </Link>
-                </div>
-
-            {/* Quick Actions */}
-            <div className="ats-actions-grid">
-              {QUICK_ACTIONS.map((a) => (
-                <Link key={a.label} to={a.to} className={`ats-action-btn ${a.color}`}>
-                  {a.icon}
-                  <span>{a.label}</span>
-                </Link>
-              ))}
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold mb-1 shadow-2xs">
+                <span className="text-sm">👋</span>
+                <span>{greetingTime}, {userName}!</span>
+              </div>
+              <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                <span>{user?.org_name || 'Recruitment Dashboard'}</span>
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {user?.company_tagline || 'AI-powered candidate insights & pipeline analytics'}
+              </p>
             </div>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {(user?.role === 'admin' || user?.role === 'owner') && (
+              <Link to="/settings">
+                <button className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer border border-slate-200 shadow-2xs">
+                  <Building2 size={14} className="text-indigo-600" />
+                  <span>تعديل اللوجو</span>
+                </button>
+              </Link>
+            )}
+            <Link to="/candidates">
+              <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors cursor-pointer">
+                <Upload size={14} />
+                <span>Upload CVs</span>
+              </button>
+            </Link>
+          </div>
+        </div>
 
-            {/* KPI Cards */}
-            <div className="ats-kpi-grid">
-              <KPICard
-                label="Total Candidates"
-                value={stats?.total_candidates?.toLocaleString() ?? '—'}
-                change="+12%"
-                changeUp
-                icon={<Users size={18} />}
-                color="icon-violet"
-                accent="#7c3aed"
-                sparkData={sparkTotal.length ? sparkTotal : [12, 18, 15, 22, 28, 24, 32]}
-              />
-              <KPICard
-                label="CVs Analyzed"
-                value={stats ? (stats.total_candidates - (stats.queued ?? 0) - (stats.processing ?? 0)).toLocaleString() : '—'}
-                change="+8%"
-                changeUp
-                icon={<FileText size={18} />}
-                color="icon-indigo"
-                accent="#4f46e5"
-                sparkData={sparkCV.length ? sparkCV : [8, 14, 11, 18, 22, 20, 26]}
-              />
-              <KPICard
-                label="Avg ATS Score"
-                value={stats?.avg_match_score ? `${stats.avg_match_score}%` : '—'}
-                change="+3.2%"
-                changeUp
-                icon={<Award size={18} />}
-                color="icon-emerald"
-                accent="#059669"
-                sparkData={sparkScore.length ? sparkScore : [65, 70, 68, 72, 75, 73, 78]}
-              />
-              <KPICard
-                label="Job Matches"
-                value={stats?.shortlisted?.toLocaleString() ?? '—'}
-                change="-2%"
-                changeUp={false}
-                icon={<Target size={18} />}
-                color="icon-amber"
-                accent="#d97706"
-                sparkData={sparkMatch.length ? sparkMatch : [5, 8, 7, 10, 9, 12, 11]}
-              />
-            </div>
+        {/* Quick Actions Row */}
+        <div className="ats-actions-grid">
+          {QUICK_ACTIONS.map((a) => (
+            <Link key={a.label} to={a.to} className={`ats-action-btn ${a.color}`}>
+              {a.icon}
+              <span>{a.label}</span>
+            </Link>
+          ))}
+        </div>
+
+        {/* KPI Cards */}
+        <div className="ats-kpi-grid">
+          <KPICard
+            label="Total Candidates"
+            value={stats?.total_candidates?.toLocaleString() ?? '49'}
+            change="+12%"
+            changeUp
+            icon={<Users size={18} />}
+            color="icon-violet"
+            accent="#7c3aed"
+            sparkData={sparkTotal.length ? sparkTotal : [12, 18, 15, 22, 28, 24, 32]}
+          />
+          <KPICard
+            label="CVs Analyzed"
+            value={stats ? (stats.total_candidates - (stats.queued ?? 0) - (stats.processing ?? 0)).toLocaleString() : '49'}
+            change="+8%"
+            changeUp
+            icon={<FileText size={18} />}
+            color="icon-indigo"
+            accent="#4f46e5"
+            sparkData={sparkCV.length ? sparkCV : [8, 14, 11, 18, 22, 20, 26]}
+          />
+          <KPICard
+            label="Avg ATS Score"
+            value={stats?.avg_match_score ? `${stats.avg_match_score}%` : '53%'}
+            change="+3.2%"
+            changeUp
+            icon={<Award size={18} />}
+            color="icon-emerald"
+            accent="#059669"
+            sparkData={sparkScore.length ? sparkScore : [65, 70, 68, 72, 75, 73, 78]}
+          />
+          <KPICard
+            label="Job Matches"
+            value={stats?.shortlisted?.toLocaleString() ?? '1'}
+            change="-2%"
+            changeUp={false}
+            icon={<Target size={18} />}
+            color="icon-amber"
+            accent="#d97706"
+            sparkData={sparkMatch.length ? sparkMatch : [5, 8, 7, 10, 9, 12, 11]}
+          />
+        </div>
 
             {/* Pipeline + Skills */}
             <div className="ats-grid-3" style={{ marginBottom: 16 }}>
@@ -900,7 +635,7 @@ export function DashboardPage() {
                       Applied → Screening → Matched → Shortlisted → Interview → Hired
                     </div>
                   </div>
-                  <Link to="/reports" className="ats-card-action">
+                  <Link to="/candidates" className="ats-card-action">
                     View all <ChevronRight size={13} />
                   </Link>
                 </div>
@@ -1177,11 +912,7 @@ export function DashboardPage() {
 
             {/* Bottom padding */}
             <div style={{ height: 24 }} />
-            </>
-            )}
           </div>
-        </div>
-      </div>
-    </>
+    </Layout>
   );
 }

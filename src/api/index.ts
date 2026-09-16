@@ -4,6 +4,8 @@ import type {
   Candidate, CandidateBatch, Paginated, DashboardStats, PipelineAnalytics,
   BatchJob, TimelineEvent, WebhookEndpoint, WebhookDelivery,
   TeamUser, TimeToHireReport, TokenResponse, EmailLog, EmailTemplate,
+  CandidateInquiry, TalentPool, Sequence, SequenceEnrollment, SequenceStep,
+  DripCampaign, DripStep, DripExecutionLog,
 } from '../types';
 
 const V1 = '/api/v1';
@@ -179,8 +181,16 @@ export const emailsApi = {
     api.delete(`${V1}/emails/${id}`).then(r => r.data),
   getTemplates: () =>
     api.get<EmailTemplate[]>(`${V1}/emails/templates`).then(r => r.data),
+  saveTemplate: (data: Partial<EmailTemplate>) =>
+    api.post<EmailTemplate>(`${V1}/emails/templates`, data).then(r => r.data),
   updateTemplate: (data: Partial<EmailTemplate>) =>
     api.post<EmailTemplate>(`${V1}/emails/templates`, data).then(r => r.data),
+  deleteTemplate: (id: string) =>
+    api.delete(`${V1}/emails/templates/${id}`).then(r => r.data),
+  resetTemplates: () =>
+    api.post<EmailTemplate[]>(`${V1}/emails/templates/reset`).then(r => r.data),
+  testSendTemplate: (data: { template_id: string; recipient_email?: string }) =>
+    api.post<{ success: boolean; message: string; log: EmailLog }>(`${V1}/emails/templates/test-send`, data).then(r => r.data),
 };
 
 // ── Dashboard ─────────────────────────────────────────────────────────
@@ -199,8 +209,10 @@ export const usersApi = {
   list: () => api.get<TeamUser[]>(`${V1}/users`).then(r => r.data),
   create: (data: { name: string; email: string; password: string; role: string; create_isolated_workspace?: boolean; org_name?: string }) =>
     api.post<TeamUser>(`${V1}/users`, data).then(r => r.data),
-  update: (id: number, data: Partial<TeamUser & { password: string; org_name: string }>) =>
+  update: (id: number, data: Partial<TeamUser & { password: string; org_name: string; company_logo?: string; company_tagline?: string; company_website?: string; primary_color?: string }>) =>
     api.patch<TeamUser>(`${V1}/users/${id}`, data).then(r => r.data),
+  updateCompanyProfile: (data: { org_name?: string; company_logo?: string; company_tagline?: string; company_website?: string; primary_color?: string }) =>
+    api.patch<User>(`${V1}/users/company-profile`, data).then(r => r.data),
   delete: (id: number) => api.delete(`${V1}/users/${id}`),
 };
 
@@ -251,3 +263,100 @@ export const settingsApi = {
       };
     }>(`${V1}/settings/test-db`).then(r => r.data),
 };
+
+// ── Inquiries (Candidate Queries & Questions) ─────────────────────────
+export const inquiriesApi = {
+  list: (params?: { job_id?: number; status?: string; search?: string }) =>
+    api.get<CandidateInquiry[]>(`${V1}/inquiries`, { params }).then(r => r.data),
+
+  reply: (id: number, reply_text: string) =>
+    api.post<CandidateInquiry>(`${V1}/inquiries/${id}/reply`, { reply_text }).then(r => r.data),
+
+  updateStatus: (id: number, status: string) =>
+    api.patch<CandidateInquiry>(`${V1}/inquiries/${id}/status`, { status }).then(r => r.data),
+
+  delete: (id: number) =>
+    api.delete<{ message: string; id: number }>(`${V1}/inquiries/${id}`).then(r => r.data),
+};
+
+// ── Public Inquiries & AI Assistant ────────────────────────────────────
+export const publicInquiryApi = {
+  askJobQuestion: (token: string, question: string, candidate_info?: { candidate_name?: string; candidate_email?: string; candidate_phone?: string }) =>
+    api.post<{ answer: string; inquiry_saved: boolean; inquiry_id?: number }>(`${V1}/public/job-ask`, {
+      token,
+      question,
+      ...candidate_info,
+    }).then(r => r.data),
+
+  submitInquiry: (token: string, data: { candidate_name: string; candidate_email: string; candidate_phone?: string; question: string }) =>
+    api.post<{ success: boolean; message: string; inquiry_id: number }>(`${V1}/public/inquiries`, {
+      token,
+      ...data,
+    }).then(r => r.data),
+};
+
+// ── Talent Pools & Collections ──────────────────────────────────────────
+export const talentPoolsApi = {
+  list: () => api.get<TalentPool[]>(`${V1}/talent-pools`).then(r => r.data),
+  create: (data: { name: string; description?: string; tags?: string[]; color?: string; candidate_ids?: number[] }) =>
+    api.post<TalentPool>(`${V1}/talent-pools`, data).then(r => r.data),
+  update: (id: number, data: Partial<TalentPool>) =>
+    api.put<TalentPool>(`${V1}/talent-pools/${id}`, data).then(r => r.data),
+  delete: (id: number) =>
+    api.delete<{ message: string; id: number }>(`${V1}/talent-pools/${id}`).then(r => r.data),
+  addCandidates: (id: number, candidate_ids: number[]) =>
+    api.post<TalentPool>(`${V1}/talent-pools/${id}/candidates`, { candidate_ids }).then(r => r.data),
+  removeCandidate: (id: number, candidateId: number) =>
+    api.delete<TalentPool>(`${V1}/talent-pools/${id}/candidates/${candidateId}`).then(r => r.data),
+};
+
+// ── Automated Sequences ──────────────────────────────────────────────────
+export const sequencesApi = {
+  list: () => api.get<Sequence[]>(`${V1}/sequences`).then(r => r.data),
+  create: (data: { title: string; description?: string; trigger_event?: string; steps: Partial<SequenceStep>[] }) =>
+    api.post<Sequence>(`${V1}/sequences`, data).then(r => r.data),
+  update: (id: number, data: Partial<Sequence>) =>
+    api.put<Sequence>(`${V1}/sequences/${id}`, data).then(r => r.data),
+  delete: (id: number) =>
+    api.delete<{ message: string; id: number }>(`${V1}/sequences/${id}`).then(r => r.data),
+  enroll: (id: number, data: { candidate_ids?: number[]; pool_id?: number }) =>
+    api.post<{ message: string; enrollments: SequenceEnrollment[] }>(`${V1}/sequences/${id}/enroll`, data).then(r => r.data),
+  getEnrollments: (id: number) =>
+    api.get<SequenceEnrollment[]>(`${V1}/sequences/${id}/enrollments`).then(r => r.data),
+  generateAISteps: (goal: string) =>
+    api.post<{ steps: Partial<SequenceStep>[] }>(`${V1}/sequences/generate-ai-steps`, { goal }).then(r => r.data),
+};
+
+// ── Automated Email Drip Campaigns ──────────────────────────────────────────
+export const dripCampaignsApi = {
+  list: () => api.get<DripCampaign[]>(`${V1}/drip-campaigns`).then(r => r.data),
+  get: (id: number) => api.get<DripCampaign>(`${V1}/drip-campaigns/${id}`).then(r => r.data),
+  create: (data: {
+    title: string;
+    description?: string;
+    trigger_stage: string;
+    target_job_id?: number | null;
+    target_pool_id?: number | null;
+    is_active?: boolean;
+    steps: Partial<DripStep>[];
+  }) => api.post<DripCampaign>(`${V1}/drip-campaigns`, data).then(r => r.data),
+  update: (id: number, data: Partial<DripCampaign>) =>
+    api.put<DripCampaign>(`${V1}/drip-campaigns/${id}`, data).then(r => r.data),
+  delete: (id: number) =>
+    api.delete<{ message: string; id: number }>(`${V1}/drip-campaigns/${id}`).then(r => r.data),
+  toggleActive: (id: number) =>
+    api.post<{ message: string; campaign: DripCampaign }>(`${V1}/drip-campaigns/${id}/toggle`, {}).then(r => r.data),
+  testTrigger: (id: number, data: { candidate_id: number }) =>
+    api.post<{ message: string; log: DripExecutionLog }>(`${V1}/drip-campaigns/${id}/test-trigger`, data).then(r => r.data),
+  getLogs: () => api.get<DripExecutionLog[]>(`${V1}/drip-campaigns-logs`).then(r => r.data),
+  deleteLog: (id: number) =>
+    api.delete<{ message: string; id: number }>(`${V1}/drip-campaigns-logs/${id}`).then(r => r.data),
+  clearLogs: () =>
+    api.delete<{ message: string; deleted_count: number }>(`${V1}/drip-campaigns-logs`).then(r => r.data),
+  seedHRDemoExamples: () =>
+    api.post<{ message: string; pools_count: number; campaigns_count: number; sequences_count: number; logs_count: number }>(`${V1}/crm/seed-demo-examples`).then(r => r.data),
+  generateAIDrip: (data: { trigger_stage: string; goal?: string; company_name?: string }) =>
+    api.post<{ title: string; description: string; steps: Partial<DripStep>[] }>(`${V1}/drip-campaigns/generate-ai`, data).then(r => r.data),
+};
+
+
